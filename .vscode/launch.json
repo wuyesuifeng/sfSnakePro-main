@@ -1,0 +1,31 @@
+// launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) 自定义", //这个应该是F1中出现的名字
+            "preLaunchTask": "MyBuild",  //在launch之前运行的任务名，这个名字一定要跟tasks.json中的任务名字大小写一致
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceRoot}", // 当前工作路径：当前文件所在的工作空间
+            "program": "${workspaceRoot}/build/main.exe", //需要运行的是当前打开文件的目录中，名字和当前文件相同，但扩展名为exe的程序
+            "args": [],
+            "stopAtEntry": false, // 选为true则会在打开控制台后停滞，暂时不执行程序
+            "environment": [],
+            "externalConsole": false,  // 是否使用外部控制台，选false的话，我的vscode会出现错误
+            "MIMode": "gdb",
+            "miDebuggerPath": "D:/soft/mingw64/bin/gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "我的描述",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }]
+}
