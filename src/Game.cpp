@@ -131,8 +131,8 @@ void Game::handleInput()
             sf::Vector2f(0, 0),
             sf::Vector2f(
                 Game::GlobalVideoMode.width,
-                Game::GlobalVideoMode.height))
-            .contains(static_cast<sf::Vector2f>(
+                Game::GlobalVideoMode.height)
+            ).contains(static_cast<sf::Vector2f>(
                 sf::Mouse::getPosition(window_))))
         Game::MainScreen->handleInput(window_);
 }

@@ -17,9 +17,9 @@ SRCS = $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.cpp))
 OBJS = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(SRCS))))
 DEPS = $(OBJS:.o=.d)
 
-INC_DIR = ./src D:/workspace/cpp/includes
-LIB_DIR = D:/workspace/cpp/lib
-LIBS    = libsfml-main libsfml-audio-s libsfml-graphics-s libsfml-network-s libsfml-window-s libsfml-system-s libfreetype libopenal32 libflac libvorbisenc libvorbisfile libvorbis libogg libwinmm libgdi32 libopengl32 libws2_32
+INC_DIR = ./src D:/workspace/cpp/includes D:/soft/SFML-2.6.1/include
+LIB_DIR = D:/workspace/cpp/lib D:/soft/SFML-2.6.1/lib
+LIBS    = sfml-main sfml-audio-s sfml-graphics-s sfml-network-s sfml-window-s sfml-system-s freetype openal32 flac vorbisenc vorbisfile vorbis ogg winmm gdi32 opengl32 ws2_32
 
 INC_FLAGS = $(addprefix -I,$(INC_DIR))
 LIB_FLAGS = $(addprefix -L,$(LIB_DIR)) $(addprefix -l,$(LIBS))

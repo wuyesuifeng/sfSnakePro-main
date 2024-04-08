@@ -12,7 +12,7 @@
             "args": [],
             "stopAtEntry": false, // 选为true则会在打开控制台后停滞，暂时不执行程序
             "environment": [],
-            "externalConsole": false,  // 是否使用外部控制台，选false的话，我的vscode会出现错误
+            "externalConsole": true,  // 是否使用外部控制台，选false的话，我的vscode会出现错误
             "MIMode": "gdb",
             "miDebuggerPath": "D:/soft/mingw64/bin/gdb.exe",
             "setupCommands": [

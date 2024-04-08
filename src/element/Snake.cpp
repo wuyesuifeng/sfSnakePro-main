@@ -101,9 +101,9 @@ void Snake::handleInput(sf::RenderWindow &window)
                         Game::GlobalVideoMode.width / 15.0f)) >
                 Game::GlobalVideoMode.width / 16.0f)
             {
+                SnakePathNode front = path_.front();
                 direction_ =
-                    static_cast<sf::Vector2f>(MousePosition) -
-                    toWindow(path_.front());
+                    static_cast<sf::Vector2f>(MousePosition) - front;
                 directionSize = length(direction_);
                 direction_.x /= directionSize;
                 direction_.y /= directionSize;
@@ -120,12 +120,7 @@ void Snake::handleInput(sf::RenderWindow &window)
 void Snake::update(sf::Time delta)
 {
     move();
-    static int count = 0;
-    if (++count >= 40)
-    {
-        checkOutOfWindow();
-        count -= 40;
-    }
+    biasPos();
     checkSelfCollisions();
 }
 
@@ -137,8 +132,8 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
     for (auto i = fruits.begin(); i != fruits.end(); ++i)
     {
         if (dis(
-                i->shape_.getPosition(), toWindow(headnode)) <
-            nodeRadius_ + i->shape_.getRadius())
+                i -> shape_.getPosition(), headnode) <
+            nodeRadius_ + i -> shape_.getRadius())
             toRemove = i;
     }
 
@@ -184,63 +179,73 @@ void Snake::move()
 
 void Snake::checkSelfCollisions()
 {
-    SnakePathNode head = toWindow(path_.front());
+    SnakePathNode head = path_.front();
     int count = 0;
 
-    for (auto i = path_.begin(); i != path_.end(); i++, count++)
-        if (count >= 30 && dis(head, toWindow(*i)) < 2.0f * nodeRadius_)
+    for (auto i = path_.begin(); i != path_.end(); i++, count++) {
+        if (count >= 30 && dis(head, *i) < 2.0f * nodeRadius_)
         {
             dieSound_.play();
             sf::sleep(sf::seconds(dieBuffer_.getDuration().asSeconds()));
             hitSelf_ = true;
             break;
         }
-}
-
-void Snake::checkOutOfWindow()
-{
-    auto inWindow = [](SnakePathNode &node) -> bool
-    {
-        return node.x >= 0 &&
-               node.x <= Game::GlobalVideoMode.width &&
-               node.y >= 0 &&
-               node.y <= Game::GlobalVideoMode.height;
-    };
-    bool OutOfWindow = true;
-    for (auto i : path_)
-    {
-        if (inWindow(i))
-            OutOfWindow = false;
-    }
-    if (OutOfWindow)
-    {
-        SnakePathNode &tail = path_.back();
-        if (tail.x < 0)
-            for (auto &i : path_)
-                i.x = i.x + Game::GlobalVideoMode.width;
-        else if (tail.x > Game::GlobalVideoMode.width)
-            for (auto &i : path_)
-                i.x = i.x - Game::GlobalVideoMode.width;
-        else if (tail.y < 0)
-            for (auto &i : path_)
-                i.y = i.y + Game::GlobalVideoMode.height;
-        else if (tail.y > Game::GlobalVideoMode.height)
-            for (auto &i : path_)
-                i.y = i.y - Game::GlobalVideoMode.height;
     }
 }
 
-SnakePathNode Snake::toWindow(SnakePathNode node)
+bool inWindow(SnakePathNode &node)
 {
-    while (node.x < 0)
+    return node.x >= 0 &&
+            node.x <= Game::GlobalVideoMode.width &&
+            node.y >= 0 &&
+            node.y <= Game::GlobalVideoMode.height;
+}
+
+void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned int total, unsigned int total2) {
+    if (dir > 0 && dir2 > 0) {
+
+    }
+}
+
+SnakePathNode Snake::toWindow(SnakePathNode node, SnakePathNode dir)
+{
+    while (node.x < 0) {
         node.x = node.x + Game::GlobalVideoMode.width;
-    while (node.x > Game::GlobalVideoMode.width)
+        culOutWindowPos(node.x, node.y, dir.x, dir.y, 
+            Game::GlobalVideoMode.width, Game::GlobalVideoMode.height);
+    }
+
+    while (node.x > Game::GlobalVideoMode.width) {
         node.x = node.x - Game::GlobalVideoMode.width;
-    while (node.y < 0)
+        culOutWindowPos(node.x, node.y,dir.x, dir.y, 
+            Game::GlobalVideoMode.width, Game::GlobalVideoMode.height);
+    }
+
+    while (node.y < 0) {
         node.y = node.y + Game::GlobalVideoMode.height;
-    while (node.y > Game::GlobalVideoMode.height)
+        culOutWindowPos(node.y, node.x, dir.y, dir.x, 
+            Game::GlobalVideoMode.height, Game::GlobalVideoMode.width);
+    }
+        
+    while (node.y > Game::GlobalVideoMode.height) {
         node.y = node.y - Game::GlobalVideoMode.height;
+        culOutWindowPos(node.y, node.x, dir.y, dir.x, 
+            Game::GlobalVideoMode.height, Game::GlobalVideoMode.width);
+    }
+        
     return node;
+}
+
+void Snake::biasPos() {
+    int count = 5;
+    SnakePathNode lastSnakeNode, nowSnakeNode;
+    for (static auto i = path_.begin() + 1, end = path_.end();
+            i != end;
+            i++) {
+        if (count % 5 == 0)
+        {
+        }
+    }
 }
 
 void Snake::render(sf::RenderWindow &window)
@@ -252,7 +257,7 @@ void Snake::render(sf::RenderWindow &window)
     static SnakePathNode wNowHeadNode;
 
     lastSnakeNode = *path_.begin();
-    wNowHeadNode = toWindow(lastSnakeNode);
+    wNowHeadNode = lastSnakeNode;
     headSprite.setPosition(wNowHeadNode);
     recDirection = direction_;
     angle =
@@ -264,34 +269,29 @@ void Snake::render(sf::RenderWindow &window)
 
     renderNode(wNowHeadNode, headSprite, window, 3);
 
-    count = 1;
-    for (auto i = path_.begin() + 1; i != path_.end(); i++, count++)
+    count = 5;
+    for (auto i = path_.begin() + 5, end = path_.end();
+            i < end;
+            i+=5, count+=5)
     {
-        if (count % 5 == 0)
+        if (count % 2)
+            lastMiddleNode = *i;
+        else
         {
-            if (count % 2)
-                lastMiddleNode = *i;
-            else
-            {
-                nowSnakeNode = *i;
+            nowSnakeNode = *i;
 
-                recDirection = nowSnakeNode - lastSnakeNode;
-                angle =
-                    std::acos(recDirection.y / length(recDirection)) /
-                    3.14159265358979323846 * 180.0;
-                if (recDirection.x > 0)
-                    angle = -angle;
-                nodeMiddle.setRotation(angle);
+            recDirection = nowSnakeNode - lastSnakeNode;
+            angle =
+                std::acos(recDirection.y / length(recDirection)) /
+                3.14159265358979323846 * 180.0;
+            if (recDirection.x > 0)
+                angle = -angle;
+            nodeMiddle.setRotation(angle);
 
-                static SnakePathNode wNowSnakeNode;
-                static SnakePathNode wMiddleNode;
-                wNowSnakeNode = toWindow(nowSnakeNode);
-                wMiddleNode = toWindow(lastMiddleNode);
-                renderNode(wNowSnakeNode, nodeShape, window, 0);
-                renderNode(wMiddleNode, nodeMiddle, window, 0);
+            lastSnakeNode = nowSnakeNode;
 
-                lastSnakeNode = nowSnakeNode;
-            }
+            renderNode(nowSnakeNode, nodeShape, window, 0);
+            renderNode(lastMiddleNode, nodeMiddle, window, 0);
         }
     }
 }

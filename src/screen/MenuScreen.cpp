@@ -61,9 +61,7 @@ void MenuScreen::handleInput(sf::RenderWindow &window)
             Game::MainScreen = std::make_shared<OptionScreen>();
             return;
         }
-    }
-
-    if (button_[1].contain(mousePosition))
+    } else if (button_[1].contain(mousePosition))
     {
         button_[1].focused(true);
         if (!Game::mouseButtonLocked && sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -81,19 +79,7 @@ void MenuScreen::handleInput(sf::RenderWindow &window)
                 return;
             }
         }
-    }
-
-    if (button_[2].contain(mousePosition))
-    {
-        button_[2].focused(true);
-        if (!Game::mouseButtonLocked && sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            window.close();
-            return;
-        }
-    }
-
-    if (helpButton_.contains(mousePosition))
+    } else if (helpButton_.contains(mousePosition))
     {
         helpButton_.focused();
         if (!Game::mouseButtonLocked && sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -105,9 +91,7 @@ void MenuScreen::handleInput(sf::RenderWindow &window)
             Game::MainScreen = std::make_shared<HelpScreen>();
             return;
         }
-    }
-
-    if (aboutButton_.contains(mousePosition))
+    } else if (aboutButton_.contains(mousePosition))
     {
         aboutButton_.focused();
         if (!Game::mouseButtonLocked && sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -117,6 +101,14 @@ void MenuScreen::handleInput(sf::RenderWindow &window)
             Game::mouseButtonLocked = true;
             Game::TmpScreen = Game::MainScreen;
             Game::MainScreen = std::make_shared<AboutScreen>();
+            return;
+        }
+    } else if (button_[2].contain(mousePosition))
+    {
+        button_[2].focused(true);
+        if (!Game::mouseButtonLocked && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            window.close();
             return;
         }
     }

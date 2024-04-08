@@ -63,10 +63,11 @@ void GameScreen::update(sf::Time delta)
 
     if (snake_.hitSelf())
     {
-        Game::MainScreen = std::make_shared<GameOverScreen>(snake_.getScore());
+        Game::MainScreen = std::make_shared<GameOverScreen>(snake_.getScore() - 5);
+    } else {
+        score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore() - 5));
     }
-
-    score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore()));
+    
 }
 
 void GameScreen::render(sf::RenderWindow &window)
