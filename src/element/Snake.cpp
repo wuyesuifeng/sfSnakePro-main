@@ -120,7 +120,7 @@ void Snake::handleInput(sf::RenderWindow &window)
 void Snake::update(sf::Time delta)
 {
     move();
-    biasPos();
+    toWindow(path_.front(), direction_);
     checkSelfCollisions();
 }
 
@@ -202,59 +202,59 @@ bool inWindow(SnakePathNode &node)
 }
 
 void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned int total, unsigned int total2) {
-    if (dir > 0 && dir2 > 0) {
-
+    
+    float times = std::abs(total / dir),
+            times2 = dir2 > 0 ? pos2 / dir2 : std::abs((total2 - pos2) / dir2);
+    
+    if (times > times2) {
+        pos = pos - dir * times2;
+        if (pos < 0) {
+            pos = 0;
+        } else if (pos > total) {
+            pos = total;
+        }
+        pos2 = dir2 > 0 ? 0 : total2;
+    } else {
+        pos2 = pos2 - dir2 * times;
+        if (pos2 < 0) {
+            pos2 = 0;
+        } else if (pos2 > total2) {
+            pos2 = total2;
+        }
+        pos = dir > 0 ? 0 : total;
     }
 }
 
-SnakePathNode Snake::toWindow(SnakePathNode node, SnakePathNode dir)
+SnakePathNode Snake::toWindow(SnakePathNode &node, SnakePathNode dir)
 {
-    while (node.x < 0) {
-        node.x = node.x + Game::GlobalVideoMode.width;
-        culOutWindowPos(node.x, node.y, dir.x, dir.y, 
-            Game::GlobalVideoMode.width, Game::GlobalVideoMode.height);
+    if (node.x < 0 || node.x > Game::GlobalVideoMode.width) {
+        if (dir.y == 0) {
+            node.x = node.x < 0 ? node.x + Game::GlobalVideoMode.width : node.x - Game::GlobalVideoMode.width;
+        } else {
+            culOutWindowPos(node.x, node.y, dir.x, dir.y, 
+                Game::GlobalVideoMode.width, Game::GlobalVideoMode.height);
+        }
     }
 
-    while (node.x > Game::GlobalVideoMode.width) {
-        node.x = node.x - Game::GlobalVideoMode.width;
-        culOutWindowPos(node.x, node.y,dir.x, dir.y, 
-            Game::GlobalVideoMode.width, Game::GlobalVideoMode.height);
-    }
-
-    while (node.y < 0) {
-        node.y = node.y + Game::GlobalVideoMode.height;
-        culOutWindowPos(node.y, node.x, dir.y, dir.x, 
-            Game::GlobalVideoMode.height, Game::GlobalVideoMode.width);
-    }
-        
-    while (node.y > Game::GlobalVideoMode.height) {
-        node.y = node.y - Game::GlobalVideoMode.height;
-        culOutWindowPos(node.y, node.x, dir.y, dir.x, 
-            Game::GlobalVideoMode.height, Game::GlobalVideoMode.width);
+    if (node.y < 0 || node.y > Game::GlobalVideoMode.height) {
+        if (dir.x == 0) {
+            node.y = node.y < 0 ? node.y + Game::GlobalVideoMode.height : node.y - Game::GlobalVideoMode.height;
+        } else {
+            culOutWindowPos(node.y, node.x, dir.y, dir.x, 
+                Game::GlobalVideoMode.height, Game::GlobalVideoMode.width);
+        }
     }
         
     return node;
 }
 
-void Snake::biasPos() {
-    int count = 5;
-    SnakePathNode lastSnakeNode, nowSnakeNode;
-    for (static auto i = path_.begin() + 1, end = path_.end();
-            i != end;
-            i++) {
-        if (count % 5 == 0)
-        {
-        }
-    }
-}
-
 void Snake::render(sf::RenderWindow &window)
 {
-    static int count;
-    static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
-    static float angle;
-    static sf::Vector2f recDirection;
-    static SnakePathNode wNowHeadNode;
+    int count;
+    SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
+    float angle;
+    sf::Vector2f recDirection;
+    SnakePathNode wNowHeadNode;
 
     lastSnakeNode = *path_.begin();
     wNowHeadNode = lastSnakeNode;
@@ -272,7 +272,7 @@ void Snake::render(sf::RenderWindow &window)
     count = 5;
     for (auto i = path_.begin() + 5, end = path_.end();
             i < end;
-            i+=5, count+=5)
+            i += 5, count += 5)
     {
         if (count % 2)
             lastMiddleNode = *i;
@@ -301,37 +301,4 @@ void Snake::renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &wi
 {
     shape.setPosition(nowPosition);
     window.draw(shape);
-
-    if (nowPosition.x <= nodeRadius_ + offset)
-    {
-        shape.setPosition(nowPosition + sf::Vector2f(Game::GlobalVideoMode.width, 0));
-        window.draw(shape);
-    }
-    else if (nowPosition.x >= Game::GlobalVideoMode.width - nodeRadius_ - offset)
-    {
-        shape.setPosition(nowPosition - sf::Vector2f(Game::GlobalVideoMode.width, 0));
-        window.draw(shape);
-    }
-
-    if (nowPosition.y <= nodeRadius_ + offset)
-    {
-        shape.setPosition(nowPosition + sf::Vector2f(0, Game::GlobalVideoMode.height));
-        window.draw(shape);
-    }
-    else if (nowPosition.y >= Game::GlobalVideoMode.height - nodeRadius_ - offset)
-    {
-        shape.setPosition(nowPosition - sf::Vector2f(0, Game::GlobalVideoMode.height));
-        window.draw(shape);
-    }
-
-    if (nowPosition.x <= nodeRadius_ + offset && nowPosition.y <= nodeRadius_ + offset)
-    {
-        shape.setPosition(nowPosition + sf::Vector2f(Game::GlobalVideoMode.width, Game::GlobalVideoMode.height));
-        window.draw(shape);
-    }
-    else if (nowPosition.x >= Game::GlobalVideoMode.width - nodeRadius_ - offset && nowPosition.y >= Game::GlobalVideoMode.height - nodeRadius_ - offset)
-    {
-        shape.setPosition(nowPosition - sf::Vector2f(Game::GlobalVideoMode.width, Game::GlobalVideoMode.height));
-        window.draw(shape);
-    }
 }
