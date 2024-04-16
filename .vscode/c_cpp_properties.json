@@ -1,10 +1,10 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "D:/soft/SFML-2.6.1/include/**"
+                "/soft/SFML-2.6.1/include/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -12,10 +12,10 @@
                 "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.22621.0",
-            "compilerPath": "D:/soft/mingw64/bin/g++.exe",
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-gcc-x64",
+            "intelliSenseMode": "linux-gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

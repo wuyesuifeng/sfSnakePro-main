@@ -6,8 +6,8 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g", // 调试
-                "-mwindows", // 禁用cmd窗口
+                // "-g", // 调试
+                // "-mwindows", // 禁用cmd窗口
                 // "-static",
                 "${workspaceRoot}/src/main.cpp",
                 "${workspaceRoot}/src/Game.cpp",
@@ -25,17 +25,17 @@
                 "${workspaceRoot}/src/element/OptionButton.cpp",
                 "${workspaceRoot}/src/element/Snake.cpp",
                 "${workspaceRoot}/src/element/TitleSprite.cpp",
-                "-ID:/soft/SFML-2.6.1/include",
+                "-I/home/xy/soft/SFML-2.6.1/include",
                 "-I${workspaceRoot}/src",
                 "-I${workspaceRoot}/src/screen",
                 "-I${workspaceRoot}/src/element",
-                "-LD:/soft/SFML-2.6.1/lib",
+                "-L/home/xy/soft/SFML-2.6.1/lib",
                 "-lsfml-graphics",
                 "-lsfml-window",
                 "-lsfml-system",
                 "-lsfml-audio",
                 "-o",
-                "${workspaceRoot}/build/main.exe"
+                "${workspaceRoot}/build/run"
             ],
             "options": {
                 "cwd": "${workspaceRoot}"
@@ -46,7 +46,10 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "presentation": { 
+                // "panel": "new" //默认为“shared“表示共享，改成new之后每个进程创建新的端口
+            }
         }
     ]
 }

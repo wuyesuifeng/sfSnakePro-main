@@ -49,5 +49,5 @@
         "streambuf": "cpp",
         "typeinfo": "cpp"
     },
-    "makefile.makefilePath": ""
+    "cmake.configureOnOpen": false
 }
