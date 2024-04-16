@@ -4,7 +4,6 @@
             "name": "linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                
                 "/home/xy/soft/SFML-2.6.1/include/**"
             ],
             "defines": [
