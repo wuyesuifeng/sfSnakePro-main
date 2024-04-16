@@ -4,7 +4,7 @@
             "name": "linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/soft/SFML-2.6.1/include/**"
+                "/home/xy/soft/SFML-2.6.1/include/**"
             ],
             "defines": [
                 "_DEBUG",
