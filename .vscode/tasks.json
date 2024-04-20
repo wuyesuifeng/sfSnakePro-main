@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                // "-g", // 调试
+                "-g", // 调试
                 // "-mwindows", // 禁用cmd窗口
                 // "-static",
                 "${workspaceRoot}/src/main.cpp",
