@@ -1,14 +1,18 @@
 #include "Game.h"
+#include "inout/ShareMemory.h"
 #include "inout/ReadConf.cpp"
-
-using namespace sfSnake;
 
 int main()
 {
-    // Game game;
-    // game.run();
 
-    std::cout << readConf::getPath() << std::endl;
+    char *path = readConf::getPath();
+    shm::ShareMemory share = shm::ShareMemory(path);
+    free(path);
+    int *in = share.getReadPos(),
+        *out = share.getWritePos();
+        
+    sfSnake::Game game;
+    game.run();
 
     return 0;
 }

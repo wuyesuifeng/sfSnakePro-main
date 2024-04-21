@@ -1,16 +1,19 @@
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <string.h>
+
+#define DEBUG_CONF_PATH "/home/xy/workspace/sfSnakePro-main/build/conf"
+#define CONF_PATH "conf"
 
 using namespace std;
 
 namespace readConf {
-    string getPath() {
+    char* getPath() {
         ifstream ifs;
-        ifs.open("conf", ios::in);
+        ifs.open(CONF_PATH, ios::in);
 
         if (!ifs.is_open()) {
-            ifs.open("/home/xy/workspace/sfSnakePro-main/build/conf", ios::in);
+            ifs.open(DEBUG_CONF_PATH, ios::in);
         }
 
         if (ifs.is_open()) {
@@ -18,9 +21,14 @@ namespace readConf {
             while (getline(ifs, buff)) {
                 res += buff;
             }
-            return res;
+            ifs.close();
+            const int len = res.length();
+            char* resChar = (char*) calloc(len, sizeof(char));
+            memcpy(resChar, res.c_str(), len);
+            return resChar;
+        } else {
+            throw "open conf failed";
         }
 
-        throw "open conf failed";
     }
 }
