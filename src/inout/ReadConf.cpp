@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace readConf {
+namespace utils {
     char* getPath() {
         ifstream ifs;
         ifs.open(CONF_PATH, ios::in);

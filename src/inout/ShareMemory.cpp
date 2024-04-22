@@ -12,7 +12,7 @@
 #define FLAG IPC_CREAT | 0777
 #define ME_EXEC_FILE "/proc/self/exe"
 
-using namespace shm;
+using namespace utils;
 
 ShareMemory::ShareMemory(char *xyExecFile) {
     int writeKey, readKey;
@@ -33,37 +33,38 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "shmget readId failed";
     }
 
-    if ((writePos = (int*) shmat(writeId, NULL, 0)) == nullptr) {
-        throw "shmat writePos failed";
-    }
-
-    if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
-        throw "shmat readPos failed";
-    }
 }
 
 ShareMemory::~ShareMemory() {
     if (shmdt(readPos) == -1) {
-        throw "shmdt read memory failed";
+        printErr("shmdt read memory failed");
     }
 
     if (shmctl(readId, IPC_RMID, 0) == -1) {
-        throw "delete read memory failed";
+        printErr("delete read memory failed");
     }
 
     if (shmdt(writePos) == -1) {
-        throw "shmdt write memory failed";
+        printErr("shmdt write memory failed");
     }
 
     if (shmctl(writeId, IPC_RMID, 0) == -1) {
-        throw "delete write memory failed";
+        printErr("delete write memory failed");
     }
 }
 
 int* ShareMemory::getReadPos() {
+    shmdt(readPos);
+    if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
+        throw "shmat readPos failed";
+    }
     return readPos;
 }
 
 int* ShareMemory::getWritePos() {
+    shmdt(writePos);
+    if ((writePos = (int*) shmat(writeId, NULL, 0)) == nullptr) {
+        throw "shmat writePos failed";
+    }
     return writePos;
 }

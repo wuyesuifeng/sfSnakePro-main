@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string.h>
 
-namespace shm {
+namespace utils {
     class ShareMemory {
         public:
             ShareMemory(char *xyExecFile);
@@ -16,4 +16,8 @@ namespace shm {
             int writeId;
             int readId;
     };
+
+    static void printErr(char *val) {
+        std::cout << val << std::endl;
+    }
 }
