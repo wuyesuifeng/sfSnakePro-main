@@ -15,6 +15,10 @@
 using namespace utils;
 
 ShareMemory::ShareMemory(char *xyExecFile) {
+    if (xyExecFile == nullptr) {
+        return;
+    }
+
     int writeKey, readKey;
 
     if ((writeKey = ftok(ME_EXEC_FILE, ME_PROJECT_ID)) == -1) {
@@ -25,6 +29,8 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "ftoke readKey failed";
     }
 
+    shmctl(writeId, IPC_RMID, 0);
+
     if ((writeId = shmget(writeKey, WRITE_SIZE, FLAG)) == -1) {
         throw "shmget writeId failed";
     }
@@ -33,6 +39,13 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "shmget readId failed";
     }
 
+    if ((writePos = (int*) shmat(writeId, NULL, 0)) == nullptr) {
+        throw "shmat writePos failed";
+    }
+
+    if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
+        throw "shmat readPos failed";
+    }
 }
 
 ShareMemory::~ShareMemory() {
@@ -54,17 +67,9 @@ ShareMemory::~ShareMemory() {
 }
 
 int* ShareMemory::getReadPos() {
-    shmdt(readPos);
-    if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
-        throw "shmat readPos failed";
-    }
     return readPos;
 }
 
 int* ShareMemory::getWritePos() {
-    shmdt(writePos);
-    if ((writePos = (int*) shmat(writeId, NULL, 0)) == nullptr) {
-        throw "shmat writePos failed";
-    }
     return writePos;
 }

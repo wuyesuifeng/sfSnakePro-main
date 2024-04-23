@@ -8,6 +8,7 @@
 #include "element/Fruit.h"
 
 #include "screen/GameOverScreen.h"
+#include "inout/ReadConf.cpp"
 
 using namespace sfSnake;
 
@@ -21,7 +22,8 @@ Snake::Snake()
       tailOverlap_(0u),
       nodeShape(nodeRadius_),
       nodeMiddle(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
-      score_(InitialSize)
+      score_(InitialSize),
+      share(utils::ShareMemory(nullptr))
 {
     initNodes();
 
@@ -48,6 +50,12 @@ Snake::Snake()
     dieBuffer_.loadFromFile("assets/sounds/die.wav");
     dieSound_.setBuffer(dieBuffer_);
     dieSound_.setVolume(50);
+
+    char *path = utils::getPath();
+    share = utils::ShareMemory(path);
+    free(path);
+    in = share.getReadPos();
+    out = share.getWritePos();
 }
 
 void Snake::initNodes()
@@ -122,6 +130,9 @@ void Snake::update(sf::Time delta)
     move();
     toWindow(path_.front(), direction_);
     checkSelfCollisions();
+
+
+
 }
 
 void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)

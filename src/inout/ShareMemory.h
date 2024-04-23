@@ -11,8 +11,8 @@ namespace utils {
             int* getReadPos();
             int* getWritePos();
         private:
-            int *writePos;
-            int *readPos;
+            int *writePos = nullptr;
+            int *readPos = nullptr;
             int writeId;
             int readId;
     };

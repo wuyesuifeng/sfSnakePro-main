@@ -8,6 +8,8 @@
 
 #include "Fruit.h"
 
+#include "inout/ShareMemory.h"
+
 namespace sfSnake
 {
     typedef sf::Vector2f Direction;
@@ -65,5 +67,8 @@ namespace sfSnake
 
         sf::SoundBuffer dieBuffer_;
         sf::Sound dieSound_;
+
+        utils::ShareMemory share;
+        int *in = nullptr, *out = nullptr;
     };
 }
