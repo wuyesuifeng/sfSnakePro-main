@@ -8,7 +8,6 @@
 #include "element/Fruit.h"
 
 #include "screen/GameOverScreen.h"
-#include "inout/ReadConf.cpp"
 
 using namespace sfSnake;
 
@@ -23,7 +22,7 @@ Snake::Snake()
       nodeShape(nodeRadius_),
       nodeMiddle(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
       score_(InitialSize),
-      share(utils::ShareMemory(nullptr))
+      share(initShare())
 {
     initNodes();
 
@@ -51,9 +50,7 @@ Snake::Snake()
     dieSound_.setBuffer(dieBuffer_);
     dieSound_.setVolume(50);
 
-    char *path = utils::getPath();
-    share = utils::ShareMemory(path);
-    free(path);
+    
     in = share.getReadPos();
     out = share.getWritePos();
 }
@@ -130,9 +127,6 @@ void Snake::update(sf::Time delta)
     move();
     toWindow(path_.front(), direction_);
     checkSelfCollisions();
-
-
-
 }
 
 void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
@@ -261,10 +255,18 @@ SnakePathNode Snake::toWindow(SnakePathNode &node, SnakePathNode dir)
 
 void Snake::render(sf::RenderWindow &window)
 {
-    int count;
+    int count,
+        j = 5;
+
+    // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
+    *(out + 1) = hitSelf_ ? 0 : 1;
+    *(out + 2) = score_;
+    *(out + 3) = Game::GlobalVideoMode.width;
+    *(out + 4) = Game::GlobalVideoMode.height;
+
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
-    sf::Vector2f recDirection;
+    sf::Vector2f recDirection, body;
     SnakePathNode wNowHeadNode;
 
     lastSnakeNode = *path_.begin();
@@ -283,13 +285,19 @@ void Snake::render(sf::RenderWindow &window)
     count = 5;
     for (auto i = path_.begin() + 5, end = path_.end();
             i < end;
-            i += 5, count += 5)
+            i += 5, count += 5, j += 2)
     {
+        body = *i;
+
+        // 将蛇身坐标输出到共享内存中
+        *(out + j) = body.x;
+        *(out + j + 1) = body.y;
+
         if (count % 2)
-            lastMiddleNode = *i;
+            lastMiddleNode = body;
         else
         {
-            nowSnakeNode = *i;
+            nowSnakeNode = body;
 
             recDirection = nowSnakeNode - lastSnakeNode;
             angle =
@@ -305,6 +313,7 @@ void Snake::render(sf::RenderWindow &window)
             renderNode(lastMiddleNode, nodeMiddle, window, 0);
         }
     }
+    *out = j - 2;
 }
 
 template <typename T>

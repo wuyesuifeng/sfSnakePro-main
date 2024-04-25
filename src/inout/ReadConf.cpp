@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -8,7 +10,7 @@
 using namespace std;
 
 namespace utils {
-    char* getPath() {
+    static char* getPath() {
         ifstream ifs;
         ifs.open(CONF_PATH, ios::in);
 

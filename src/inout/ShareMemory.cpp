@@ -10,26 +10,22 @@
 #define WRITE_SIZE 1024
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
-#define ME_EXEC_FILE "/proc/self/exe"
 
 using namespace utils;
 
 ShareMemory::ShareMemory(char *xyExecFile) {
-    if (xyExecFile == nullptr) {
-        return;
-    }
-
     int writeKey, readKey;
 
-    if ((writeKey = ftok(ME_EXEC_FILE, ME_PROJECT_ID)) == -1) {
+    char me_path[128];
+    getcwd(me_path, sizeof(me_path) - 1);
+
+    if ((writeKey = ftok(me_path, ME_PROJECT_ID)) == -1) {
         throw "ftoke writeKey failed";
     }
 
     if ((readKey = ftok(xyExecFile, ME_PROJECT_ID)) == -1) {
         throw "ftoke readKey failed";
     }
-
-    shmctl(writeId, IPC_RMID, 0);
 
     if ((writeId = shmget(writeKey, WRITE_SIZE, FLAG)) == -1) {
         throw "shmget writeId failed";

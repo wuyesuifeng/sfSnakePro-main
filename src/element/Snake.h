@@ -9,6 +9,7 @@
 #include "Fruit.h"
 
 #include "inout/ShareMemory.h"
+#include "inout/ReadConf.cpp"
 
 namespace sfSnake
 {
@@ -71,4 +72,11 @@ namespace sfSnake
         utils::ShareMemory share;
         int *in = nullptr, *out = nullptr;
     };
+
+    inline utils::ShareMemory initShare() {
+        char *path = utils::getPath();
+        utils::ShareMemory shareTmp = utils::ShareMemory(path);
+        free(path);
+        return shareTmp;
+    }
 }
