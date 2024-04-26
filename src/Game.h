@@ -10,6 +10,9 @@
 #include "screen/Screen.h"
 #include "element/TitleSprite.h"
 
+#include "inout/ShareMemory.h"
+#include "inout/ReadConf.cpp"
+
 namespace sfSnake
 {
     class Game
@@ -64,6 +67,8 @@ namespace sfSnake
         static sf::Time keyboardCDtime;
 
         static bool ifShowedHelp;
+
+        static utils::ShareMemory share;
 
     private:
         sf::RenderWindow window_;
@@ -131,5 +136,12 @@ namespace sfSnake
         return std::sqrt(
             std::pow(static_cast<double>(node.x), 2) +
             std::pow(static_cast<double>(node.y), 2));
+    }
+
+    inline utils::ShareMemory initShare() {
+        char *path = utils::getPath();
+        utils::ShareMemory shareTmp = utils::ShareMemory(path);
+        free(path);
+        return shareTmp;
     }
 }

@@ -21,8 +21,7 @@ Snake::Snake()
       tailOverlap_(0u),
       nodeShape(nodeRadius_),
       nodeMiddle(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
-      score_(InitialSize),
-      share(initShare())
+      score_(InitialSize)
 {
     initNodes();
 
@@ -51,8 +50,8 @@ Snake::Snake()
     dieSound_.setVolume(50);
 
     
-    in = share.getReadPos();
-    out = share.getWritePos();
+    in = Game::share.getReadPos();
+    out = Game::share.getWritePos();
 }
 
 void Snake::initNodes()
@@ -72,6 +71,7 @@ void Snake::initNodes()
 
 void Snake::handleInput(sf::RenderWindow &window)
 {
+    static sf::Vector2i mousePosition;
     if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::W))
@@ -89,30 +89,14 @@ void Snake::handleInput(sf::RenderWindow &window)
         sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         direction_ = Direction(1, 0);
 
-    static double directionSize;
-
     if (!Game::mouseButtonLocked)
     {
         if (
             sf::Mouse::isButtonPressed(sf::Mouse::Left) ||
             sf::Mouse::isButtonPressed(sf::Mouse::Right))
         {
-            static sf::Vector2i MousePosition;
-            MousePosition = sf::Mouse::getPosition(window);
-            if (
-                dis(MousePosition,
-                    sf::Vector2f(
-                        Game::GlobalVideoMode.width / 15.0f * 14.0f,
-                        Game::GlobalVideoMode.width / 15.0f)) >
-                Game::GlobalVideoMode.width / 16.0f)
-            {
-                SnakePathNode front = path_.front();
-                direction_ =
-                    static_cast<sf::Vector2f>(MousePosition) - front;
-                directionSize = length(direction_);
-                direction_.x /= directionSize;
-                direction_.y /= directionSize;
-            }
+            mousePosition = sf::Mouse::getPosition(window);
+            handleInput(mousePosition, window);
         }
     }
 
@@ -120,6 +104,31 @@ void Snake::handleInput(sf::RenderWindow &window)
         speedup_ = true;
     else
         speedup_ = false;
+
+    mousePosition.x = *in;
+    mousePosition.y = *(in + 1);
+    if (mousePosition.x != hisX || mousePosition.y != hisY) {
+        handleInput(mousePosition, window);
+    }
+}
+
+void Snake::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
+    if (
+            dis(mousePosition,
+                sf::Vector2f(
+                    Game::GlobalVideoMode.width / 15.0f * 14.0f,
+                    Game::GlobalVideoMode.width / 15.0f)) >
+            Game::GlobalVideoMode.width / 16.0f)
+    {
+
+        static double directionSize;
+        SnakePathNode front = path_.front();
+        direction_ =
+            static_cast<sf::Vector2f>(mousePosition) - front;
+        directionSize = length(direction_);
+        direction_.x /= directionSize;
+        direction_.y /= directionSize;
+    }
 }
 
 void Snake::update(sf::Time delta)

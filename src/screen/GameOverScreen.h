@@ -14,6 +14,7 @@ namespace sfSnake
         GameOverScreen(std::size_t score);
 
         void handleInput(sf::RenderWindow &window) override;
+        void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
         void update(sf::Time delta) override;
         void render(sf::RenderWindow &window) override;
 
@@ -25,5 +26,8 @@ namespace sfSnake
 
         OptionButton helpButton_;
         OptionButton aboutButton_;
+
+        int *in = nullptr, *out = nullptr;
+        int hisX = -9999, hisY = -9999;
     };
 }

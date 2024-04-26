@@ -8,9 +8,6 @@
 
 #include "Fruit.h"
 
-#include "inout/ShareMemory.h"
-#include "inout/ReadConf.cpp"
-
 namespace sfSnake
 {
     typedef sf::Vector2f Direction;
@@ -22,6 +19,7 @@ namespace sfSnake
         Snake();
 
         void handleInput(sf::RenderWindow &window);
+        void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
         void update(sf::Time delta);
         void render(sf::RenderWindow &window);
 
@@ -69,14 +67,7 @@ namespace sfSnake
         sf::SoundBuffer dieBuffer_;
         sf::Sound dieSound_;
 
-        utils::ShareMemory share;
         int *in = nullptr, *out = nullptr;
+        int hisX = -9999, hisY = -9999;
     };
-
-    inline utils::ShareMemory initShare() {
-        char *path = utils::getPath();
-        utils::ShareMemory shareTmp = utils::ShareMemory(path);
-        free(path);
-        return shareTmp;
-    }
 }

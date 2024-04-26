@@ -99,6 +99,8 @@ bool Game::keyboardLocked = false;
  */
 bool Game::ifShowedHelp = false;
 
+utils::ShareMemory Game::share = initShare();
+
 Game::Game()
     : TimePerFrame_(sf::seconds(1.f / 100.f))
 {

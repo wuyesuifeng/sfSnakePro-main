@@ -42,6 +42,10 @@ GameOverScreen::GameOverScreen(std::size_t score)
         Game::GlobalVideoMode.width / 20.0,
         Game::Color::Green,
         sf::Vector2f(Game::GlobalVideoMode.width / 5.0f * 3.0f, Game::GlobalVideoMode.height / 5.0f * 4.0f));
+
+    
+    in = Game::share.getReadPos();
+    out = Game::share.getWritePos();
 }
 
 void GameOverScreen::handleInput(sf::RenderWindow &window)
@@ -49,8 +53,20 @@ void GameOverScreen::handleInput(sf::RenderWindow &window)
     static sf::Vector2i mousePosition;
     mousePosition = sf::Mouse::getPosition(window);
 
-    for (auto &i : button_)
+    handleInput(mousePosition, window);
+    
+    mousePosition.x = *in;
+    mousePosition.y = *(in + 1);
+
+    if (mousePosition.x != hisX || mousePosition.y != hisY) {
+        handleInput(mousePosition, window);
+    }
+}
+
+void GameOverScreen::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
+    for (auto &i : button_) {
         i.focused(false);
+    }
     helpButton_.clear();
     aboutButton_.clear();
 
