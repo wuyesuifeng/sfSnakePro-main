@@ -6,7 +6,8 @@
 #include <iostream>
 #include <string.h>
 
-#define READ_SIZE 512
+#define READ_LEN 3
+#define READ_SIZE sizeof(int) * READ_LEN
 #define WRITE_SIZE 1024
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
@@ -42,6 +43,8 @@ ShareMemory::ShareMemory(char *xyExecFile) {
     if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
         throw "shmat readPos failed";
     }
+
+    *readPos = READ_LEN;
 }
 
 ShareMemory::~ShareMemory() {

@@ -68,6 +68,6 @@ namespace sfSnake
         sf::Sound dieSound_;
 
         int *in = nullptr, *out = nullptr;
-        int hisX = -9999, hisY = -9999;
+        int hisX, hisY;
     };
 }

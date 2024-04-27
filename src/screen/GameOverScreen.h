@@ -28,6 +28,6 @@ namespace sfSnake
         OptionButton aboutButton_;
 
         int *in = nullptr, *out = nullptr;
-        int hisX = -9999, hisY = -9999;
+        int hisX = Game::HIS_XY, hisY = Game::HIS_XY;
     };
 }

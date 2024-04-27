@@ -21,7 +21,9 @@ Snake::Snake()
       tailOverlap_(0u),
       nodeShape(nodeRadius_),
       nodeMiddle(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
-      score_(InitialSize)
+      score_(InitialSize),
+      hisX(Game::HIS_XY),
+      hisY(Game::HIS_XY)
 {
     initNodes();
 
@@ -72,6 +74,13 @@ void Snake::initNodes()
 void Snake::handleInput(sf::RenderWindow &window)
 {
     static sf::Vector2i mousePosition;
+
+    mousePosition.x = *(in + 1);
+    mousePosition.y = *(in + 2);
+    if (mousePosition.x != hisX || mousePosition.y != hisY) {
+        handleInput(mousePosition, window);
+    }
+
     if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::W))
@@ -104,12 +113,6 @@ void Snake::handleInput(sf::RenderWindow &window)
         speedup_ = true;
     else
         speedup_ = false;
-
-    mousePosition.x = *in;
-    mousePosition.y = *(in + 1);
-    if (mousePosition.x != hisX || mousePosition.y != hisY) {
-        handleInput(mousePosition, window);
-    }
 }
 
 void Snake::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
@@ -202,6 +205,9 @@ void Snake::checkSelfCollisions()
             dieSound_.play();
             sf::sleep(sf::seconds(dieBuffer_.getDuration().asSeconds()));
             hitSelf_ = true;
+
+            *(in + 1) = Game::HIS_XY;
+            *(in + 2) = Game::HIS_XY;
             break;
         }
     }
@@ -265,13 +271,15 @@ SnakePathNode Snake::toWindow(SnakePathNode &node, SnakePathNode dir)
 void Snake::render(sf::RenderWindow &window)
 {
     int count,
-        j = 5;
+        j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     *(out + 1) = hitSelf_ ? 0 : 1;
     *(out + 2) = score_;
     *(out + 3) = Game::GlobalVideoMode.width;
     *(out + 4) = Game::GlobalVideoMode.height;
+    *(out + 5) = direction_.x * 99;
+    *(out + 6) = direction_.y * 99;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -299,8 +307,8 @@ void Snake::render(sf::RenderWindow &window)
         body = *i;
 
         // 将蛇身坐标输出到共享内存中
-        *(out + j) = body.x;
-        *(out + j + 1) = body.y;
+        *(out + j) = body.x * 99;
+        *(out + j + 1) = body.y * 99;
 
         if (count % 2)
             lastMiddleNode = body;

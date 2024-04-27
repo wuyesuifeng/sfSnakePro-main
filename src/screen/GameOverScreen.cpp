@@ -51,16 +51,18 @@ GameOverScreen::GameOverScreen(std::size_t score)
 void GameOverScreen::handleInput(sf::RenderWindow &window)
 {
     static sf::Vector2i mousePosition;
+    
+    mousePosition.x = *(in + 1);
+    mousePosition.y = *(in + 2);
+    if (mousePosition.x != hisX || mousePosition.y != hisY) {
+        handleInput(mousePosition, window);
+        hisX = mousePosition.x;
+        hisY = mousePosition.y;
+    }
+
     mousePosition = sf::Mouse::getPosition(window);
 
     handleInput(mousePosition, window);
-    
-    mousePosition.x = *in;
-    mousePosition.y = *(in + 1);
-
-    if (mousePosition.x != hisX || mousePosition.y != hisY) {
-        handleInput(mousePosition, window);
-    }
 }
 
 void GameOverScreen::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
@@ -91,6 +93,9 @@ void GameOverScreen::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &w
             Game::mouseButtonCDtime = Game::mouseButtonClock.restart();
             Game::mouseButtonLocked = true;
             Game::MainScreen = std::make_shared<GameScreen>();
+
+            *(in + 1) = Game::HIS_XY;
+            *(in + 2) = Game::HIS_XY;
             return;
         }
     }
