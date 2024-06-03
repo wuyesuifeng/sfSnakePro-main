@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <string>
 
 namespace utils {
     class ShareMemory {
@@ -17,7 +18,7 @@ namespace utils {
             int readId;
     };
 
-    static void printErr(char *val) {
+    static void printErr(std::string val) {
         std::cout << val << std::endl;
     }
 }
