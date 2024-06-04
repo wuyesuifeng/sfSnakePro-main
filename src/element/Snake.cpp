@@ -164,8 +164,10 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
 
 void Snake::grow(int score)
 {
-    tailOverlap_ += score * 10;
-    score_ += score;
+    if (score_ > InitialSize || score > 0) {
+        tailOverlap_ += score * 10;
+        score_ += score;
+    }
 }
 
 unsigned Snake::getScore() const
@@ -181,16 +183,25 @@ bool Snake::hitSelf() const
 void Snake::move()
 {
     SnakePathNode &headNode = path_.front();
-    int times = speedup_ ? 2 : 1;
-    for (int i = 1; i <= times; i++)
-    {
-        path_.push_front(SnakePathNode(
-            headNode.x + direction_.x * i * nodeRadius_ / 5.0,
-            headNode.y + direction_.y * i * nodeRadius_ / 5.0));
-        if (tailOverlap_)
-            tailOverlap_--;
-        else
-            path_.pop_back();
+
+    if (tailOverlap_ < 0) {
+        do {
+            path_.pop_front();
+            tailOverlap_++;  
+        } while (tailOverlap_ < 0);
+    } else {
+        int times = speedup_ ? 2 : 1;
+        for (int i = 1; i <= times; i++)
+        {
+            path_.push_front(SnakePathNode(
+                headNode.x + direction_.x * i * nodeRadius_ / 5.0,
+                headNode.y + direction_.y * i * nodeRadius_ / 5.0));
+            if (tailOverlap_) {
+                tailOverlap_--;
+            } else {
+                path_.pop_back();
+            }
+        }
     }
 }
 
@@ -202,15 +213,16 @@ void Snake::checkSelfCollisions()
     for (auto i = path_.begin(); i != path_.end(); i++, count++) {
         if (count >= 30 && dis(head, *i) < 2.0f * nodeRadius_)
         {
+            dieSound_.stop();
             dieSound_.play();
-            sf::sleep(sf::seconds(dieBuffer_.getDuration().asSeconds()));
             hitSelf_ = true;
 
             *(in + 1) = Game::HIS_XY;
             *(in + 2) = Game::HIS_XY;
-            break;
+            return;
         }
     }
+    hitSelf_ = false;
 }
 
 bool inWindow(SnakePathNode &node)
@@ -276,10 +288,8 @@ void Snake::render(sf::RenderWindow &window)
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     *(out + 1) = hitSelf_ ? 0 : 1;
     *(out + 2) = score_;
-    *(out + 3) = Game::GlobalVideoMode.width;
-    *(out + 4) = Game::GlobalVideoMode.height;
-    *(out + 5) = direction_.x * 99;
-    *(out + 6) = direction_.y * 99;
+    *(out + 3) = direction_.x;
+    *(out + 4) = direction_.y;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -306,10 +316,6 @@ void Snake::render(sf::RenderWindow &window)
     {
         body = *i;
 
-        // 将蛇身坐标输出到共享内存中
-        *(out + j) = body.x * 99;
-        *(out + j + 1) = body.y * 99;
-
         if (count % 2)
             lastMiddleNode = body;
         else
@@ -330,7 +336,6 @@ void Snake::render(sf::RenderWindow &window)
             renderNode(lastMiddleNode, nodeMiddle, window, 0);
         }
     }
-    *out = j - 2;
 }
 
 template <typename T>

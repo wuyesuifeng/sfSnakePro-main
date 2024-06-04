@@ -31,10 +31,10 @@ namespace sfSnake
 
         void printhead() const;
 
+        void grow(int score);
+
     private:
         void initNodes();
-
-        void grow(int score);
         void move();
 
         void checkOutOfWindow();
@@ -51,7 +51,7 @@ namespace sfSnake
         Direction direction_;
         float nodeRadius_;
         std::deque<SnakePathNode> path_;
-        unsigned tailOverlap_;
+        int tailOverlap_;
 
         sf::CircleShape nodeShape;
         sf::RectangleShape nodeMiddle;
