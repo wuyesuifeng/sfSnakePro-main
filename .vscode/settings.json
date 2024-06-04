@@ -61,7 +61,8 @@
         "fstream": "cpp",
         "codecvt": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "__node_handle": "cpp"
     },
     "cmake.configureOnOpen": false
 }

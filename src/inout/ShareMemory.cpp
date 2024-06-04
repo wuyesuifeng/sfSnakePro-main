@@ -8,7 +8,7 @@
 
 #define READ_LEN 3
 #define READ_SIZE sizeof(int) * READ_LEN
-#define WRITE_SIZE 205
+#define WRITE_SIZE 405
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 

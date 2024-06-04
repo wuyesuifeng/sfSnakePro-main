@@ -2,12 +2,15 @@
 
 #include <memory>
 #include <iostream>
+#include <math.h>
 
 #include "element/Snake.h"
 #include "Game.h"
 #include "element/Fruit.h"
 
 #include "screen/GameOverScreen.h"
+
+#define PI 3.14159265358979323846f
 
 using namespace sfSnake;
 
@@ -257,7 +260,7 @@ void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned in
     }
 }
 
-SnakePathNode Snake::toWindow(SnakePathNode &node, SnakePathNode dir)
+SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir)
 {
     if (node.x < 0 || node.x > Game::GlobalVideoMode.width) {
         if (dir.y == 0) {
@@ -302,12 +305,33 @@ void Snake::render(sf::RenderWindow &window)
     recDirection = direction_;
     angle =
         std::acos(recDirection.y / length(recDirection)) /
-        3.14159265358979323846 * 180.0;
+        PI * 180.0;
     if (direction_.x > 0)
         angle = -angle;
     headSprite.setRotation(angle);
 
     renderNode(wNowHeadNode, headSprite, window, 3);
+
+    float len = 10.0f,
+            radian = angle * PI / 180.0f,
+            moveY = cos(radian) * len,
+            moveX = sin(radian) * len;
+    SnakePathNode head = path_.front();
+    sf::RectangleShape shape = sf::RectangleShape();
+    sf::Vector2f center = sf::Vector2f(head.x + direction_.x * 10.5f, head.y + direction_.y * 10.5f),
+                    pos;
+    shape.setSize(sf::Vector2f(len, len));
+    shape.setFillColor(sf::Color(0x55c40f99));
+    shape.setRotation(angle);
+
+    for (int x = -4; x < 4; x++) {
+        for (int y = 0; y < 50; y++) {
+            pos = center + sf::Vector2f(-moveX * y, moveY * y) + sf::Vector2f(moveY * x, moveX * x);
+            toWindow(pos, direction_);
+            shape.setPosition(pos);
+            window.draw(shape);
+        }
+    }
 
     count = 5;
     for (auto i = path_.begin() + 5, end = path_.end();
@@ -325,7 +349,7 @@ void Snake::render(sf::RenderWindow &window)
             recDirection = nowSnakeNode - lastSnakeNode;
             angle =
                 std::acos(recDirection.y / length(recDirection)) /
-                3.14159265358979323846 * 180.0;
+                PI * 180.0;
             if (recDirection.x > 0)
                 angle = -angle;
             nodeMiddle.setRotation(angle);
@@ -336,6 +360,7 @@ void Snake::render(sf::RenderWindow &window)
             renderNode(lastMiddleNode, nodeMiddle, window, 0);
         }
     }
+    
 }
 
 template <typename T>
