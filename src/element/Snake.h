@@ -43,7 +43,7 @@ namespace sfSnake
         template <typename T>
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window, int offset);
 
-        SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir);
+        SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
 
         bool hitSelf_;
         bool speedup_;
