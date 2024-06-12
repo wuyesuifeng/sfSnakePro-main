@@ -248,10 +248,11 @@ bool inWindow(SnakePathNode &node)
 
 void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned int total, unsigned int total2, float tanVal) {
     
-    float times = abs(total / dir),
+    float times = pos / dir,
+            times2 = pos2 / dir2,
             posPlus = pos - total;
 
-    if (pos2 - dir2 * times > 0) {
+    if (times < times2) {
         pos2 = pos2 - pos / tanVal + posPlus / tanVal;
         pos = posPlus;
     } else {
@@ -285,6 +286,10 @@ void fuck(float &x, float &y, float dx, float dy, int width, int height, float t
     }
 }
 
+float culTimes(float x, float dx, int total) {
+    return dx > 0.0f ? x / dx : (total - x) / -dx;
+}
+
 SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float radian)
 {
     bool negativeX = node.x < 0,
@@ -294,7 +299,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float radia
     if (beyondX) {
         if (dir.y == 0) {
             node.x = negativeX ? node.x + Game::GlobalVideoMode.width : node.x - Game::GlobalVideoMode.width;
-        } else if (beyondY && abs(dir.x) < abs(dir.y)) {
+        } else if (beyondY && culTimes(node.x, dir.x, Game::GlobalVideoMode.width) < culTimes(node.y, dir.y, Game::GlobalVideoMode.height)) {
             fuck(node.y, node.x, dir.y, dir.x, 
                     Game::GlobalVideoMode.height, Game::GlobalVideoMode.width, 1.0f / abs(tan(radian)));
         } else {
@@ -351,8 +356,8 @@ void Snake::render(sf::RenderWindow &window)
     shape.setFillColor(sf::Color(0x55c40f99));
     shape.setRotation(angle);
 
-    for (int x = -4; x < 4; x++) {
-        for (int y = 0; y < 50; y++) {
+    for (int x = -15; x < 15; x++) {
+        for (int y = 0; y < 30; y++) {
             pos = center + sf::Vector2f(-moveX * y, moveY * y) + sf::Vector2f(moveY * x, moveX * x);
             toWindow(pos, direction_, radian);
             shape.setPosition(pos);
