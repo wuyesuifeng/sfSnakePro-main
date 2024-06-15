@@ -253,13 +253,19 @@ bool inWindow(SnakePathNode &node)
             node.y <= Game::GlobalVideoMode.height;
 }
 
-void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned int total, unsigned int total2, float tanVal, float sin, float cos, int num, float subsidy) {
-    
-    float times = pos / dir,
-            times2 = pos2 / dir2,
-            posPlus = pos - total;
+float culTimes(float x, float dx, int total) {
+    return dx > 0.0f ? x / dx : (total - x) / -dx;
+}
 
-    if (times < times2) {
+float culTimes2(float x, float dx, int total) {
+    return dx < 0.0f ? x / -dx : (total - x) / dx;
+}
+
+void culOutWindowPos(float &pos, float &pos2, float &hpos, float &hpos2, float dir, float dir2, unsigned int total, unsigned int total2, float tanVal, float sin, float cos, int num, float subsidy) {
+    
+    float posPlus = pos - total;
+
+    if (culTimes(hpos, dir, total) < culTimes(hpos2, dir2, total2) && culTimes2(hpos, dir, total) < culTimes2(hpos2, dir2, total2)) {
         pos2 = pos2 - pos / tanVal + posPlus / tanVal;
         pos = posPlus;
     } else {
@@ -274,20 +280,21 @@ void culOutWindowPos(float &pos, float &pos2, float dir, float dir2, unsigned in
 
 }
 
-bool transCoord(float &dir, float &coord, int border) {
+bool transCoord(float &dir, float &coord, float &coord2, int border) {
     if (dir < 0) {
         coord = border - coord;
+        coord2 = border - coord2;
         dir = -dir;
         return true;
     }
     return false;
 }
 
-void fuck(float &x, float &y, float dx, float dy, int width, int height, float tanVal, float sin, float cos, int num, float subsidy) {
-    const bool transX = transCoord(dx, x, width),
-                transY = transCoord(dy, y, height);
+void reverse(float &x, float &y, float hx, float hy, float dx, float dy, int width, int height, float tanVal, float sin, float cos, int num, float subsidy) {
+    const bool transX = transCoord(dx, x, hx, width),
+                transY = transCoord(dy, y, hy, height);
 
-    culOutWindowPos(x, y, dx, dy, width, height, tanVal, sin, cos, num, subsidy);
+    culOutWindowPos(x, y, hx, hy, dx, dy, width, height, tanVal, sin, cos, num, subsidy);
 
     if (transX) {
         x = width - x;
@@ -298,15 +305,11 @@ void fuck(float &x, float &y, float dx, float dy, int width, int height, float t
     }
 }
 
-float culTimes(float x, float dx, int total) {
-    return dx > 0.0f ? x / dx : (total - x) / -dx;
-}
-
 SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVal) {
-    return toWindow(node, dir, tanVal, 0, 0, -1);
+    return toWindow(node, dir, tanVal, 0, 0, -1, node);
 }
 
-SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVal, float sin, float cos, int num) {
+SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVal, float sin, float cos, int num, SnakePathNode head) {
     bool negativeX = node.x < 0,
             negativeY = node.y < 0,
             beyondX = negativeX || node.x > Game::GlobalVideoMode.width,
@@ -314,7 +317,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVa
     if (beyondX) {
         if (dir.y == 0) {
             node.x = negativeX ? node.x + Game::GlobalVideoMode.width : node.x - Game::GlobalVideoMode.width;
-        } else if (beyondY && culTimes(node.x, dir.x, Game::GlobalVideoMode.width) < culTimes(node.y, dir.y, Game::GlobalVideoMode.height)) {
+        } else if (culTimes2(head.x, dir.x, Game::GlobalVideoMode.width) > culTimes2(head.y, dir.y, Game::GlobalVideoMode.height)) {
 
             float subsidy = VISION_HALF_WIDTH;
             if (num > -1 && ((dir.x > 0 && dir.y < 0) || (dir.x < 0 && dir.y > 0))) {
@@ -322,7 +325,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVa
                 subsidy = VISION_HALF_WIDTH2;
             }
             
-            fuck(node.y, node.x, dir.y, dir.x, 
+            reverse(node.y, node.x, head.y, head.x, dir.y, dir.x, 
                     Game::GlobalVideoMode.height, Game::GlobalVideoMode.width, 1.0f / tanVal, cos, sin, num, subsidy);
         } else {
 
@@ -332,13 +335,13 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVa
                 subsidy = VISION_HALF_WIDTH2;
             }
 
-            fuck(node.x, node.y, dir.x, dir.y, 
+            reverse(node.x, node.y, head.x, head.y, dir.x, dir.y, 
                 Game::GlobalVideoMode.width, Game::GlobalVideoMode.height, tanVal, sin, cos, num, subsidy);
         }
     } else if (beyondY) {
         if (dir.x == 0) {
             node.y = negativeY ? node.y + Game::GlobalVideoMode.height : node.y - Game::GlobalVideoMode.height;
-        } else {
+        } else if (culTimes2(head.x, dir.x, Game::GlobalVideoMode.width) > culTimes2(head.y, dir.y, Game::GlobalVideoMode.height)) {
 
             float subsidy = VISION_HALF_WIDTH;
             if (num > -1 && ((dir.x > 0 && dir.y < 0) || (dir.x < 0 && dir.y > 0))) {
@@ -346,8 +349,18 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir, float tanVa
                 subsidy = VISION_HALF_WIDTH2;
             }
             
-            fuck(node.y, node.x, dir.y, dir.x, 
+            reverse(node.y, node.x, head.y, head.x, dir.y, dir.x, 
                     Game::GlobalVideoMode.height, Game::GlobalVideoMode.width, 1.0f / tanVal, cos, sin, num, subsidy);
+        } else {
+
+            float subsidy = VISION_HALF_WIDTH;
+            if (num > -1 && ((dir.x > 0 && dir.y > 0) || (dir.x < 0 && dir.y < 0))) {
+                num = abs(num + 1 - VISION_X_SUM);
+                subsidy = VISION_HALF_WIDTH2;
+            }
+
+            reverse(node.x, node.y, head.x, head.y, dir.x, dir.y, 
+                Game::GlobalVideoMode.width, Game::GlobalVideoMode.height, tanVal, sin, cos, num, subsidy);
         }
     }
         
@@ -378,17 +391,18 @@ void Snake::render(sf::RenderWindow &window)
 
     renderNode(wNowHeadNode, headSprite, window, 3);
 
+    SnakePathNode head = path_.front();
+
     float radian = angle * PI / 180.0f,
             cosR = cos(radian),
             sinR = sin(radian),
             tanVal = abs(tan(radian)),
             moveY = cosR * VISION_PIXEL_WIDTH,
-            moveX = sinR * VISION_PIXEL_WIDTH;
+            moveX = sinR * VISION_PIXEL_WIDTH,
+            interX = 1.0f;
     
     cosR = abs(cosR);
     sinR = abs(sinR);
-
-    SnakePathNode head = path_.front();
     sf::RectangleShape shape = sf::RectangleShape();
     sf::Vector2f center = sf::Vector2f(head.x + direction_.x * VISION_PADDING, head.y + direction_.y * VISION_PADDING),
                     pos;
@@ -399,7 +413,7 @@ void Snake::render(sf::RenderWindow &window)
     for (int xHalf = VISION_X_SUM / 2, x = -xHalf; x < xHalf; x++) {
         for (int y = 0; y < VISION_Y_SUM; y++) {
             pos = center + sf::Vector2f(-moveX * y, moveY * y) + sf::Vector2f(moveY * x, moveX * x);
-            toWindow(pos, direction_, tanVal, cosR, sinR, x + xHalf);
+            toWindow(pos, direction_, tanVal, cosR, sinR, x + xHalf, head);
             shape.setPosition(pos);
             window.draw(shape);
         }

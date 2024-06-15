@@ -45,7 +45,7 @@ namespace sfSnake
 
         SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
 
-        SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian, float sin, float cos, int num);
+        SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian, float sin, float cos, int num, sf::Vector2f head);
 
         bool hitSelf_;
         bool speedup_;
