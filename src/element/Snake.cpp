@@ -262,7 +262,6 @@ float culTimes2(float x, float dx, int total) {
 }
 
 void culOutWindowPos(float &pos, float &pos2, float &hpos, float &hpos2, float dir, float dir2, unsigned int total, unsigned int total2, float tanVal, float sin, float cos, int num, float subsidy) {
-    
     float posPlus = pos - total;
 
     if (culTimes(hpos, dir, total) < culTimes(hpos2, dir2, total2) && culTimes2(hpos, dir, total) < culTimes2(hpos2, dir2, total2)) {
