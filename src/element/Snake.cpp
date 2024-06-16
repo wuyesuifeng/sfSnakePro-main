@@ -10,18 +10,13 @@
 
 #include "screen/GameOverScreen.h"
 
-#define PI 3.14159265358979323846f
-#define VISION_X_SUM 20
-#define VISION_Y_SUM 40
-#define VISION_PIXEL_WIDTH 10.0f
-
 using namespace sfSnake;
 
 const int Snake::InitialSize = 5;
 
-static const float VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_SUM / 2,
-                    VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH,
-                    VISION_PADDING = VISION_PIXEL_WIDTH + 0.5f;
+static const float VISION_X_HALF = VISION_X_SUM / 2,
+                    VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF,
+                    VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
 
 Snake::Snake()
     : hitSelf_(false),
@@ -60,7 +55,6 @@ Snake::Snake()
     dieBuffer_.loadFromFile("assets/sounds/die.wav");
     dieSound_.setBuffer(dieBuffer_);
     dieSound_.setVolume(50);
-
     
     in = Game::share.getReadPos();
     out = Game::share.getWritePos();
@@ -158,7 +152,42 @@ void Snake::update(sf::Time delta)
 {
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
+    look();
     checkSelfCollisions();
+}
+
+float culSelfCollisionDis(float radius) {
+    return 2.0f * radius;
+}
+
+void Snake::look() {
+    SnakePathNode head = path_.front();
+
+    float angle = culAngle(direction_),
+            radian = angle * PI / 180.0f,
+            cosR = cos(radian),
+            sinR = sin(radian),
+            tanVal = abs(tan(radian)),
+            moveY = cosR * VISION_PIXEL_WIDTH,
+            moveX = sinR * VISION_PIXEL_WIDTH,
+            interX = 1.0f,
+            visionPadding = VISION_PIXEL_WIDTH + culSelfCollisionDis(nodeRadius_);
+
+    sf::Vector2f center = sf::Vector2f(head.x + direction_.x * visionPadding, head.y + direction_.y * visionPadding);
+    
+    cosR = abs(cosR);
+    sinR = abs(sinR);
+
+    sf::Vector2f pos;
+    for (int x = -VISION_X_HALF, i = 0; x < VISION_X_HALF; x++, i++) {
+        for (int y = 0; y < VISION_Y_SUM; y++) {
+            pos = center + sf::Vector2f(-moveX * y, moveY * y) + sf::Vector2f(moveY * x, moveX * x);
+            toWindow(pos, direction_, tanVal, cosR, sinR, x + VISION_X_HALF, head);
+            vision &v = vision_[i][y];
+            v.pos = pos;
+            v.color = VISION_DEF_COLOR;
+        }
+    }
 }
 
 void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
@@ -170,8 +199,20 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
     {
         if (dis(
                 i -> shape_.getPosition(), headnode) <
-            nodeRadius_ + i -> shape_.getRadius())
+            nodeRadius_ + i -> shape_.getRadius()) {
             toRemove = i;
+        }
+
+        for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
+            for (; y < VISION_Y_SUM; y++) {
+                vision &v = vision_[x][y];
+                if (dis(
+                    i -> shape_.getPosition(), v.pos
+                ) < i -> shape_.getRadius()) {
+                    v.color = VISION_CHECK_COLOR;
+                }
+            }
+        }
     }
 
     if (toRemove != fruits.end())
@@ -231,7 +272,17 @@ void Snake::checkSelfCollisions()
     int count = 0;
 
     for (auto i = path_.begin(); i != path_.end(); i++, count++) {
-        if (count >= 30 && dis(head, *i) < 2.0f * nodeRadius_)
+
+        for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
+            for (; y < VISION_Y_SUM; y++) {
+                vision &v = vision_[x][y];
+                if (dis(v.pos, *i) < culSelfCollisionDis(nodeRadius_)) {
+                    v.color = VISION_HARM_COLOR;
+                }
+            }
+        }
+
+        if (count >= 30 && dis(head, *i) < culSelfCollisionDis(nodeRadius_))
         {
             dieSound_.stop();
             dieSound_.play();
@@ -387,36 +438,22 @@ void Snake::render(sf::RenderWindow &window)
     headSprite.setPosition(wNowHeadNode);
     angle = culAngle(direction_);
     headSprite.setRotation(angle);
-
-    renderNode(wNowHeadNode, headSprite, window, 3);
-
-    SnakePathNode head = path_.front();
-
-    float radian = angle * PI / 180.0f,
-            cosR = cos(radian),
-            sinR = sin(radian),
-            tanVal = abs(tan(radian)),
-            moveY = cosR * VISION_PIXEL_WIDTH,
-            moveX = sinR * VISION_PIXEL_WIDTH,
-            interX = 1.0f;
     
-    cosR = abs(cosR);
-    sinR = abs(sinR);
     sf::RectangleShape shape = sf::RectangleShape();
-    sf::Vector2f center = sf::Vector2f(head.x + direction_.x * VISION_PADDING, head.y + direction_.y * VISION_PADDING),
-                    pos;
     shape.setSize(sf::Vector2f(VISION_PIXEL_WIDTH, VISION_PIXEL_WIDTH));
-    shape.setFillColor(sf::Color(0x55c40f99));
     shape.setRotation(angle);
-
-    for (int xHalf = VISION_X_SUM / 2, x = -xHalf; x < xHalf; x++) {
-        for (int y = 0; y < VISION_Y_SUM; y++) {
-            pos = center + sf::Vector2f(-moveX * y, moveY * y) + sf::Vector2f(moveY * x, moveX * x);
-            toWindow(pos, direction_, tanVal, cosR, sinR, x + xHalf, head);
-            shape.setPosition(pos);
+    vision v;
+    for (int x = 0, y; x < VISION_X_SUM; x++, y = 0) {
+        for (; y < VISION_Y_SUM; y++) {
+            v = vision_[x][y];
+            shape.setFillColor(sf::Color(v.color));
+            shape.setPosition(v.pos);
             window.draw(shape);
+            *(out + 4 + (x + 1) * (y + 1)) = v.color == VISION_DEF_COLOR ? 0 : v.color == VISION_CHECK_COLOR ? 1 : 2;
         }
     }
+
+    renderNode(wNowHeadNode, headSprite, window, 3);
 
     count = 5;
     for (auto i = path_.begin() + 5, end = path_.end();
@@ -439,7 +476,6 @@ void Snake::render(sf::RenderWindow &window)
             renderNode(lastMiddleNode, nodeMiddle, window, 0);
         }
     }
-    
 }
 
 template <typename T>

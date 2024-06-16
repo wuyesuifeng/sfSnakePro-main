@@ -2,16 +2,27 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-
-#include <vector>
 #include <deque>
 
 #include "Fruit.h"
+
+#define PI 3.14159265358979323846f
+#define VISION_X_SUM 20
+#define VISION_Y_SUM 40
+#define VISION_PIXEL_WIDTH 10.0f
+#define VISION_DEF_COLOR 0x55c40f99
+#define VISION_CHECK_COLOR 0xee60ec99
+#define VISION_HARM_COLOR 0xf0321d99
 
 namespace sfSnake
 {
     typedef sf::Vector2f Direction;
     typedef sf::Vector2f SnakePathNode;
+
+    struct vision {
+        sf::Vector2f pos;
+        sf::Uint32 color;
+    };
 
     class Snake
     {
@@ -39,6 +50,7 @@ namespace sfSnake
 
         void checkOutOfWindow();
         void checkSelfCollisions();
+        void look();
 
         template <typename T>
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window, int offset);
@@ -53,6 +65,7 @@ namespace sfSnake
         Direction direction_;
         float nodeRadius_;
         std::deque<SnakePathNode> path_;
+        vision vision_[VISION_X_SUM][VISION_Y_SUM];
         int tailOverlap_;
 
         sf::CircleShape nodeShape;
