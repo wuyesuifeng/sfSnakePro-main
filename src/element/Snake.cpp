@@ -20,6 +20,8 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
+      hitting(0),
+      eatting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -79,11 +81,8 @@ void Snake::handleInput(sf::RenderWindow &window)
 {
     static sf::Vector2i mousePosition;
 
-    mousePosition.x = *(in + 1);
-    mousePosition.y = *(in + 2);
-    if (mousePosition.x != hisX || mousePosition.y != hisY) {
-        handleInput(mousePosition, window);
-    }
+    // mousePosition.x = *(in + 1);
+    // mousePosition.y = *(in + 2);
 
     if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
@@ -220,6 +219,9 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
+        eatting += 50;
+    } else {
+        eatting = max(0, eatting - 1);
     }
 }
 
@@ -287,12 +289,15 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
+            hitting += 50;
 
-            *(in + 1) = Game::HIS_XY;
-            *(in + 2) = Game::HIS_XY;
+            // *(in + 1) = Game::HIS_XY;
+            // *(in + 2) = Game::HIS_XY;
             return;
         }
     }
+
+    hitting = max(0, hitting - 1);
     hitSelf_ = false;
 }
 
@@ -423,10 +428,11 @@ void Snake::render(sf::RenderWindow &window)
         j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-    *(out + 1) = hitSelf_ ? 0 : 1;
-    *(out + 2) = score_;
-    *(out + 3) = direction_.x;
-    *(out + 4) = direction_.y;
+    char *out_tmp = out;
+    *out_tmp = hitting;
+    out_tmp++;
+    *out_tmp = eatting;
+    out_tmp++;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -443,13 +449,14 @@ void Snake::render(sf::RenderWindow &window)
     shape.setSize(sf::Vector2f(VISION_PIXEL_WIDTH, VISION_PIXEL_WIDTH));
     shape.setRotation(angle);
     vision v;
-    for (int x = 0, y; x < VISION_X_SUM; x++, y = 0) {
+    for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
         for (; y < VISION_Y_SUM; y++) {
             v = vision_[x][y];
             shape.setFillColor(sf::Color(v.color));
             shape.setPosition(v.pos);
             window.draw(shape);
-            *(out + 4 + (x + 1) * (y + 1)) = v.color == VISION_DEF_COLOR ? 0 : v.color == VISION_CHECK_COLOR ? 1 : 2;
+            *out_tmp = v.color == VISION_DEF_COLOR ? 0 : v.color == VISION_CHECK_COLOR ? 1 : -1;
+            out_tmp++;
         }
     }
 

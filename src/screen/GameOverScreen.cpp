@@ -94,8 +94,8 @@ void GameOverScreen::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &w
             Game::mouseButtonLocked = true;
             Game::MainScreen = std::make_shared<GameScreen>();
 
-            *(in + 1) = Game::HIS_XY;
-            *(in + 2) = Game::HIS_XY;
+            // *(in + 1) = Game::HIS_XY;
+            // *(in + 2) = Game::HIS_XY;
             return;
         }
     }

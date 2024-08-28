@@ -6,9 +6,8 @@
 #include <iostream>
 #include <string.h>
 
-#define READ_LEN 3
-#define READ_SIZE sizeof(int) * READ_LEN
-#define WRITE_SIZE 405
+#define READ_SIZE sizeof(char) * 8
+#define WRITE_SIZE sizeof(char) * 802
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 
@@ -36,17 +35,13 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "shmget readId failed";
     }
 
-    if ((writePos = (int*) shmat(writeId, NULL, 0)) == nullptr) {
+    if ((writePos = (char*) shmat(writeId, NULL, 0)) == nullptr) {
         throw "shmat writePos failed";
     }
 
-    *writePos = WRITE_SIZE;
-
-    if ((readPos = (int*) shmat(readId, NULL, 0)) == nullptr) {
+    if ((readPos = (char*) shmat(readId, NULL, 0)) == nullptr) {
         throw "shmat readPos failed";
     }
-
-    *readPos = READ_LEN;
 }
 
 ShareMemory::~ShareMemory() {
@@ -67,10 +62,10 @@ ShareMemory::~ShareMemory() {
     }
 }
 
-int* ShareMemory::getReadPos() {
+char* ShareMemory::getReadPos() {
     return readPos;
 }
 
-int* ShareMemory::getWritePos() {
+char* ShareMemory::getWritePos() {
     return writePos;
 }
