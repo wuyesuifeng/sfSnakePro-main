@@ -4,8 +4,8 @@
 #include <sys/shm.h>
 #include <unistd.h>
 
-#define READ_SIZE sizeof(char) * 8
-#define WRITE_SIZE sizeof(char) * 802
+#define READ_SIZE sizeof(char) * READ_LEN
+#define WRITE_SIZE sizeof(char) * WRITE_LEN
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 
@@ -50,9 +50,9 @@ ShareMemory::~ShareMemory() {
         printErr("shmdt read memory failed");
     }
 
-    if (shmctl(readId, IPC_RMID, 0) == -1) {
-        printErr("delete read memory failed");
-    }
+    // if (shmctl(readId, IPC_RMID, 0) == -1) {
+    //     printErr("delete read memory failed");
+    // }
 
     if (shmdt(writePos) == -1) {
         printErr("shmdt write memory failed");

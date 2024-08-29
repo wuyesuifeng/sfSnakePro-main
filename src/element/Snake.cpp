@@ -85,9 +85,6 @@ void Snake::handleInput(sf::RenderWindow &window)
 {
     static sf::Vector2i mousePosition;
 
-    // mousePosition.x = *(in + 1);
-    // mousePosition.y = *(in + 2);
-
     if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::W))
@@ -153,6 +150,19 @@ float culAngle(sf::Vector2f recDirection) {
 
 void Snake::update(sf::Time delta)
 {
+    {
+        float plus = 0;
+        char *inPtr = in;
+        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
+            plus += *(in + i) / (float) pow(*inPtr > 0 ? CHAR_MAX : -CHAR_MIN, i);
+        }
+        direction_.x += plus;
+        plus = 0;
+        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
+            plus += *(in + i) / (float) pow(*inPtr > 0 ? CHAR_MAX : -CHAR_MIN, i);
+        }
+        direction_.y += plus;
+    }
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
     look();
