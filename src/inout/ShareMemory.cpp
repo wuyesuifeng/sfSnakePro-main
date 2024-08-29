@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <sys/shm.h>
 #include <unistd.h>
-#include <iostream>
-#include <string.h>
 
 #define READ_SIZE sizeof(char) * 8
 #define WRITE_SIZE sizeof(char) * 802
@@ -18,6 +16,9 @@ ShareMemory::ShareMemory(char *xyExecFile) {
 
     char me_path[128];
     getcwd(me_path, sizeof(me_path) - 1);
+
+    printErr(me_path);
+    printErr(xyExecFile);
 
     if ((writeKey = ftok(me_path, ME_PROJECT_ID)) == -1) {
         throw "ftoke writeKey failed";

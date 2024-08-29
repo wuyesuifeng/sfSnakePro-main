@@ -10,6 +10,10 @@
 
 #include "screen/GameOverScreen.h"
 
+#define CHAR_MAX 127
+#define CHAR_MIN -128
+#define CHAR_PLUS 50
+
 using namespace sfSnake;
 
 const int Snake::InitialSize = 5;
@@ -219,9 +223,9 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        eatting += 50;
-    } else {
-        eatting = max(0, eatting - 1);
+        eatting += min(CHAR_MAX - eatting, CHAR_PLUS);
+    } else if (eatting > 0) {
+        eatting--;
     }
 }
 
@@ -289,7 +293,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            hitting += 50;
+            hitting += min(CHAR_MAX - hitting, CHAR_PLUS);
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
@@ -297,7 +301,7 @@ void Snake::checkSelfCollisions()
         }
     }
 
-    hitting = max(0, hitting - 1);
+    if (hitting > 0) hitting--;
     hitSelf_ = false;
 }
 
@@ -429,10 +433,8 @@ void Snake::render(sf::RenderWindow &window)
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     char *out_tmp = out;
-    *out_tmp = hitting;
-    out_tmp++;
-    *out_tmp = eatting;
-    out_tmp++;
+    *out_tmp++ = hitting;
+    *out_tmp++ = eatting;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -450,13 +452,26 @@ void Snake::render(sf::RenderWindow &window)
     shape.setRotation(angle);
     vision v;
     for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
-        for (; y < VISION_Y_SUM; y++) {
+        for (; y < VISION_Y_SUM; y++, out_tmp++) {
             v = vision_[x][y];
             shape.setFillColor(sf::Color(v.color));
             shape.setPosition(v.pos);
             window.draw(shape);
-            *out_tmp = v.color == VISION_DEF_COLOR ? 0 : v.color == VISION_CHECK_COLOR ? 1 : -1;
-            out_tmp++;
+
+            switch(v.color) {
+                case VISION_DEF_COLOR:
+                    if (*out_tmp > 0) {
+                        *out_tmp -= 1;
+                    } else if (*out_tmp < 0) {
+                        *out_tmp += 1;
+                    }
+                    break;
+                case VISION_CHECK_COLOR:
+                    *out_tmp += min(CHAR_MAX - *out_tmp, CHAR_PLUS);
+                    break;
+                default:
+                    *out_tmp += max(CHAR_MIN - *out_tmp, -CHAR_PLUS);
+            }
         }
     }
 

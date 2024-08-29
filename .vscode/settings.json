@@ -62,7 +62,10 @@
         "codecvt": "cpp",
         "iomanip": "cpp",
         "sstream": "cpp",
-        "__node_handle": "cpp"
+        "__node_handle": "cpp",
+        "shared_mutex": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp"
     },
     "cmake.configureOnOpen": false
 }
