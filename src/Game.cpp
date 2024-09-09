@@ -49,8 +49,8 @@ sf::VideoMode Game::initVideoMode_()
 {
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
     return sf::VideoMode(
-        desktopMode.width / 2.0f,
-        desktopMode.height / 2.0f,
+        1920,
+        1080,
         desktopMode.bitsPerPixel);
 }
 

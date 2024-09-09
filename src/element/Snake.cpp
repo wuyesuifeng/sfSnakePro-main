@@ -154,14 +154,21 @@ void Snake::update(sf::Time delta)
         float plus = 0;
         char *inPtr = in;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *(in + i) / (float) pow(*inPtr > 0 ? CHAR_MAX : -CHAR_MIN, i);
+            char &inVal = *inPtr;
+            plus += inVal / (float) pow(inVal > 0 ? CHAR_MAX : CHAR_MIN, i);
+            inVal = 0;
         }
         direction_.x += plus;
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *(in + i) / (float) pow(*inPtr > 0 ? CHAR_MAX : -CHAR_MIN, i);
+            char &inVal = *inPtr;
+            plus += inVal / (float) pow(inVal > 0 ? CHAR_MAX : CHAR_MIN, i);
+            inVal = 0;
         }
         direction_.y += plus;
+        static double directionSize = length(direction_);
+        direction_.x /= directionSize;
+        direction_.y /= directionSize;
     }
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
