@@ -5,7 +5,7 @@
 
 #define READ_P_LEN 4
 #define READ_LEN 8
-#define WRITE_LEN 802
+#define WRITE_LEN 801
 
 namespace utils {
     class ShareMemory {

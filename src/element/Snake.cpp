@@ -10,9 +10,9 @@
 
 #include "screen/GameOverScreen.h"
 
-#define CHAR_MAX 127
-#define CHAR_MIN -128
-#define CHAR_PLUS 50
+#define CHAR_MAX '\177'
+#define CHAR_MIN '\200'
+#define CHAR_PLUS '\012'
 
 using namespace sfSnake;
 
@@ -24,7 +24,6 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
-      hitting(0),
       eatting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
@@ -166,7 +165,8 @@ void Snake::update(sf::Time delta)
             inVal = 0;
         }
         direction_.y += plus;
-        static double directionSize = length(direction_);
+        static double directionSize;
+        directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
     }
@@ -240,7 +240,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        eatting += min(CHAR_MAX - eatting, CHAR_PLUS);
+        eatting = CHAR_PLUS;
     } else if (eatting > 0) {
         eatting--;
     }
@@ -310,7 +310,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            hitting += min(CHAR_MAX - hitting, CHAR_PLUS);
+            eatting -= CHAR_PLUS;
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
@@ -318,7 +318,8 @@ void Snake::checkSelfCollisions()
         }
     }
 
-    if (hitting > 0) hitting--;
+    if (eatting < 0) eatting++;
+
     hitSelf_ = false;
 }
 
@@ -450,8 +451,8 @@ void Snake::render(sf::RenderWindow &window)
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     char *out_tmp = out;
-    *out_tmp++ = hitting;
-    *out_tmp++ = eatting;
+    *out_tmp = eatting;
+    out_tmp++;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -475,19 +476,20 @@ void Snake::render(sf::RenderWindow &window)
             shape.setPosition(v.pos);
             window.draw(shape);
 
+            char &val = *out_tmp;
             switch(v.color) {
-                case VISION_DEF_COLOR:
-                    if (*out_tmp > 0) {
-                        *out_tmp -= 1;
-                    } else if (*out_tmp < 0) {
-                        *out_tmp += 1;
-                    }
+                case VISION_HARM_COLOR:
+                    val = -CHAR_PLUS;
                     break;
                 case VISION_CHECK_COLOR:
-                    *out_tmp += min(CHAR_MAX - *out_tmp, CHAR_PLUS);
+                    val = CHAR_PLUS;
                     break;
                 default:
-                    *out_tmp += max(CHAR_MIN - *out_tmp, -CHAR_PLUS);
+                    if (val > 0) {
+                        val = min((char) (val - '\001'), CHAR_MIN);
+                    } else if (val < 0) {
+                        val = max((char) (val + '\001'), CHAR_MAX);
+                    }
             }
         }
     }
