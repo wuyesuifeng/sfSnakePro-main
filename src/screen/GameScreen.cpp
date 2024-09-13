@@ -55,7 +55,7 @@ void GameScreen::handleInput(sf::RenderWindow &window)
 
 void GameScreen::update(sf::Time delta)
 {
-    while (fruit_.size() < 5)
+    while (fruit_.size() < 25)
         generateFruit();
 
     snake_.update(delta);

@@ -10,8 +10,7 @@
 
 #include "screen/GameOverScreen.h"
 
-#define CHAR_MAX '\177'
-#define CHAR_MIN '\200'
+#define CHAR_MAX 127
 #define CHAR_PLUS '\012'
 
 using namespace sfSnake;
@@ -25,6 +24,7 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 Snake::Snake()
     : hitSelf_(false),
       eatting(0),
+      hurtting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -154,17 +154,35 @@ void Snake::update(sf::Time delta)
         char *inPtr = in;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
-            plus += inVal / (float) pow(inVal > 0 ? CHAR_MAX : CHAR_MIN, i);
+            plus += inVal / (float) CHAR_MAX;
             inVal = 0;
         }
         direction_.x += plus;
+
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
-            plus += inVal / (float) pow(inVal > 0 ? CHAR_MAX : CHAR_MIN, i);
+            plus += inVal / (float) CHAR_MAX;
+            inVal = 0;
+        }
+        direction_.x -= plus;
+
+        plus = 0;
+        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
+            char &inVal = *inPtr;
+            plus += inVal / (float) CHAR_MAX;
             inVal = 0;
         }
         direction_.y += plus;
+
+        plus = 0;
+        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
+            char &inVal = *inPtr;
+            plus += inVal / (float) CHAR_MAX;
+            inVal = 0;
+        }
+        direction_.y -= plus;
+
         static double directionSize;
         directionSize = length(direction_);
         direction_.x /= directionSize;
@@ -240,7 +258,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        eatting = CHAR_PLUS;
+        eatting = CHAR_PLUS * 2;
     } else if (eatting > 0) {
         eatting--;
     }
@@ -310,7 +328,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            eatting -= CHAR_PLUS;
+            hurtting = CHAR_PLUS;
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
@@ -318,7 +336,7 @@ void Snake::checkSelfCollisions()
         }
     }
 
-    if (eatting < 0) eatting++;
+    if (hurtting > 0) hurtting--;
 
     hitSelf_ = false;
 }
@@ -453,6 +471,8 @@ void Snake::render(sf::RenderWindow &window)
     char *out_tmp = out;
     *out_tmp = eatting;
     out_tmp++;
+    *out_tmp = hurtting;
+    out_tmp++;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -476,19 +496,26 @@ void Snake::render(sf::RenderWindow &window)
             shape.setPosition(v.pos);
             window.draw(shape);
 
-            char &val = *out_tmp;
+            char *val;
             switch(v.color) {
                 case VISION_HARM_COLOR:
-                    val = -CHAR_PLUS;
+                    val = out_tmp + VISION_HARM_POS;
+                    *val = max(*val + 1, CHAR_MAX);
                     break;
                 case VISION_CHECK_COLOR:
-                    val = CHAR_PLUS;
+                    val = out_tmp + VISION_CHECK_POS;
+                    *val = max(*val + 1, CHAR_MAX);
                     break;
                 default:
-                    if (val > 0) {
-                        val = min((char) (val - '\001'), CHAR_MIN);
-                    } else if (val < 0) {
-                        val = max((char) (val + '\001'), CHAR_MAX);
+                    val = out_tmp;
+                    *val = max(*val + 1, CHAR_MAX);
+                    val = out_tmp + VISION_CHECK_POS;
+                    if (*val > 0) {
+                        *val -= 1;
+                    }
+                    val = out_tmp + VISION_CHECK_POS;
+                    if (*val > 0) {
+                        *val -= 1;
                     }
             }
         }
