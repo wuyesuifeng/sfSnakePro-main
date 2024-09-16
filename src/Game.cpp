@@ -82,7 +82,7 @@ std::shared_ptr<Screen> Game::TmpGameScreen = nullptr;
 
 int Game::GridVisibility = 0;
 int Game::GridColor = 0;
-int Game::BackgroundColor = 0;
+int Game::BackgroundColor = 1;
 
 /* static keyboard and mouse lock to prevent misoperation
  * 键盘锁和鼠标锁用于防误触
@@ -112,10 +112,10 @@ Game::Game()
     icon.loadFromFile("assets/image/favicon.png");
     window_.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-    bgMusic_.openFromFile("assets/music/Roa - Bloom.wav");
-    bgMusic_.setVolume(30);
-    bgMusic_.setLoop(true);
-    bgMusic_.play();
+    // bgMusic_.openFromFile("assets/music/Roa - Bloom.wav");
+    // bgMusic_.setVolume(30);
+    // bgMusic_.setLoop(true);
+    // bgMusic_.play();
 }
 
 void Game::handleInput()

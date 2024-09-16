@@ -54,13 +54,13 @@ Snake::Snake()
 
     setOriginMiddle(headSprite);
 
-    pickupBuffer_.loadFromFile("assets/sounds/pickup.wav");
-    pickupSound_.setBuffer(pickupBuffer_);
-    pickupSound_.setVolume(30);
+    // pickupBuffer_.loadFromFile("assets/sounds/pickup.wav");
+    // pickupSound_.setBuffer(pickupBuffer_);
+    // pickupSound_.setVolume(30);
 
-    dieBuffer_.loadFromFile("assets/sounds/die.wav");
-    dieSound_.setBuffer(dieBuffer_);
-    dieSound_.setVolume(50);
+    // dieBuffer_.loadFromFile("assets/sounds/die.wav");
+    // dieSound_.setBuffer(dieBuffer_);
+    // dieSound_.setVolume(50);
     
     in = Game::share.getReadPos();
     out = Game::share.getWritePos();
