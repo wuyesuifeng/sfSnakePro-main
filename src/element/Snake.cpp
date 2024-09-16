@@ -24,7 +24,6 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 Snake::Snake()
     : hitSelf_(false),
       eatting(0),
-      hurtting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -328,7 +327,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            hurtting = CHAR_PLUS;
+            eatting = -CHAR_PLUS;
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
@@ -336,7 +335,7 @@ void Snake::checkSelfCollisions()
         }
     }
 
-    if (hurtting > 0) hurtting--;
+    if (eatting < 0) eatting++;
 
     hitSelf_ = false;
 }
@@ -470,8 +469,6 @@ void Snake::render(sf::RenderWindow &window)
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     char *out_tmp = out;
     *out_tmp = eatting;
-    out_tmp++;
-    *out_tmp = hurtting;
     out_tmp++;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
