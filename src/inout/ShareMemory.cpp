@@ -50,9 +50,9 @@ ShareMemory::~ShareMemory() {
         printErr("shmdt read memory failed");
     }
 
-    // if (shmctl(readId, IPC_RMID, 0) == -1) {
-    //     printErr("delete read memory failed");
-    // }
+    if (shmctl(readId, IPC_RMID, 0) == -1) {
+        printErr("delete read memory failed");
+    }
 
     if (shmdt(writePos) == -1) {
         printErr("shmdt write memory failed");

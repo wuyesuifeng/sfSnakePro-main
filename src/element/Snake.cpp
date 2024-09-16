@@ -11,7 +11,9 @@
 #include "screen/GameOverScreen.h"
 
 #define CHAR_MAX 127
-#define CHAR_PLUS '\012'
+#define CHAR_PLUS 80
+#define LOW_ECR -40
+#define HIGH_ECR -10
 
 using namespace sfSnake;
 
@@ -257,10 +259,9 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        eatting = CHAR_PLUS * 2;
-    } else if (eatting > 0) {
-        eatting--;
+        eatting += CHAR_PLUS;
     }
+    if (eatting > HIGH_ECR) eatting--;
 }
 
 void Snake::grow(int score)
@@ -327,7 +328,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            eatting = -CHAR_PLUS;
+            eatting -= CHAR_PLUS;
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
@@ -335,7 +336,7 @@ void Snake::checkSelfCollisions()
         }
     }
 
-    if (eatting < 0) eatting++;
+    if (eatting < LOW_ECR) eatting++;
 
     hitSelf_ = false;
 }
