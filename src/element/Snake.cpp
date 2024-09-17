@@ -266,9 +266,9 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
         fasting = utils::timestamp();
     } else {
-        char diff = min((utils::timestamp() - fasting) / 1000, 40ull);
+        char diff = min((utils::timestamp() - fasting) / 1000, 30ull);
         if (diff > 0) {
-            *out = max(*out - diff, CHAR_MIN);
+            *out = max(*out - diff + 10, CHAR_MIN);
         }
     }
 }
@@ -338,6 +338,8 @@ void Snake::checkSelfCollisions()
             dieSound_.play();
             hitSelf_ = true;
             *out = max(*out - CHAR_PLUS, CHAR_MIN);
+
+            fasting = 0;
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
