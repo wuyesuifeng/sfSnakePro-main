@@ -26,7 +26,7 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
-      fasting(utils::timestamp()),
+      hurting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -191,8 +191,6 @@ void Snake::update(sf::Time delta)
         directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
-        
-        fasting -= abs(old.x - direction_.x) + abs(old.y - direction_.y);
     }
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
@@ -265,13 +263,10 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         grow(toRemove->score_);
         fruits.erase(toRemove);
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
-        fasting = utils::timestamp();
     }
     else {
-        char diff = min((utils::timestamp() - fasting) / 5000, 6ull);
-        if (diff > 0) {
-            *out = max(*out - diff + 3, CHAR_MIN);
-        }
+        char diff = min((utils::timestamp() - hurting) / 500, 6ull);
+        *out = max(*out - (5 - diff), CHAR_MIN);
     }
 }
 
@@ -341,7 +336,7 @@ void Snake::checkSelfCollisions()
             hitSelf_ = true;
             *out = max(*out - CHAR_PLUS, CHAR_MIN);
 
-            fasting = 0;
+            hurting = utils::timestamp();
             return;
         }
     }
