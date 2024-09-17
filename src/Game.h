@@ -10,8 +10,8 @@
 #include "screen/Screen.h"
 #include "element/TitleSprite.h"
 
-#include "inout/ShareMemory.h"
-#include "inout/ReadConf.cpp"
+#include "utils/ShareMemory.h"
+#include "utils/ReadConf.cpp"
 
 namespace sfSnake
 {

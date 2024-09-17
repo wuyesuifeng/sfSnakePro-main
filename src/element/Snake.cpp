@@ -10,10 +10,11 @@
 
 #include "screen/GameOverScreen.h"
 
+#include "utils/Time.hpp"
+
 #define CHAR_MAX 127
+#define CHAR_MIN -128
 #define CHAR_PLUS 80
-#define LOW_ECR -40
-#define HIGH_ECR -10
 
 using namespace sfSnake;
 
@@ -25,7 +26,7 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
-      eatting(0),
+      fasting(utils::timestamp()),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -151,6 +152,7 @@ float culAngle(sf::Vector2f recDirection) {
 void Snake::update(sf::Time delta)
 {
     {
+        Direction old = direction_;
         float plus = 0;
         char *inPtr = in;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
@@ -188,6 +190,8 @@ void Snake::update(sf::Time delta)
         directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
+        
+        fasting -= abs(old.x - direction_.x) + abs(old.x - direction_.x);
     }
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
@@ -259,9 +263,14 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        eatting += CHAR_PLUS;
+        *out = min(*out + CHAR_PLUS, CHAR_MAX);
+        fasting = utils::timestamp();
+    } else {
+        char diff = min((utils::timestamp() - fasting) / 1000, 40ull);
+        if (diff > 0) {
+            *out = max(*out - diff, CHAR_MIN);
+        }
     }
-    if (eatting > HIGH_ECR) eatting--;
 }
 
 void Snake::grow(int score)
@@ -328,15 +337,13 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            eatting -= CHAR_PLUS;
+            *out = max(*out - CHAR_PLUS, CHAR_MIN);
 
             // *(in + 1) = Game::HIS_XY;
             // *(in + 2) = Game::HIS_XY;
             return;
         }
     }
-
-    if (eatting < LOW_ECR) eatting++;
 
     hitSelf_ = false;
 }
@@ -468,9 +475,7 @@ void Snake::render(sf::RenderWindow &window)
         j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-    char *out_tmp = out;
-    *out_tmp = eatting;
-    out_tmp++;
+    char *out_tmp = out + 1;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;

@@ -9,6 +9,8 @@
 #include "screen/PauseScreen.h"
 #include "screen/HelpScreen.h"
 
+#include "utils/Time.hpp"
+
 using namespace sfSnake;
 
 GameScreen::GameScreen()
@@ -55,8 +57,9 @@ void GameScreen::handleInput(sf::RenderWindow &window)
 
 void GameScreen::update(sf::Time delta)
 {
-    while (fruit_.size() < 25)
+    while (fruit_.size() < (utils::timestamp() / 60000) % 25) {
         generateFruit();
+    } 
 
     snake_.update(delta);
     snake_.checkFruitCollisions(fruit_);
