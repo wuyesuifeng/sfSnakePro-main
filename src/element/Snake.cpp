@@ -155,10 +155,11 @@ void Snake::update(sf::Time delta)
         Direction old = direction_;
         float plus = 0;
         char *inPtr = in;
+
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
             plus += inVal / (float) CHAR_MAX;
-            inVal = 0;
+            *inPtr = inVal = 0;
         }
         direction_.x += plus;
 
@@ -166,7 +167,7 @@ void Snake::update(sf::Time delta)
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
             plus += inVal / (float) CHAR_MAX;
-            inVal = 0;
+            *inPtr = inVal = 0;
         }
         direction_.x -= plus;
 
@@ -174,7 +175,7 @@ void Snake::update(sf::Time delta)
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
             plus += inVal / (float) CHAR_MAX;
-            inVal = 0;
+            *inPtr = inVal = 0;
         }
         direction_.y += plus;
 
@@ -182,7 +183,7 @@ void Snake::update(sf::Time delta)
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             char &inVal = *inPtr;
             plus += inVal / (float) CHAR_MAX;
-            inVal = 0;
+            *inPtr = inVal = 0;
         }
         direction_.y -= plus;
 
@@ -191,7 +192,7 @@ void Snake::update(sf::Time delta)
         direction_.x /= directionSize;
         direction_.y /= directionSize;
         
-        fasting -= abs(old.x - direction_.x) + abs(old.x - direction_.x);
+        fasting -= abs(old.x - direction_.x) + abs(old.y - direction_.y);
     }
     move();
     toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
