@@ -152,7 +152,6 @@ float culAngle(sf::Vector2f recDirection) {
 void Snake::update(sf::Time delta)
 {
     {
-        Direction old = direction_;
         float plus = 0;
         char *inPtr = in;
 
