@@ -4,10 +4,20 @@
 #include <iostream>
 #include <string>
 
-#include "screen/MenuScreen.h"
+// #include "screen/MenuScreen.h"
+#include "screen/GameScreen.h"
 #include "Game.h"
 
 using namespace sfSnake;
+
+inline utils::ShareMemory initShare() {
+    char *path = utils::getPath();
+    utils::ShareMemory shareTmp = utils::ShareMemory(path);
+    free(path);
+    return shareTmp;
+}
+
+utils::ShareMemory Game::share = initShare();
 
 /* Global Color settings
  * 全局颜色设置
@@ -71,7 +81,8 @@ TitleSprite Game::GlobalTitle = TitleSprite();
  * 可能需要用树来存储访问路径
  */
 
-std::shared_ptr<Screen> Game::MainScreen = std::make_shared<MenuScreen>();
+// std::shared_ptr<Screen> Game::MainScreen = std::make_shared<MenuScreen>();
+std::shared_ptr<Screen> Game::MainScreen = std::make_shared<GameScreen>();
 std::shared_ptr<Screen> Game::TmpScreen = nullptr;
 std::shared_ptr<Screen> Game::TmpGameScreen = nullptr;
 
@@ -98,8 +109,6 @@ bool Game::keyboardLocked = false;
 /* 开局显示帮助
  */
 bool Game::ifShowedHelp = false;
-
-utils::ShareMemory Game::share = initShare();
 
 Game::Game()
     : TimePerFrame_(sf::seconds(1.f / 100.f))
@@ -158,6 +167,9 @@ void Game::run()
     mouseButtonClock.restart();
     keyboardClock.restart();
 
+    Game::mouseButtonLocked = true;
+    Game::mouseButtonCDtime = sf::Time::Zero;
+
     while (window_.isOpen())
     {
         sf::Time delta = clock.restart();
@@ -169,7 +181,6 @@ void Game::run()
             handleInput();
 
             update(TimePerFrame_);
-
             render();
         }
 

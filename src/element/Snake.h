@@ -60,7 +60,7 @@ namespace sfSnake
         SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian, float sin, float cos, int num, sf::Vector2f head);
 
         bool hitSelf_;
-        unsigned long long hurting;
+        // unsigned long long hurting;
         bool speedup_;
 
         Direction direction_;
@@ -83,7 +83,7 @@ namespace sfSnake
         sf::SoundBuffer dieBuffer_;
         sf::Sound dieSound_;
 
-        char *in = nullptr, *out = nullptr;
+        unsigned char *in = nullptr, *out = nullptr;
         int hisX, hisY;
     };
 }

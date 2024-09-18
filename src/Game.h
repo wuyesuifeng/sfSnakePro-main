@@ -139,11 +139,4 @@ namespace sfSnake
             std::pow(static_cast<double>(node.x), 2) +
             std::pow(static_cast<double>(node.y), 2));
     }
-
-    inline utils::ShareMemory initShare() {
-        char *path = utils::getPath();
-        utils::ShareMemory shareTmp = utils::ShareMemory(path);
-        free(path);
-        return shareTmp;
-    }
 }

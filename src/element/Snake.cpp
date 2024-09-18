@@ -12,9 +12,9 @@
 
 #include "utils/Time.hpp"
 
-#define CHAR_MAX 127
-#define CHAR_MIN -128
-#define CHAR_PLUS 80
+#define CHAR_MAX 255
+#define CHAR_MIN 0
+#define CHAR_PLUS 50
 
 using namespace sfSnake;
 
@@ -26,7 +26,7 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
-      hurting(0),
+    //   hurting(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -153,36 +153,32 @@ void Snake::update(sf::Time delta)
 {
     {
         float plus = 0;
-        char *inPtr = in;
+        unsigned char *inPtr = in;
 
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            char &inVal = *inPtr;
-            plus += inVal / (float) CHAR_MAX;
-            *inPtr = inVal = 0;
+            plus += *inPtr / (float) CHAR_MAX;
+            *inPtr = 0;
         }
         direction_.x += plus;
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            char &inVal = *inPtr;
-            plus += inVal / (float) CHAR_MAX;
-            *inPtr = inVal = 0;
+            plus += *inPtr / (float) CHAR_MAX;
+            *inPtr = 0;
         }
         direction_.x -= plus;
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            char &inVal = *inPtr;
-            plus += inVal / (float) CHAR_MAX;
-            *inPtr = inVal = 0;
+            plus += *inPtr / (float) CHAR_MAX;
+            *inPtr = 0;
         }
         direction_.y += plus;
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            char &inVal = *inPtr;
-            plus += inVal / (float) CHAR_MAX;
-            *inPtr = inVal = 0;
+            plus += *inPtr / (float) CHAR_MAX;
+            *inPtr = 0;
         }
         direction_.y -= plus;
 
@@ -263,10 +259,10 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         fruits.erase(toRemove);
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
     }
-    else {
-        char diff = min((utils::timestamp() - hurting) / 500, 6ull);
-        *out = max(*out - (5 - diff), CHAR_MIN);
-    }
+    // else {
+    //     char diff = min((utils::timestamp() - hurting) / 500, 6ull);
+    //     *out = max(*out - (5 - diff), CHAR_MIN);
+    // }
 }
 
 void Snake::grow(int score)
@@ -333,9 +329,9 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            *out = max(*out - CHAR_PLUS, CHAR_MIN);
+            *(out + 1) = max(*(out + 1) + CHAR_PLUS, CHAR_MAX);
 
-            hurting = utils::timestamp();
+            // hurting = utils::timestamp();
             return;
         }
     }
@@ -470,7 +466,7 @@ void Snake::render(sf::RenderWindow &window)
         j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-    char *out_tmp = out + 1;
+    unsigned char *out_tmp = out + 2;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle;
@@ -494,27 +490,19 @@ void Snake::render(sf::RenderWindow &window)
             shape.setPosition(v.pos);
             window.draw(shape);
 
-            char *val;
+            unsigned char *val;
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = max(*val + 1, CHAR_MAX);
+                    *val = 1;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = max(*val + 1, CHAR_MAX);
+                    *val = 1;
                     break;
                 default:
                     val = out_tmp;
-                    *val = max(*val + 1, CHAR_MAX);
-                    val = out_tmp + VISION_CHECK_POS;
-                    if (*val > 0) {
-                        *val -= 1;
-                    }
-                    val = out_tmp + VISION_CHECK_POS;
-                    if (*val > 0) {
-                        *val -= 1;
-                    }
+                    *val = 1;
             }
         }
     }

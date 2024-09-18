@@ -36,11 +36,11 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "shmget readId failed";
     }
 
-    if ((writePos = (char*) shmat(writeId, NULL, 0)) == nullptr) {
+    if ((writePos = (unsigned char*) shmat(writeId, NULL, 0)) == nullptr) {
         throw "shmat writePos failed";
     }
 
-    if ((readPos = (char*) shmat(readId, NULL, 0)) == nullptr) {
+    if ((readPos = (unsigned char*) shmat(readId, NULL, 0)) == nullptr) {
         throw "shmat readPos failed";
     }
 }
@@ -58,15 +58,15 @@ ShareMemory::~ShareMemory() {
         printErr("shmdt write memory failed");
     }
 
-    // if (shmctl(writeId, IPC_RMID, 0) == -1) {
-    //     printErr("delete write memory failed");
-    // }
+    if (shmctl(writeId, IPC_RMID, 0) == -1) {
+        printErr("delete write memory failed");
+    }
 }
 
-char* ShareMemory::getReadPos() {
+unsigned char* ShareMemory::getReadPos() {
     return readPos;
 }
 
-char* ShareMemory::getWritePos() {
+unsigned char* ShareMemory::getWritePos() {
     return writePos;
 }

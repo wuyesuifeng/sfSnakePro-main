@@ -14,11 +14,11 @@ namespace utils {
         public:
             ShareMemory(char *xyExecFile);
             ~ShareMemory();
-            char* getReadPos();
-            char* getWritePos();
+            unsigned char* getReadPos();
+            unsigned char* getWritePos();
         private:
-            char *writePos = nullptr;
-            char *readPos = nullptr;
+            unsigned char *writePos = nullptr;
+            unsigned char *readPos = nullptr;
             int writeId;
             int readId;
     };

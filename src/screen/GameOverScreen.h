@@ -27,7 +27,7 @@ namespace sfSnake
         OptionButton helpButton_;
         OptionButton aboutButton_;
 
-        char *in = nullptr, *out = nullptr;
+        unsigned char *in = nullptr, *out = nullptr;
         int hisX = Game::HIS_XY, hisY = Game::HIS_XY;
     };
 }
