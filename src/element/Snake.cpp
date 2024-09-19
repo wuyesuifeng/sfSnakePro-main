@@ -159,28 +159,44 @@ void Snake::update(sf::Time delta)
             plus += *inPtr / (float) CHAR_MAX;
             *inPtr = 0;
         }
-        direction_.x += plus;
+        if (direction_.y > 0 && direction_.x < 0) {
+            direction_.x += plus;
+        } else {
+            direction_.x -= plus;
+        }
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             plus += *inPtr / (float) CHAR_MAX;
             *inPtr = 0;
         }
-        direction_.x -= plus;
+        if (direction_.y > 0) {
+            direction_.x -= plus;
+        } else {
+            direction_.x += plus;
+        }
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             plus += *inPtr / (float) CHAR_MAX;
             *inPtr = 0;
         }
-        direction_.y += plus;
+        if (direction_.x > 0) {
+            direction_.y += plus;
+        } else {
+            direction_.y -= plus;
+        }
 
         plus = 0;
         for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
             plus += *inPtr / (float) CHAR_MAX;
             *inPtr = 0;
         }
-        direction_.y -= plus;
+        if (direction_.x > 0) {
+            direction_.y -= plus;
+        } else {
+            direction_.y += plus;
+        }
 
         static double directionSize;
         directionSize = length(direction_);
