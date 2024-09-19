@@ -28,11 +28,11 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "ftoke readKey failed";
     }
 
-    if ((writeId = shmget(writeKey, WRITE_SIZE, FLAG)) == -1) {
+    if ((writeId = shmget(writeKey, WRITE_SIZE + 1, FLAG)) == -1) {
         throw "shmget writeId failed";
     }
 
-    if ((readId = shmget(readKey, READ_SIZE, FLAG)) == -1) {
+    if ((readId = shmget(readKey, READ_SIZE + 1, FLAG)) == -1) {
         throw "shmget readId failed";
     }
 
@@ -43,30 +43,39 @@ ShareMemory::ShareMemory(char *xyExecFile) {
     if ((readPos = (unsigned char*) shmat(readId, NULL, 0)) == nullptr) {
         throw "shmat readPos failed";
     }
+
+    *writePos = 1;
+    *readPos = 1;
 }
 
 ShareMemory::~ShareMemory() {
-    if (shmdt(readPos) == -1) {
-        printErr("shmdt read memory failed");
-    }
 
-    // if (shmctl(readId, IPC_RMID, 0) == -1) {
-    //     printErr("delete read memory failed");
-    // }
+    if (*readPos) {
 
-    if (shmdt(writePos) == -1) {
-        printErr("shmdt write memory failed");
-    }
+        *writePos = 0;
 
-    if (shmctl(writeId, IPC_RMID, 0) == -1) {
-        printErr("delete write memory failed");
+        if (shmdt(readPos) == -1) {
+            printErr("shmdt read memory failed");
+        }
+
+        if (shmdt(writePos) == -1) {
+            printErr("shmdt write memory failed");
+        }
+
+        if (shmctl(readId, IPC_RMID, 0) == -1) {
+            printErr("delete read memory failed");
+        }
+
+        if (shmctl(writeId, IPC_RMID, 0) == -1) {
+            printErr("delete write memory failed");
+        }
     }
 }
 
 unsigned char* ShareMemory::getReadPos() {
-    return readPos;
+    return readPos + 1;
 }
 
 unsigned char* ShareMemory::getWritePos() {
-    return writePos;
+    return writePos + 1;
 }
