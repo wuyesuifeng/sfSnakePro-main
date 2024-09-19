@@ -26,7 +26,7 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
 
 Snake::Snake()
     : hitSelf_(false),
-    //   hurting(0),
+      eating(utils::timestamp()),
       speedup_(false),
       direction_(Direction(0, -1)),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
@@ -258,11 +258,16 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         grow(toRemove->score_);
         fruits.erase(toRemove);
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
+        eating = utils::timestamp();
+    } else {
+        char diff = min((utils::timestamp() - eating) / 3000, 13ull) - 3;
+        
+        if (diff > 0) {
+            *(out + 1) = min(*(out + 1) + diff, CHAR_MAX);
+        } else if (diff < 0) {
+            *out = min(*out - diff, CHAR_MAX);
+        }
     }
-    // else {
-    //     char diff = min((utils::timestamp() - hurting) / 500, 6ull);
-    //     *out = max(*out - (5 - diff), CHAR_MIN);
-    // }
 }
 
 void Snake::grow(int score)
