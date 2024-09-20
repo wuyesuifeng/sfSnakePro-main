@@ -4,10 +4,10 @@
 #include <string>
 
 #define READ_P_LEN 4
-#define READ_LEN 16
+#define READ_LEN 16 + 1
 #define VISION_HARM_POS 802
 #define VISION_CHECK_POS 1604
-#define WRITE_LEN 2408
+#define WRITE_LEN 2408 + 1
 
 namespace utils {
     class ShareMemory {

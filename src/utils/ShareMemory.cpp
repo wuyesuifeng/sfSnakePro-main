@@ -28,11 +28,11 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "ftoke readKey failed";
     }
 
-    if ((writeId = shmget(writeKey, WRITE_SIZE + 1, FLAG)) == -1) {
+    if ((writeId = shmget(writeKey, WRITE_SIZE, FLAG)) == -1) {
         throw "shmget writeId failed";
     }
 
-    if ((readId = shmget(readKey, READ_SIZE + 1, FLAG)) == -1) {
+    if ((readId = shmget(readKey, READ_SIZE, FLAG)) == -1) {
         throw "shmget readId failed";
     }
 
