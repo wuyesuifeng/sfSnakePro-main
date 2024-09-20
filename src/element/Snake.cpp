@@ -159,7 +159,7 @@ void Snake::update(sf::Time delta)
             plus += *inPtr / (float) CHAR_MAX;
             *inPtr = 0;
         }
-        if (direction_.y > 0 && direction_.x < 0) {
+        if (direction_.y > 0) {
             direction_.x += plus;
         } else {
             direction_.x -= plus;
