@@ -4,7 +4,7 @@
 #include <string>
 
 #define READ_P_LEN 4
-#define READ_LEN 16 + 1
+#define READ_LEN 8 + 1
 #define VISION_CHECK_POS 802
 #define VISION_HARM_POS 1602
 #define WRITE_LEN 2402 + 1

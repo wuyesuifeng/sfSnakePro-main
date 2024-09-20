@@ -63,6 +63,8 @@ namespace sfSnake
         unsigned long long eating;
         bool speedup_;
 
+        float angle_, radian;
+
         Direction direction_;
         float nodeRadius_;
         std::deque<SnakePathNode> path_;

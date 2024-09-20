@@ -13,6 +13,7 @@
 #include "utils/Time.hpp"
 
 #define CHAR_MAX 255
+#define CHAR_RATIO 256
 #define CHAR_MIN 0
 #define CHAR_PLUS 60
 
@@ -24,11 +25,23 @@ static const float VISION_X_HALF = VISION_X_SUM / 2,
                     VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF,
                     VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
 
+float culAngle(sf::Vector2f recDirection) {
+    float angle =
+        std::acos(recDirection.y / length(recDirection)) /
+        PI * 180.0;
+    if (recDirection.x > 0)
+        angle = -angle;
+        
+    return angle;
+}
+
 Snake::Snake()
     : hitSelf_(false),
       eating(utils::timestamp()),
       speedup_(false),
       direction_(Direction(0, -1)),
+      angle_(180),
+      radian(angle_ * PI / 180.0f),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
       tailOverlap_(0u),
       nodeShape(nodeRadius_),
@@ -88,20 +101,38 @@ void Snake::handleInput(sf::RenderWindow &window)
 
     if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+        sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+
         direction_ = Direction(0, -1);
-    else if (
+
+        angle_ = culAngle(direction_);
+        radian = angle_ * PI / 180.0f;
+    } else if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Down) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+        sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+
         direction_ = Direction(0, 1);
-    else if (
+
+        angle_ = culAngle(direction_);
+        radian = angle_ * PI / 180.0f;
+    } else if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+
         direction_ = Direction(-1, 0);
-    else if (
+
+        angle_ = culAngle(direction_);
+        radian = angle_ * PI / 180.0f;
+    } else if (
         sf::Keyboard::isKeyPressed(sf::Keyboard::Right) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+
         direction_ = Direction(1, 0);
+
+        angle_ = culAngle(direction_);
+        radian = angle_ * PI / 180.0f;
+    }
+        
 
     if (!Game::mouseButtonLocked)
     {
@@ -111,6 +142,9 @@ void Snake::handleInput(sf::RenderWindow &window)
         {
             mousePosition = sf::Mouse::getPosition(window);
             handleInput(mousePosition, window);
+
+            angle_ = culAngle(direction_);
+            radian = angle_ * PI / 180.0f;
         }
     }
 
@@ -139,72 +173,45 @@ void Snake::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
     }
 }
 
-float culAngle(sf::Vector2f recDirection) {
-    float angle =
-        std::acos(recDirection.y / length(recDirection)) /
-        PI * 180.0;
-    if (recDirection.x > 0)
-        angle = -angle;
-        
-    return angle;
-}
-
 void Snake::update(sf::Time delta)
 {
+    float plus = 0;
     {
-        float plus = 0;
         unsigned char *inPtr = in;
 
-        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *inPtr / (float) CHAR_MAX;
+        for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
+            plus += *inPtr * 160.0f / j;
             *inPtr = 0;
         }
-        if (direction_.y > 0) {
-            direction_.x += plus;
-        } else {
-            direction_.x -= plus;
-        }
 
-        plus = 0;
-        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *inPtr / (float) CHAR_MAX;
+        for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
+            plus -= *inPtr * 160.0f / j;
             *inPtr = 0;
         }
-        if (direction_.y > 0) {
-            direction_.x -= plus;
-        } else {
-            direction_.x += plus;
+    }
+
+    if (plus) {
+        angle_ += plus;
+
+        if (angle_ > 360) {
+            angle_ -= 360;
+        } else if (angle_ < -360) {
+            angle_ += 360;
         }
 
-        plus = 0;
-        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *inPtr / (float) CHAR_MAX;
-            *inPtr = 0;
-        }
-        if (direction_.x > 0) {
-            direction_.y += plus;
-        } else {
-            direction_.y -= plus;
-        }
+        radian = angle_ * PI / 180.0f;
+        direction_.y += cos(radian) * headTexture.getSize().y;
+        direction_.x -= sin(radian) * headTexture.getSize().y;
 
-        plus = 0;
-        for (size_t i = 0; i < READ_P_LEN; i++, inPtr++) {
-            plus += *inPtr / (float) CHAR_MAX;
-            *inPtr = 0;
-        }
-        if (direction_.x > 0) {
-            direction_.y -= plus;
-        } else {
-            direction_.y += plus;
-        }
-
-        static double directionSize;
-        directionSize = length(direction_);
+        double directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
+
+        // printf("angle_: %f\n", angle_);
     }
+
     move();
-    toWindow(path_.front(), direction_, abs(tan(culAngle(direction_) * PI / 180.0f)));
+    toWindow(path_.front(), direction_, abs(tan(radian)));
     look();
     checkSelfCollisions();
 }
@@ -216,9 +223,7 @@ float culSelfCollisionDis(float radius) {
 void Snake::look() {
     SnakePathNode head = path_.front();
 
-    float angle = culAngle(direction_),
-            radian = angle * PI / 180.0f,
-            cosR = cos(radian),
+    float cosR = cos(radian),
             sinR = sin(radian),
             tanVal = abs(tan(radian)),
             moveY = cosR * VISION_PIXEL_WIDTH,
@@ -490,14 +495,13 @@ void Snake::render(sf::RenderWindow &window)
     unsigned char *out_tmp = out + 2;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
-    float angle;
+    float angle = angle_;
     sf::Vector2f body;
     SnakePathNode wNowHeadNode;
 
     lastSnakeNode = *path_.begin();
     wNowHeadNode = lastSnakeNode;
     headSprite.setPosition(wNowHeadNode);
-    angle = culAngle(direction_);
     headSprite.setRotation(angle);
     
     sf::RectangleShape shape = sf::RectangleShape();
