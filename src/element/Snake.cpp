@@ -15,7 +15,7 @@
 #define CHAR_MAX 255
 #define CHAR_RATIO 256
 #define CHAR_MIN 0
-#define CHAR_PLUS 60
+#define CHAR_PLUS 4
 
 using namespace sfSnake;
 
@@ -180,12 +180,12 @@ void Snake::update(sf::Time delta)
         unsigned char *inPtr = in;
 
         for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus += *inPtr * 160.0f / j;
+            plus += *inPtr * 120.0f / j;
             *inPtr = 0;
         }
 
         for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus -= *inPtr * 160.0f / j;
+            plus -= *inPtr * 120.0f / j;
             *inPtr = 0;
         }
     }
@@ -281,7 +281,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
         eating = utils::timestamp();
     } else {
-        char diff = min((utils::timestamp() - eating) / 3000, 13ull) - 3;
+        char diff = min((utils::timestamp() - eating) / 10000, 3ull) - 1;
         
         if (diff > 0) {
             *(out + 1) = min(*(out + 1) + diff, CHAR_MAX);
@@ -519,15 +519,15 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 12;
+                    *val = 1;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = 12;
+                    *val = 1;
                     break;
                 default:
                     val = out_tmp;
-                    *val = 12;
+                    *val = 1;
             }
         }
     }
