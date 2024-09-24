@@ -281,7 +281,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
         eating = utils::timestamp();
     } else {
-        char diff = min((utils::timestamp() - eating) / 10000, 3ull) - 1;
+        char diff = min((utils::timestamp() - eating) / 360000, 3ull) - 1;
         
         if (diff > 0) {
             *(out + 1) = min(*(out + 1) + diff, CHAR_MAX);
