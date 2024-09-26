@@ -15,7 +15,7 @@
 #define CHAR_MAX 255
 #define CHAR_RATIO 256
 #define CHAR_MIN 0
-#define CHAR_PLUS 4
+#define CHAR_PLUS 50
 
 using namespace sfSnake;
 
@@ -37,10 +37,11 @@ float culAngle(sf::Vector2f recDirection) {
 
 Snake::Snake()
     : hitSelf_(false),
-      eating(utils::timestamp()),
+      moved(utils::timestamp()),
       speedup_(false),
       direction_(Direction(0, -1)),
       angle_(180),
+      hisAngle_(angle_),
       radian(angle_ * PI / 180.0f),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
       tailOverlap_(0u),
@@ -198,6 +199,15 @@ void Snake::update(sf::Time delta)
         } else if (angle_ < -360) {
             angle_ += 360;
         }
+        
+        unsigned long long now = utils::timestamp();
+        if (now - moved > 10000) {
+            moved = now - 10000 + abs(hisAngle_ - angle_) * 1000;
+        } else {
+            moved = min((unsigned long long) (now + abs(hisAngle_ - angle_) * 1000), now);
+        }
+
+        hisAngle_ = angle_;
 
         radian = angle_ * PI / 180.0f;
         direction_.y += cos(radian) * headTexture.getSize().y;
@@ -209,7 +219,7 @@ void Snake::update(sf::Time delta)
 
         // printf("angle_: %f\n", angle_);
     }
-
+    
     move();
     toWindow(path_.front(), direction_, abs(tan(radian)));
     look();
@@ -279,15 +289,6 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         grow(toRemove->score_);
         fruits.erase(toRemove);
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
-        eating = utils::timestamp();
-    } else {
-        char diff = min((utils::timestamp() - eating) / 360000, 3ull) - 1;
-        
-        if (diff > 0) {
-            *(out + 1) = min(*(out + 1) + diff, CHAR_MAX);
-        } else if (diff < 0) {
-            *out = min(*out - diff, CHAR_MAX);
-        }
     }
 }
 
@@ -355,13 +356,16 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            *(out + 1) = max(*(out + 1) + CHAR_PLUS, CHAR_MAX);
+            *(out + 1) = min(*(out + 1) + CHAR_PLUS, CHAR_MAX);
 
             // hurting = utils::timestamp();
             return;
         }
     }
-
+    unsigned long long diff = (utils::timestamp() - moved) / 1000;
+    if (diff) {
+        *(out + 1) = max(*(out + 1), (unsigned char) min(diff, 10ull));
+    }
     hitSelf_ = false;
 }
 
