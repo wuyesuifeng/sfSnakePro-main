@@ -197,16 +197,20 @@ void Snake::update(sf::Time delta)
         angle_ += plus;
 
         if (angle_ > 360) {
-            angle_ -= 360;
+            do {
+                angle_ -= 360;
+            } while (angle_ > 360);
         } else if (angle_ < -360) {
-            angle_ += 360;
+            do {
+                angle_ += 360;
+            } while (angle_ < -360);
         }
         
         unsigned long long now = utils::timestamp();
-        if (now - moving > 10000) {
-            moving = now - 10000 + abs(hisAngle_ - angle_) * 1000;
+        if (now - moving > 100000) {
+            moving = min((unsigned long long) (now - 100000 + abs(hisAngle_ - angle_) * 1000), now);
         } else {
-            moving = min((unsigned long long) (now + abs(hisAngle_ - angle_) * 1000), now);
+            moving = min((unsigned long long) (moving + abs(hisAngle_ - angle_) * 1000), now);
         }
 
         hisAngle_ = angle_;
@@ -373,9 +377,9 @@ void Snake::checkSelfCollisions()
     unsigned long long now = utils::timestamp(),
                         diff = (now - hurting) / 10;
     if (diff < CHAR_PLUS) {
-        diff = CHAR_PLUS - diff + min((now - moving) / 1000, 10ull);
+        diff = CHAR_PLUS - diff + min((now - moving) / 10000, 10ull);
     } else {
-        diff = min((now - moving) / 1000, 10ull);
+        diff = min((now - moving) / 10000, 10ull);
     }
     if (diff) {
         *(out + 1) = max(*(out + 1), (unsigned char) diff);
@@ -537,15 +541,15 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 1;
+                    *val = 6;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = 1;
+                    *val = 6;
                     break;
                 default:
                     val = out_tmp;
-                    *val = 1;
+                    *val = 6;
             }
         }
     }
