@@ -37,7 +37,9 @@ float culAngle(sf::Vector2f recDirection) {
 
 Snake::Snake()
     : hitSelf_(false),
-      moved(utils::timestamp()),
+      moving(utils::timestamp()),
+      hurting(0),
+      eating(0),
       speedup_(false),
       direction_(Direction(0, -1)),
       angle_(180),
@@ -201,10 +203,10 @@ void Snake::update(sf::Time delta)
         }
         
         unsigned long long now = utils::timestamp();
-        if (now - moved > 10000) {
-            moved = now - 10000 + abs(hisAngle_ - angle_) * 1000;
+        if (now - moving > 10000) {
+            moving = now - 10000 + abs(hisAngle_ - angle_) * 1000;
         } else {
-            moved = min((unsigned long long) (now + abs(hisAngle_ - angle_) * 1000), now);
+            moving = min((unsigned long long) (now + abs(hisAngle_ - angle_) * 1000), now);
         }
 
         hisAngle_ = angle_;
@@ -289,6 +291,12 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         grow(toRemove->score_);
         fruits.erase(toRemove);
         *out = min(*out + CHAR_PLUS, CHAR_MAX);
+        eating = utils::timestamp();
+    } else {
+        unsigned long long diff = (utils::timestamp() - eating) / 10;
+        if (diff < CHAR_PLUS) {
+            *out = max(*out, (unsigned char) (CHAR_PLUS - diff));
+        }
     }
 }
 
@@ -358,13 +366,19 @@ void Snake::checkSelfCollisions()
             hitSelf_ = true;
             *(out + 1) = min(*(out + 1) + CHAR_PLUS, CHAR_MAX);
 
-            // hurting = utils::timestamp();
+            hurting = utils::timestamp();
             return;
         }
     }
-    unsigned long long diff = (utils::timestamp() - moved) / 1000;
+    unsigned long long now = utils::timestamp(),
+                        diff = (now - hurting) / 10;
+    if (diff < CHAR_PLUS) {
+        diff = CHAR_PLUS - diff + min((now - moving) / 1000, 10ull);
+    } else {
+        diff = min((now - moving) / 1000, 10ull);
+    }
     if (diff) {
-        *(out + 1) = max(*(out + 1), (unsigned char) min(diff, 10ull));
+        *(out + 1) = max(*(out + 1), (unsigned char) diff);
     }
     hitSelf_ = false;
 }
