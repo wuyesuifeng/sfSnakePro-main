@@ -5,8 +5,8 @@
 
 #define READ_P_LEN 2
 #define READ_LEN 4 + 1
-#define VISION_CHECK_POS 802
-#define VISION_HARM_POS 1602
+#define VISION_CHECK_POS 800
+#define VISION_HARM_POS 1600
 #define WRITE_LEN 2402 + 1
 
 namespace utils {
