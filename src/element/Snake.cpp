@@ -16,7 +16,6 @@
 #define CHAR_RATIO 256
 #define CHAR_MIN 0
 #define CHAR_PLUS 50
-#define VISION_VAL 1
 
 using namespace sfSnake;
 
@@ -542,15 +541,15 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = VISION_VAL;
+                    *val = 10;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = VISION_VAL;
+                    *val = 255;
                     break;
                 default:
                     val = out_tmp;
-                    *val = VISION_VAL;
+                    *val = 1;
             }
         }
     }
