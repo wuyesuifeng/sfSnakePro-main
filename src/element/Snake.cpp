@@ -549,7 +549,7 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 10;
+                    *val = 80;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
