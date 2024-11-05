@@ -40,7 +40,8 @@ Snake::Snake()
       moving(utils::timestamp()),
       hurting(0),
       eating(0),
-      speedup_(false),
+    //   speedup_(false),
+      speed_(0),
       direction_(Direction(0, -1)),
       angle_(180),
       hisAngle_(angle_),
@@ -151,10 +152,14 @@ void Snake::handleInput(sf::RenderWindow &window)
         }
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-        speedup_ = true;
-    else
-        speedup_ = false;
+    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+    //     speedup_ = true;
+    // else
+    //     speedup_ = false;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+        speed_++;
+    }
 }
 
 void Snake::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
@@ -191,6 +196,8 @@ void Snake::update(sf::Time delta)
             plus -= *inPtr * 120.0f / j;
             *inPtr = 0;
         }
+
+        speed_ = *inPtr > 5 ? *inPtr > 20 ? 2 : 1 : 0;
     }
 
     if (plus) {
@@ -332,8 +339,8 @@ void Snake::move()
             tailOverlap_++;  
         } while (tailOverlap_ < 0);
     } else {
-        int times = speedup_ ? 2 : 1;
-        for (int i = 1; i <= times; i++)
+        // int times = speedup_ ? 2 : 1;
+        for (int i = 1; i <= speed_; i++)
         {
             path_.push_front(SnakePathNode(
                 headNode.x + direction_.x * i * nodeRadius_ / 5.0,
@@ -344,6 +351,7 @@ void Snake::move()
                 path_.pop_back();
             }
         }
+        speed_ = 0;
     }
 }
 
@@ -541,11 +549,11 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 50;
+                    *val = 10;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = 255;
+                    *val = 100;
                     break;
                 default:
                     val = out_tmp;

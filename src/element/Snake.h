@@ -61,7 +61,8 @@ namespace sfSnake
 
         bool hitSelf_;
         unsigned long long moving, hurting, eating;
-        bool speedup_;
+        // bool speedup_;
+        short int speed_;
 
         float angle_, hisAngle_, radian;
 
