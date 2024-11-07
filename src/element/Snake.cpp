@@ -15,7 +15,7 @@
 #define CHAR_MAX 255
 #define CHAR_RATIO 256
 #define CHAR_MIN 0
-#define CHAR_PLUS 50
+#define CHAR_PLUS 100
 
 using namespace sfSnake;
 
