@@ -12,9 +12,9 @@
 
 #include "utils/Time.hpp"
 
-#define CHAR_MAX 255
+#define XY_CHAR_MAX 255
 #define CHAR_RATIO 256
-#define CHAR_MIN 0
+#define XY_CHAR_MIN 0
 #define CHAR_PLUS 100
 
 using namespace sfSnake;
@@ -301,7 +301,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        *out = min(*out + CHAR_PLUS, CHAR_MAX);
+        *out = min(*out + CHAR_PLUS, XY_CHAR_MAX);
         eating = utils::timestamp();
     } else {
         unsigned long long diff = (utils::timestamp() - eating) / 10;
@@ -376,7 +376,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            *(out + 1) = min(*(out + 1) + CHAR_PLUS, CHAR_MAX);
+            *(out + 1) = min(*(out + 1) + CHAR_PLUS, XY_CHAR_MAX);
 
             hurting = utils::timestamp();
             return;

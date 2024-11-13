@@ -1,10 +1,28 @@
 {
     "configurations": [
+        // {
+        //     "name": "linux",
+        //     "includePath": [
+        //         "${workspaceFolder}/**",
+        //         "/home/xy/soft/SFML-2.6.1/include/**"
+        //     ],
+        //     "defines": [
+        //         "_DEBUG",
+        //         "UNICODE",
+        //         "_UNICODE"
+        //     ],
+        //     "windowsSdkVersion": "10.0.22621.0",
+        //     "compilerPath": "/usr/bin/g++",
+        //     "cStandard": "c17",
+        //     "cppStandard": "c++17",
+        //     "intelliSenseMode": "linux-gcc-x64",
+        //     "configurationProvider": "ms-vscode.makefile-tools"
+        // },
         {
-            "name": "linux",
+            "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/home/xy/soft/SFML-2.6.1/include/**"
+                // "C:/Users/thego/Software/SFML-2.6.1",
+                "${workspaceFolder}/src/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -12,10 +30,10 @@
                 "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.22621.0",
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "C:/Users/thego/Software/mingw64/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "linux-gcc-x64",
+            "intelliSenseMode": "gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

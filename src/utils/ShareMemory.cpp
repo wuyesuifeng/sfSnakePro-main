@@ -1,8 +1,14 @@
 #include "ShareMemory.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#define getcwd _getcwd
+#else
 #include <sys/shm.h>
 #include <unistd.h>
+#endif
 
 #define READ_SIZE sizeof(char) * READ_LEN
 #define WRITE_SIZE sizeof(char) * WRITE_LEN
@@ -17,6 +23,82 @@ ShareMemory::ShareMemory(char *xyExecFile) {
     char me_path[128];
     getcwd(me_path, sizeof(me_path) - 1);
 
+#ifdef _WIN32
+    for (int i = 0; i < 128; i++) {
+        if (me_path[i] == '\\') {
+            me_path[i] = '/';
+        } else if (!me_path[i]) {
+            me_path[i] = '/';
+            me_path[i + 1] = 'r';
+            me_path[i + 2] = 'u';
+            me_path[i + 3] = 'n';
+            me_path[i + 4] = '.';
+            me_path[i + 5] = 'e';
+            me_path[i + 6] = 'x';
+            me_path[i + 7] = 'e';
+            break;
+        }
+    }
+
+    printErr(me_path);
+    printErr(xyExecFile);
+
+    SetLastError(0);
+    // ERROR_INVALID_HANDLE
+    // 创建共享文件句柄 
+	HANDLE write = CreateFileMapping(
+		INVALID_HANDLE_VALUE,   // 物理文件句柄
+		NULL,   // 默认安全级别
+		PAGE_READWRITE,   // 可读可写
+		0,   // 高位文件大小
+		WRITE_SIZE,   // 低位文件大小
+		me_path   // 共享内存名称
+	);
+
+    if (GetLastError()) {
+        printf("\tCreateFileMapping write_path err: %d\n", GetLastError());
+    }
+    
+    SetLastError(0);
+    HANDLE read = CreateFileMapping(
+		INVALID_HANDLE_VALUE,   // 物理文件句柄
+		NULL,   // 默认安全级别
+		PAGE_READWRITE,   // 可读可写
+		0,   // 高位文件大小
+		READ_SIZE,   // 低位文件大小
+		xyExecFile   // 共享内存名称
+	);
+
+    if (GetLastError()) {
+        printf("\tCreateFileMapping read_path err: %d\n", GetLastError());
+    }
+
+    SetLastError(0);
+    writePos = (unsigned char *) MapViewOfFile(
+		write,            // 共享内存的句柄
+		FILE_MAP_ALL_ACCESS, // 可读写许可
+		0,
+		0,
+		WRITE_SIZE		 // 填写 BIG_BUF_SIZE
+	);
+
+    if (GetLastError()) {
+        printf("\tMapViewOfFile writePos err: %d\n", GetLastError());
+    }
+
+    SetLastError(0);
+    readPos = (unsigned char *) MapViewOfFile(
+		read,            // 共享内存的句柄
+		FILE_MAP_ALL_ACCESS, // 可读写许可
+		0,
+		0,
+		READ_SIZE		 // 填写 BIG_BUF_SIZE
+	);
+
+    if (GetLastError()) {
+        printf("\tMapViewOfFile readPos err: %d\n", GetLastError());
+    }
+#else
     printErr(me_path);
     printErr(xyExecFile);
 
@@ -43,6 +125,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
     if ((readPos = (unsigned char*) shmat(readId, NULL, 0)) == nullptr) {
         throw "shmat readPos failed";
     }
+#endif
 
     *writePos = 1;
     *readPos = 1;
@@ -54,6 +137,8 @@ ShareMemory::~ShareMemory() {
 
         *writePos = 0;
 
+#ifdef _WIN32
+#else
         if (shmdt(readPos) == -1) {
             printErr("shmdt read memory failed");
         }
@@ -69,6 +154,7 @@ ShareMemory::~ShareMemory() {
         if (shmctl(writeId, IPC_RMID, 0) == -1) {
             printErr("delete write memory failed");
         }
+#endif
     }
 }
 
