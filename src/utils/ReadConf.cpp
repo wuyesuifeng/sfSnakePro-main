@@ -25,7 +25,7 @@ namespace utils {
             }
             ifs.close();
             const int len = res.length();
-            char* resChar = (char*) calloc(len, sizeof(char));
+            char* resChar = (char*) calloc(len, len * sizeof(char));
             memcpy(resChar, res.c_str(), len);
             return resChar;
         } else {

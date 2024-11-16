@@ -40,37 +40,44 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         }
     }
 
-    printErr(me_path);
-    printErr(xyExecFile);
+    puts(me_path);
+    puts(xyExecFile);
 
-    SetLastError(0);
     // ERROR_INVALID_HANDLE
     // 创建共享文件句柄 
-	HANDLE write = CreateFileMapping(
-		INVALID_HANDLE_VALUE,   // 物理文件句柄
-		NULL,   // 默认安全级别
-		PAGE_READWRITE,   // 可读可写
-		0,   // 高位文件大小
-		WRITE_SIZE,   // 低位文件大小
-		me_path   // 共享内存名称
-	);
+	HANDLE write = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, me_path);
 
-    if (GetLastError()) {
-        printf("\tCreateFileMapping write_path err: %d\n", GetLastError());
+    if (!write) {
+        SetLastError(0);
+        write = CreateFileMapping(
+            INVALID_HANDLE_VALUE,   // 物理文件句柄
+            NULL,   // 默认安全级别
+            PAGE_READWRITE,   // 可读可写
+            0,   // 高位文件大小
+            WRITE_SIZE,   // 低位文件大小
+            me_path   // 共享内存名称
+        );
+        if (GetLastError()) {
+            printf("\tCreateFileMapping write_path err: %d\n", GetLastError());
+            throw "CreateFileMapping write_path failed";
+        }
     }
     
-    SetLastError(0);
-    HANDLE read = CreateFileMapping(
-		INVALID_HANDLE_VALUE,   // 物理文件句柄
-		NULL,   // 默认安全级别
-		PAGE_READWRITE,   // 可读可写
-		0,   // 高位文件大小
-		READ_SIZE,   // 低位文件大小
-		xyExecFile   // 共享内存名称
-	);
-
-    if (GetLastError()) {
-        printf("\tCreateFileMapping read_path err: %d\n", GetLastError());
+    HANDLE read = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, xyExecFile);
+    if (!read) {
+        SetLastError(0);
+        read = CreateFileMapping(
+            INVALID_HANDLE_VALUE,   // 物理文件句柄
+            NULL,   // 默认安全级别
+            PAGE_READWRITE,   // 可读可写
+            0,   // 高位文件大小
+            READ_SIZE,   // 低位文件大小
+            xyExecFile   // 共享内存名称
+        );
+        if (GetLastError()) {
+            printf("\tCreateFileMapping read_path err: %d\n", GetLastError());
+            throw "CreateFileMapping read_path failed";
+        }
     }
 
     SetLastError(0);
@@ -79,11 +86,12 @@ ShareMemory::ShareMemory(char *xyExecFile) {
 		FILE_MAP_ALL_ACCESS, // 可读写许可
 		0,
 		0,
-		WRITE_SIZE		 // 填写 BIG_BUF_SIZE
+		0 		 // 填写 BIG_BUF_SIZE
 	);
 
     if (GetLastError()) {
         printf("\tMapViewOfFile writePos err: %d\n", GetLastError());
+        throw "MapViewOfFile writePos failed";
     }
 
     SetLastError(0);
@@ -92,11 +100,12 @@ ShareMemory::ShareMemory(char *xyExecFile) {
 		FILE_MAP_ALL_ACCESS, // 可读写许可
 		0,
 		0,
-		READ_SIZE		 // 填写 BIG_BUF_SIZE
+		0		 // 填写 BIG_BUF_SIZE
 	);
 
     if (GetLastError()) {
         printf("\tMapViewOfFile readPos err: %d\n", GetLastError());
+        throw "MapViewOfFile readPos failed";
     }
 #else
     printErr(me_path);
@@ -128,7 +137,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
 #endif
 
     *writePos = 1;
-    *readPos = 1;
+    // *readPos = 1;
 }
 
 ShareMemory::~ShareMemory() {

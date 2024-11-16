@@ -57,7 +57,9 @@ void GameScreen::handleInput(sf::RenderWindow &window)
 
 void GameScreen::update(sf::Time delta)
 {
-    while (fruit_.size() < (int) ((utils::timestamp() / 60000) % 10) - 7) {
+    int fsize = max(((int) (utils::timestamp() / 60000)) % 10 - 6, 0);
+    
+    while (fruit_.size() < fsize) {
         generateFruit();
     }
     // while (fruit_.size() < 25) {
