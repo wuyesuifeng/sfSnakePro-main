@@ -1,14 +1,6 @@
 #include "ShareMemory.h"
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef _WIN32
-#include <windows.h>
-#include <direct.h>
-#define getcwd _getcwd
-#else
-#include <sys/shm.h>
-#include <unistd.h>
-#endif
 
 #define READ_SIZE sizeof(char) * READ_LEN
 #define WRITE_SIZE sizeof(char) * WRITE_LEN
@@ -20,8 +12,13 @@ using namespace utils;
 ShareMemory::ShareMemory(char *xyExecFile) {
     int writeKey, readKey;
 
-    char me_path[128];
-    getcwd(me_path, sizeof(me_path) - 1);
+    char *tmp = NULL;
+    tmp = getcwd(NULL, 0);
+    const int len = 8 + strlen(tmp);
+    char *me_path;
+    me_path = (char *) calloc(len, len * sizeof(char));
+    memcpy(me_path, tmp, len);
+    free(tmp);
 
 #ifdef _WIN32
     for (int i = 0; i < 128; i++) {
@@ -45,9 +42,11 @@ ShareMemory::ShareMemory(char *xyExecFile) {
 
     // ERROR_INVALID_HANDLE
     // 创建共享文件句柄 
-	HANDLE write = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, me_path);
+	write = OpenFileMapping(FILE_MAP_ALL_ACCESS, true, me_path);
 
     if (!write) {
+        puts("CreateFileMapping snake");
+        // printf("\tme_path[61]: %d\n", me_path[61]);
         SetLastError(0);
         write = CreateFileMapping(
             INVALID_HANDLE_VALUE,   // 物理文件句柄
@@ -62,9 +61,11 @@ ShareMemory::ShareMemory(char *xyExecFile) {
             throw "CreateFileMapping write_path failed";
         }
     }
-    
-    HANDLE read = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, xyExecFile);
+
+    read = OpenFileMapping(FILE_MAP_ALL_ACCESS, true, xyExecFile);
     if (!read) {
+        puts("CreateFileMapping ai");
+        // printf("\txyExecFile[53]: %d\n", xyExecFile[53]);
         SetLastError(0);
         read = CreateFileMapping(
             INVALID_HANDLE_VALUE,   // 物理文件句柄
@@ -136,8 +137,10 @@ ShareMemory::ShareMemory(char *xyExecFile) {
     }
 #endif
 
+    free(me_path);
+
     *writePos = 1;
-    // *readPos = 1;
+    *readPos = 1;
 }
 
 ShareMemory::~ShareMemory() {
@@ -147,6 +150,10 @@ ShareMemory::~ShareMemory() {
         *writePos = 0;
 
 #ifdef _WIN32
+        UnmapViewOfFile(writePos);
+        UnmapViewOfFile(readPos);
+        CloseHandle(write);
+        CloseHandle(read);
 #else
         if (shmdt(readPos) == -1) {
             printErr("shmdt read memory failed");
