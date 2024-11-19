@@ -16,6 +16,10 @@
 #define CHAR_RATIO 256
 #define XY_CHAR_MIN 0
 #define CHAR_PLUS 100
+#define ANGLE_PLUS_THRESHOLD 180
+#define ANGLE_MINUS_THRESHOLD -180
+#define ANGLE_PLUS_THRESHOLD2 40
+#define ANGLE_MINUS_THRESHOLD2 -40
 
 using namespace sfSnake;
 
@@ -38,6 +42,7 @@ float culAngle(sf::Vector2f recDirection) {
 Snake::Snake()
     : hitSelf_(false),
       moving(utils::timestamp()),
+      pain_(0),
       hurting(0),
       eating(0),
     //   speedup_(false),
@@ -45,6 +50,7 @@ Snake::Snake()
       direction_(Direction(0, -1)),
       angle_(180),
       hisAngle_(angle_),
+      headAngle_(angle_),
       radian(angle_ * PI / 180.0f),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
       tailOverlap_(0u),
@@ -188,12 +194,12 @@ void Snake::update(sf::Time delta)
         unsigned char *inPtr = in;
 
         for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus += *inPtr * 120.0f / j;
+            plus += *inPtr * 180.0f / j;
             *inPtr = 0;
         }
 
         for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus -= *inPtr * 120.0f / j;
+            plus -= *inPtr * 180.0f / j;
             *inPtr = 0;
         }
 
@@ -201,17 +207,39 @@ void Snake::update(sf::Time delta)
     }
 
     if (plus) {
+
+        if (plus > ANGLE_PLUS_THRESHOLD) {
+            plus = ANGLE_PLUS_THRESHOLD;
+        } else if (plus < ANGLE_MINUS_THRESHOLD) {
+            plus = ANGLE_MINUS_THRESHOLD;
+        }
+
         angle_ += plus;
 
-        if (angle_ > 360) {
-            do {
-                angle_ -= 360;
-            } while (angle_ > 360);
-        } else if (angle_ < -360) {
-            do {
-                angle_ += 360;
-            } while (angle_ < -360);
+        // cout << angle_;
+
+        float angleTmp = angle_ - headAngle_;
+        if (angleTmp > 0) {
+            if (angleTmp > ANGLE_PLUS_THRESHOLD2) {
+                angle_ = headAngle_ + ANGLE_PLUS_THRESHOLD2;
+                pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
+            }
+            *(out + 2) = angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
+        } else if (angleTmp < 0) {
+            if (angleTmp < ANGLE_MINUS_THRESHOLD2) {
+                angle_ = headAngle_ + ANGLE_MINUS_THRESHOLD2;
+                pain_ += -angleTmp + ANGLE_MINUS_THRESHOLD2;
+            }
+            *(out + 3) = -angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
         }
+
+        if (angleTmp > ANGLE_PLUS_THRESHOLD) {
+            angle_ = ANGLE_MINUS_THRESHOLD + angle_ - ANGLE_PLUS_THRESHOLD;
+        } else if (angle_ < ANGLE_MINUS_THRESHOLD) {
+            angle_ = ANGLE_PLUS_THRESHOLD + angle_ - ANGLE_MINUS_THRESHOLD;
+        }
+
+        // cout << "\t" << angle_ << endl;
         
         unsigned long long now = utils::timestamp();
         if (now - moving > 100000) {
@@ -223,6 +251,7 @@ void Snake::update(sf::Time delta)
         hisAngle_ = angle_;
 
         radian = angle_ * PI / 180.0f;
+
         direction_.y += cos(radian) * headTexture.getSize().y;
         direction_.x -= sin(radian) * headTexture.getSize().y;
 
@@ -340,18 +369,21 @@ void Snake::move()
         } while (tailOverlap_ < 0);
     } else {
         // int times = speedup_ ? 2 : 1;
-        for (int i = 1; i <= speed_; i++)
-        {
-            path_.push_front(SnakePathNode(
-                headNode.x + direction_.x * i * nodeRadius_ / 5.0,
-                headNode.y + direction_.y * i * nodeRadius_ / 5.0));
-            if (tailOverlap_) {
-                tailOverlap_--;
-            } else {
-                path_.pop_back();
+        if (speed_ > 0) {
+            headAngle_ = angle_;
+            for (int i = 1; i <= speed_; i++)
+            {
+                path_.push_front(SnakePathNode(
+                    headNode.x + direction_.x * i * nodeRadius_ / 5.0,
+                    headNode.y + direction_.y * i * nodeRadius_ / 5.0));
+                if (tailOverlap_) {
+                    tailOverlap_--;
+                } else {
+                    path_.pop_back();
+                }
             }
+            speed_ = 0;
         }
-        speed_ = 0;
     }
 }
 
@@ -376,7 +408,7 @@ void Snake::checkSelfCollisions()
             dieSound_.stop();
             dieSound_.play();
             hitSelf_ = true;
-            *(out + 1) = min(*(out + 1) + CHAR_PLUS, XY_CHAR_MAX);
+            pain_ += CHAR_PLUS;
 
             hurting = utils::timestamp();
             return;
@@ -390,7 +422,7 @@ void Snake::checkSelfCollisions()
         diff = min((now - moving) / 10000, 10ull);
     }
     if (diff) {
-        *(out + 1) = max(*(out + 1), (unsigned char) diff);
+        pain_ += diff;
     }
     hitSelf_ = false;
 }
@@ -522,7 +554,9 @@ void Snake::render(sf::RenderWindow &window)
         j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-    unsigned char *out_tmp = out + 2;
+    *(out + 1) = min(pain_, XY_CHAR_MAX);
+    pain_ = 0;
+    unsigned char *out_tmp = out + 4;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle = angle_;
