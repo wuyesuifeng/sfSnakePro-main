@@ -13,7 +13,6 @@
 #include "utils/Time.hpp"
 
 #define XY_CHAR_MAX 255
-#define CHAR_RATIO 256
 #define XY_CHAR_MIN 0
 #define CHAR_PLUS 100
 #define ANGLE_PLUS_THRESHOLD 180
@@ -193,13 +192,13 @@ void Snake::update(sf::Time delta)
     {
         unsigned char *inPtr = in;
 
-        for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus += *inPtr * 180.0f / j;
+        for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
+            plus += *inPtr * ANGLE_PLUS_THRESHOLD2 / j;
             *inPtr = 0;
         }
 
-        for (size_t i = 0, j = CHAR_RATIO; i < READ_P_LEN; i++, inPtr++, j *= CHAR_RATIO) {
-            plus -= *inPtr * 180.0f / j;
+        for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
+            plus += (float) (*inPtr) * ANGLE_MINUS_THRESHOLD2 / j;
             *inPtr = 0;
         }
 
