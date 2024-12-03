@@ -1,6 +1,9 @@
 #include "ShareMemory.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __linux
+#include <cstring>
+#endif
 
 #define READ_SIZE sizeof(char) * READ_LEN
 #define WRITE_SIZE sizeof(char) * WRITE_LEN
