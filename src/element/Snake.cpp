@@ -16,9 +16,7 @@
 #define XY_CHAR_MIN 0
 #define CHAR_PLUS 100
 #define ANGLE_PLUS_THRESHOLD 180
-#define ANGLE_MINUS_THRESHOLD -180
 #define ANGLE_PLUS_THRESHOLD2 60
-#define ANGLE_MINUS_THRESHOLD2 -60
 
 using namespace sfSnake;
 
@@ -194,23 +192,23 @@ void Snake::update(sf::Time delta)
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
             plus += *inPtr * ANGLE_PLUS_THRESHOLD2 / j;
-            *inPtr = 0;
+        }
+
+        if (*inPtr > 5) {
+            speed_ = *inPtr > 10 ? 2 : 1;
         }
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
-            plus += (float) (*inPtr) * ANGLE_MINUS_THRESHOLD2 / j;
-            *inPtr = 0;
+            plus += (float) (*inPtr) * -ANGLE_PLUS_THRESHOLD2 / j;
         }
-
-        speed_ = *inPtr > 5 ? *inPtr > 20 ? 2 : 1 : 0;
     }
 
     if (plus) {
 
         if (plus > ANGLE_PLUS_THRESHOLD) {
             plus = ANGLE_PLUS_THRESHOLD;
-        } else if (plus < ANGLE_MINUS_THRESHOLD) {
-            plus = ANGLE_MINUS_THRESHOLD;
+        } else if (plus < -ANGLE_PLUS_THRESHOLD) {
+            plus = -ANGLE_PLUS_THRESHOLD;
         }
 
         angle_ += plus;
@@ -225,17 +223,11 @@ void Snake::update(sf::Time delta)
             }
             *(out + 2) = angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
         } else if (angleTmp < 0) {
-            if (angleTmp < ANGLE_MINUS_THRESHOLD2) {
-                angle_ = headAngle_ + ANGLE_MINUS_THRESHOLD2;
-                pain_ += -angleTmp + ANGLE_MINUS_THRESHOLD2;
+            if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
+                angle_ = headAngle_ - ANGLE_PLUS_THRESHOLD2;
+                pain_ += -angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
             *(out + 3) = -angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
-        }
-
-        if (angleTmp > ANGLE_PLUS_THRESHOLD) {
-            angle_ = ANGLE_MINUS_THRESHOLD + angle_ - ANGLE_PLUS_THRESHOLD;
-        } else if (angle_ < ANGLE_MINUS_THRESHOLD) {
-            angle_ = ANGLE_PLUS_THRESHOLD + angle_ - ANGLE_MINUS_THRESHOLD;
         }
 
         // cout << "\t" << angle_ << endl;
@@ -582,15 +574,15 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 80;
+                    *val = 120;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = 100;
+                    *val = 150;
                     break;
                 default:
                     val = out_tmp;
-                    *val = 10;
+                    *val = 80;
             }
         }
     }
