@@ -17,8 +17,8 @@
 #define CHAR_PLUS 100
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_MINUS_THRESHOLD -180
-#define ANGLE_PLUS_THRESHOLD2 40
-#define ANGLE_MINUS_THRESHOLD2 -40
+#define ANGLE_PLUS_THRESHOLD2 60
+#define ANGLE_MINUS_THRESHOLD2 -60
 
 using namespace sfSnake;
 
@@ -416,9 +416,9 @@ void Snake::checkSelfCollisions()
     unsigned long long now = utils::timestamp(),
                         diff = (now - hurting) / 10;
     if (diff < CHAR_PLUS) {
-        diff = CHAR_PLUS - diff + min((now - moving) / 10000, 10ull);
+        diff = CHAR_PLUS - diff + min((now - moving) / 2000, 175ull);
     } else {
-        diff = min((now - moving) / 10000, 10ull);
+        diff = min((now - moving) / 2000, 175ull);
     }
     if (diff) {
         pain_ += diff;
@@ -590,7 +590,7 @@ void Snake::render(sf::RenderWindow &window)
                     break;
                 default:
                     val = out_tmp;
-                    *val = 1;
+                    *val = 10;
             }
         }
     }
