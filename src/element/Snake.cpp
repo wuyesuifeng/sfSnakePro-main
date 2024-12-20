@@ -222,12 +222,17 @@ void Snake::update(sf::Time delta)
                 pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
             *(out + 2) = angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
+            *(out + 3) = 0;
         } else if (angleTmp < 0) {
             if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = headAngle_ - ANGLE_PLUS_THRESHOLD2;
                 pain_ += -angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
             *(out + 3) = -angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
+            *(out + 2) = 0;
+        } else {
+            *(out + 2) = 0;
+            *(out + 3) = 0;
         }
 
         // cout << "\t" << angle_ << endl;
@@ -408,9 +413,9 @@ void Snake::checkSelfCollisions()
     unsigned long long now = utils::timestamp(),
                         diff = (now - hurting) / 10;
     if (diff < CHAR_PLUS) {
-        diff = CHAR_PLUS - diff + min((now - moving) / 2000, 175ull);
+        diff = CHAR_PLUS - diff + min((now - moving) / 2000, 10ull);
     } else {
-        diff = min((now - moving) / 2000, 175ull);
+        diff = min((now - moving) / 2000, 10ull);
     }
     if (diff) {
         pain_ += diff;
@@ -575,14 +580,26 @@ void Snake::render(sf::RenderWindow &window)
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
                     *val = 120;
+                    val = out_tmp + VISION_CHECK_POS;
+                    *val = 0;
+                    val = out_tmp;
+                    *val = 0;
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
                     *val = 150;
+                    val = out_tmp + VISION_HARM_POS;
+                    *val = 0;
+                    val = out_tmp;
+                    *val = 0;
                     break;
                 default:
                     val = out_tmp;
                     *val = 80;
+                    val = out_tmp + VISION_CHECK_POS;
+                    *val = 0;
+                    val = out_tmp + VISION_HARM_POS;
+                    *val = 0;
             }
         }
     }
