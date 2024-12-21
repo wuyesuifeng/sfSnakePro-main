@@ -194,8 +194,8 @@ void Snake::update(sf::Time delta)
             plus += (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
         }
 
-        if (*inPtr > 5) {
-            speed_ = *inPtr > 10 ? 2 : 1;
+        if (*inPtr) {
+            speed_ = *inPtr > 5 ? 2 : 1;
         }
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
@@ -332,6 +332,8 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         unsigned long long diff = (utils::timestamp() - eating) / 10;
         if (diff < CHAR_PLUS) {
             *out = max(*out, (unsigned char) (CHAR_PLUS - diff));
+        } else {
+            *out = 0;
         }
     }
 }
