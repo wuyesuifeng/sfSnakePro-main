@@ -191,7 +191,7 @@ void Snake::update(sf::Time delta)
         unsigned char *inPtr = in;
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
-            plus += *inPtr * ANGLE_PLUS_THRESHOLD2 / j;
+            plus += (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
         }
 
         if (*inPtr > 5) {
@@ -199,7 +199,7 @@ void Snake::update(sf::Time delta)
         }
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
-            plus += (float) (*inPtr) * -ANGLE_PLUS_THRESHOLD2 / j;
+            plus -= (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
         }
     }
 
@@ -579,7 +579,7 @@ void Snake::render(sf::RenderWindow &window)
             switch(v.color) {
                 case VISION_HARM_COLOR:
                     val = out_tmp + VISION_HARM_POS;
-                    *val = 120;
+                    *val = 10;
                     val = out_tmp + VISION_CHECK_POS;
                     *val = 0;
                     val = out_tmp;
@@ -587,7 +587,7 @@ void Snake::render(sf::RenderWindow &window)
                     break;
                 case VISION_CHECK_COLOR:
                     val = out_tmp + VISION_CHECK_POS;
-                    *val = 150;
+                    *val = 80;
                     val = out_tmp + VISION_HARM_POS;
                     *val = 0;
                     val = out_tmp;
@@ -595,7 +595,7 @@ void Snake::render(sf::RenderWindow &window)
                     break;
                 default:
                     val = out_tmp;
-                    *val = 80;
+                    *val = 10;
                     val = out_tmp + VISION_CHECK_POS;
                     *val = 0;
                     val = out_tmp + VISION_HARM_POS;
