@@ -204,7 +204,7 @@ void Snake::update(sf::Time delta)
         }
 
         if (*inPtr) {
-            speed_ = *inPtr > 5 ? 2 : 1;
+            speed_ = *inPtr > 20 ? 2 : 1;
         }
         inPtr++;
 
@@ -253,11 +253,14 @@ void Snake::update(sf::Time delta)
 
         // cout << "\t" << angle_ << endl;
         
-        unsigned long long now = utils::timestamp();
+        static unsigned long long now;
+        now = utils::timestamp();
+        static unsigned long long tmpDiff;
+        tmpDiff = abs(((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0)) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 500;
         if (now - turning > 100000) {
-            turning = min((unsigned long long) (now - 100000 + abs(hisAngle_ - angleTmp) * 10000), now);
+            turning = min(now - 100000 + tmpDiff, now);
         } else {
-            turning = min((unsigned long long) (turning + abs(hisAngle_ - angleTmp) * 10000), now);
+            turning = min(turning + tmpDiff, now);
         }
 
         radian = angle_ * PI / 180.0f;
@@ -265,7 +268,8 @@ void Snake::update(sf::Time delta)
         direction_.y += cos(radian) * headTexture.getSize().y;
         direction_.x -= sin(radian) * headTexture.getSize().y;
 
-        double directionSize = length(direction_);
+        static double directionSize;
+        directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
 
