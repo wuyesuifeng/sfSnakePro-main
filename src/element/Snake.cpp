@@ -196,22 +196,14 @@ float parseAngle2(float angle) {
 void Snake::update(sf::Time delta)
 {
     float plus = 0;
-    {
-        unsigned char *inPtr = in;
+    
+    plus += (float) (*in) * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX + (float) in[1] * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX / XY_CHAR_MAX;
 
-        for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
-            plus += (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
-        }
-
-        if (*inPtr) {
-            speed_ = *inPtr > 20 ? 2 : 1;
-        }
-        inPtr++;
-
-        for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
-            plus -= (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
-        }
+    if (in[2]) {
+        speed_ = in[2] > 20 ? 2 : 1;
     }
+
+    plus -= (float) in[4] * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX + (float) in[3] * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX / XY_CHAR_MAX;
 
     if (plus) {
 
@@ -257,8 +249,8 @@ void Snake::update(sf::Time delta)
         now = utils::timestamp();
         static unsigned long long tmpDiff;
         tmpDiff = abs(((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0)) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 500;
-        if (now - turning > 100000) {
-            turning = min(now - 100000 + tmpDiff, now);
+        if (now - turning > 200000) {
+            turning = min(now - 200000 + tmpDiff, now);
         } else {
             turning = min(turning + tmpDiff, now);
         }
