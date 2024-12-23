@@ -17,6 +17,7 @@
 #define CHAR_PLUS 100
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
+#define ANGLE_PLUS_THRESHOLD3 120
 
 using namespace sfSnake;
 
@@ -38,7 +39,7 @@ float culAngle(sf::Vector2f recDirection) {
 
 Snake::Snake()
     : hitSelf_(false),
-      moving(utils::timestamp()),
+      turning(utils::timestamp()),
       pain_(0),
       hurting(0),
       eating(0),
@@ -184,6 +185,14 @@ void Snake::handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window) {
     }
 }
 
+float parseAngle(float angle) {
+    return angle < 0 ? 360 + angle : angle;
+}
+
+float parseAngle2(float angle) {
+    return angle > ANGLE_PLUS_THRESHOLD ? angle - 360 : angle;
+}
+
 void Snake::update(sf::Time delta)
 {
     float plus = 0;
@@ -197,6 +206,7 @@ void Snake::update(sf::Time delta)
         if (*inPtr) {
             speed_ = *inPtr > 5 ? 2 : 1;
         }
+        inPtr++;
 
         for (size_t i = 0, j = XY_CHAR_MAX; i < READ_P_LEN; i++, inPtr++, j *= XY_CHAR_MAX) {
             plus -= (float) (*inPtr) * ANGLE_PLUS_THRESHOLD2 / j;
@@ -205,30 +215,36 @@ void Snake::update(sf::Time delta)
 
     if (plus) {
 
-        if (plus > ANGLE_PLUS_THRESHOLD) {
-            plus = ANGLE_PLUS_THRESHOLD;
-        } else if (plus < -ANGLE_PLUS_THRESHOLD) {
-            plus = -ANGLE_PLUS_THRESHOLD;
+        if (plus > ANGLE_PLUS_THRESHOLD3) {
+            plus = ANGLE_PLUS_THRESHOLD3;
+        } else if (plus < -ANGLE_PLUS_THRESHOLD3) {
+            plus = -ANGLE_PLUS_THRESHOLD3;
         }
 
-        angle_ += plus;
+        angle_ = parseAngle2(angle_ + plus);
 
         // cout << angle_;
-
-        float angleTmp = angle_ - headAngle_;
+        float angle = parseAngle(angle_),
+                headAngle = parseAngle(headAngle_);
+        float angleTmp = angle - headAngle;
+        if (angleTmp > ANGLE_PLUS_THRESHOLD) {
+            angleTmp = angleTmp - 360;
+        } else if (angleTmp < -ANGLE_PLUS_THRESHOLD) {
+            angleTmp = 360 + angleTmp;
+        }
         if (angleTmp > 0) {
             if (angleTmp > ANGLE_PLUS_THRESHOLD2) {
-                angle_ = headAngle_ + ANGLE_PLUS_THRESHOLD2;
+                angle_ = parseAngle2(headAngle + ANGLE_PLUS_THRESHOLD2);
                 pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
-            *(out + 2) = angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
+            *(out + 2) = min(angleTmp, 255.0f);
             *(out + 3) = 0;
         } else if (angleTmp < 0) {
             if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
-                angle_ = headAngle_ - ANGLE_PLUS_THRESHOLD2;
-                pain_ += -angleTmp - ANGLE_PLUS_THRESHOLD2;
+                angle_ = parseAngle2(headAngle - ANGLE_PLUS_THRESHOLD2);
+                pain_ += ANGLE_PLUS_THRESHOLD2 - angleTmp;
             }
-            *(out + 3) = -angleTmp * 255 / ANGLE_PLUS_THRESHOLD;
+            *(out + 3) = -max(angleTmp, -255.0f);
             *(out + 2) = 0;
         } else {
             *(out + 2) = 0;
@@ -238,13 +254,11 @@ void Snake::update(sf::Time delta)
         // cout << "\t" << angle_ << endl;
         
         unsigned long long now = utils::timestamp();
-        if (now - moving > 100000) {
-            moving = min((unsigned long long) (now - 100000 + abs(hisAngle_ - angle_) * 1000), now);
+        if (now - turning > 100000) {
+            turning = min((unsigned long long) (now - 100000 + abs(hisAngle_ - angle_) * 800), now);
         } else {
-            moving = min((unsigned long long) (moving + abs(hisAngle_ - angle_) * 1000), now);
+            turning = min((unsigned long long) (turning + abs(hisAngle_ - angle_) * 800), now);
         }
-
-        hisAngle_ = angle_;
 
         radian = angle_ * PI / 180.0f;
 
@@ -254,6 +268,8 @@ void Snake::update(sf::Time delta)
         double directionSize = length(direction_);
         direction_.x /= directionSize;
         direction_.y /= directionSize;
+
+        hisAngle_ = angle_;
 
         // printf("angle_: %f\n", angle_);
     }
@@ -415,9 +431,9 @@ void Snake::checkSelfCollisions()
     unsigned long long now = utils::timestamp(),
                         diff = (now - hurting) / 10;
     if (diff < CHAR_PLUS) {
-        diff = CHAR_PLUS - diff + min((now - moving) / 2000, 10ull);
+        diff = CHAR_PLUS - diff + min((now - turning) / 2000, 100ull);
     } else {
-        diff = min((now - moving) / 2000, 10ull);
+        diff = min((now - turning) / 2000, 100ull);
     }
     if (diff) {
         pain_ += diff;
