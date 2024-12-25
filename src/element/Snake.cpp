@@ -14,7 +14,7 @@
 
 #define XY_CHAR_MAX 255
 #define XY_CHAR_MIN 0
-#define CHAR_PLUS 100
+#define CHAR_PLUS 10
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
@@ -41,6 +41,9 @@ Snake::Snake()
     : hitSelf_(false),
       turning(utils::timestamp()),
       pain_(0),
+      delight_(0),
+      turn_left(0),
+      turn_right(0),
       hurting(0),
       eating(0),
     //   speedup_(false),
@@ -229,18 +232,18 @@ void Snake::update(sf::Time delta)
                 angle_ = parseAngle2(headAngle + ANGLE_PLUS_THRESHOLD2);
                 pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
-            *(out + 2) = min(angleTmp, 255.0f);
-            *(out + 3) = 0;
+            turn_right = min(angleTmp, 255.0f);
+            turn_left = 0;
         } else if (angleTmp < 0) {
             if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(headAngle - ANGLE_PLUS_THRESHOLD2);
                 pain_ += ANGLE_PLUS_THRESHOLD2 - angleTmp;
             }
-            *(out + 3) = -max(angleTmp, -255.0f);
-            *(out + 2) = 0;
+            turn_left = -max(angleTmp, -255.0f);
+            turn_right = 0;
         } else {
-            *(out + 2) = 0;
-            *(out + 3) = 0;
+            turn_right = 0;
+            turn_left = 0;
         }
 
         // cout << "\t" << angle_ << endl;
@@ -338,14 +341,14 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits)
         pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        *out = min(*out + CHAR_PLUS, XY_CHAR_MAX);
+        delight_ = min(delight_ + CHAR_PLUS, XY_CHAR_MAX);
         eating = utils::timestamp();
     } else {
         unsigned long long diff = (utils::timestamp() - eating) / 10;
         if (diff < CHAR_PLUS) {
-            *out = max(*out, (unsigned char) (CHAR_PLUS - diff));
+            delight_ = max(delight_, (int) (CHAR_PLUS - diff));
         } else {
-            *out = 0;
+            delight_ = 0;
         }
     }
 }
@@ -564,9 +567,14 @@ void Snake::render(sf::RenderWindow &window)
         j = 7;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
+    *out = delight_;
+    delight_ = 0;
     *(out + 1) = min(pain_, XY_CHAR_MAX);
     pain_ = 0;
-    unsigned char *out_tmp = out + 4;
+
+    *(out + 2) = turn_left;
+
+    unsigned char *out_tmp = out + 3;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle = angle_;
@@ -617,6 +625,11 @@ void Snake::render(sf::RenderWindow &window)
             }
         }
     }
+
+    *(out_tmp++) = turn_right;
+
+    *(out_tmp++) = pain_;
+    *out_tmp = delight_;
 
     renderNode(wNowHeadNode, headSprite, window, 3);
 
