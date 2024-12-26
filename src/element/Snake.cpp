@@ -427,16 +427,16 @@ void Snake::checkSelfCollisions()
             return;
         }
     }
-    unsigned long long now = utils::timestamp(),
-                        diff = (now - hurting) / 10;
-    if (diff < CHAR_PLUS) {
-        diff = CHAR_PLUS - diff + min((now - turning) / 2000, 100ull);
-    } else {
-        diff = min((now - turning) / 2000, 100ull);
-    }
-    if (diff) {
-        pain_ += diff;
-    }
+    // unsigned long long now = utils::timestamp(),
+    //                     diff = (now - hurting) / 10;
+    // if (diff < CHAR_PLUS) {
+    //     diff = CHAR_PLUS - diff + min((now - turning) / 2000, 100ull);
+    // } else {
+    //     diff = min((now - turning) / 2000, 100ull);
+    // }
+    // if (diff) {
+    //     pain_ += diff;
+    // }
     hitSelf_ = false;
 }
 
