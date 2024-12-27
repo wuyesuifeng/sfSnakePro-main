@@ -232,26 +232,33 @@ void Snake::update(sf::Time delta)
                 angle_ = parseAngle2(headAngle + ANGLE_PLUS_THRESHOLD2);
                 pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
             }
-            turn_right = min(angleTmp, 255.0f);
-            turn_left = 0;
         } else if (angleTmp < 0) {
             if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(headAngle - ANGLE_PLUS_THRESHOLD2);
                 pain_ += ANGLE_PLUS_THRESHOLD2 - angleTmp;
             }
-            turn_left = -max(angleTmp, -255.0f);
-            turn_right = 0;
-        } else {
-            turn_right = 0;
-            turn_left = 0;
         }
 
         // cout << "\t" << angle_ << endl;
         
         static unsigned long long now;
         now = utils::timestamp();
+        plus = abs(((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0)) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp);
         static unsigned long long tmpDiff;
-        tmpDiff = abs(((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0)) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 500;
+        if (plus) {
+            tmpDiff = plus * 500;
+            if (plus > 0) {
+                turn_right = plus;
+                turn_left = 0;
+            } else {
+                turn_left = -plus;
+                turn_right = 0;
+            }
+        } else {
+            turn_right = 0;
+            turn_left = 0;
+        }
+
         if (now - turning > 200000) {
             turning = min(now - 200000 + tmpDiff, now);
         } else {
@@ -569,6 +576,7 @@ void Snake::render(sf::RenderWindow &window)
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     *out = delight_;
     delight_ = 0;
+    
     *(out + 1) = min(pain_, XY_CHAR_MAX);
     pain_ = 0;
 
@@ -625,7 +633,8 @@ void Snake::render(sf::RenderWindow &window)
             }
         }
     }
-
+    
+    out_tmp += VISION_HARM_POS;
     *(out_tmp++) = turn_right;
 
     *(out_tmp++) = pain_;
