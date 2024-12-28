@@ -202,7 +202,7 @@ void Snake::update(sf::Time delta)
     
     plus += (float) (*in) * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX + (float) in[1] * ANGLE_PLUS_THRESHOLD2 / XY_CHAR_MAX / XY_CHAR_MAX;
 
-    if (in[2]) {
+    if (in[2] > 5) {
         speed_ = in[2] > 20 ? 2 : 1;
     }
 
