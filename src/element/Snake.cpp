@@ -243,14 +243,24 @@ void Snake::update(sf::Time delta)
         
         static unsigned long long now;
         now = utils::timestamp();
-        plus = abs(((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0)) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp);
+        plus = ((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 100;
         static unsigned long long tmpDiff;
         if (plus) {
-            tmpDiff = plus * 500;
+            tmpDiff = abs(plus) * 5;
             if (plus > 0) {
+                if (plus < 1) {
+                    plus = 1;
+                } else if (plus > XY_CHAR_MAX) {
+                    plus = XY_CHAR_MAX;
+                }
                 turn_right = plus;
                 turn_left = 0;
             } else {
+                if (plus > -1) {
+                    plus = -1;
+                } else if (plus < -XY_CHAR_MAX) {
+                    plus = -XY_CHAR_MAX;
+                }
                 turn_left = -plus;
                 turn_right = 0;
             }
