@@ -65,7 +65,7 @@ namespace sfSnake
         // bool speedup_;
         short int speed_;
 
-        float angle_, hisAngle_, headAngle_, radian, turn_left, turn_right;
+        float angle_, hisAngle_, headAngle_, radian, turn_left, turn_right, stuck_left, stuck_right;
 
         Direction direction_;
         float nodeRadius_;

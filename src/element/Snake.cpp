@@ -44,6 +44,8 @@ Snake::Snake()
       delight_(0),
       turn_left(0),
       turn_right(0),
+      stuck_left(0),
+      stuck_right(0),
       hurting(0),
       eating(0),
     //   speedup_(false),
@@ -230,20 +232,37 @@ void Snake::update(sf::Time delta)
         if (angleTmp > 0) {
             if (angleTmp > ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(headAngle + ANGLE_PLUS_THRESHOLD2);
-                pain_ += angleTmp - ANGLE_PLUS_THRESHOLD2;
+                stuck_right = (angleTmp - ANGLE_PLUS_THRESHOLD2) * 10;
+                if (stuck_right > XY_CHAR_MAX) {
+                    stuck_right = XY_CHAR_MAX;
+                }
+                pain_ += stuck_right;
+            } else {
+                stuck_right = 0;
             }
+            stuck_left = 0;
         } else if (angleTmp < 0) {
             if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(headAngle - ANGLE_PLUS_THRESHOLD2);
-                pain_ += ANGLE_PLUS_THRESHOLD2 - angleTmp;
+                stuck_left = -(ANGLE_PLUS_THRESHOLD2 + angleTmp) * 10;
+                if (stuck_left > XY_CHAR_MAX) {
+                    stuck_left = XY_CHAR_MAX;
+                }
+                pain_ += stuck_left;
+            } else {
+                stuck_left = 0;
             }
+            stuck_right = 0;
+        } else {
+            stuck_right = 0;
+            stuck_left = 0;
         }
 
         // cout << "\t" << angle_ << endl;
         
         static unsigned long long now;
         now = utils::timestamp();
-        plus = ((hisAngle_ > 0 && hisAngle_ > 0) || (hisAngle_ < 0 && hisAngle_ < 0) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 100;
+        plus = ((hisAngle_ > 0 && angleTmp > 0) || (hisAngle_ < 0 && angleTmp < 0) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 100;
         static unsigned long long tmpDiff;
         if (plus) {
             tmpDiff = abs(plus) * 5;
@@ -288,6 +307,11 @@ void Snake::update(sf::Time delta)
         hisAngle_ = angleTmp;
 
         // printf("angle_: %f\n", angle_);
+    } else {
+        stuck_right = 0;
+        stuck_left = 0;
+        turn_right = 0;
+        turn_left = 0;
     }
     
     move();
@@ -585,14 +609,14 @@ void Snake::render(sf::RenderWindow &window)
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     *out = delight_;
-    delight_ = 0;
     
-    *(out + 1) = min(pain_, XY_CHAR_MAX);
-    pain_ = 0;
+    pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
+    *(out + 1) = pain_;
 
     *(out + 2) = turn_left;
+    *(out + 3) = stuck_left;
 
-    unsigned char *out_tmp = out + 3;
+    unsigned char *out_tmp = out + 4;
 
     SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     float angle = angle_;
@@ -645,10 +669,13 @@ void Snake::render(sf::RenderWindow &window)
     }
     
     out_tmp += VISION_HARM_POS;
+    *(out_tmp++) = stuck_right;
     *(out_tmp++) = turn_right;
 
     *(out_tmp++) = pain_;
+    pain_ = 0;
     *out_tmp = delight_;
+    delight_ = 0;
 
     renderNode(wNowHeadNode, headSprite, window, 3);
 

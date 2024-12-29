@@ -16,7 +16,7 @@
 #define READ_LEN 5 + 1
 #define VISION_CHECK_POS 800
 #define VISION_HARM_POS 1600
-#define WRITE_LEN 2406 + 1
+#define WRITE_LEN 2408 + 1
 
 namespace utils {
     class ShareMemory {
