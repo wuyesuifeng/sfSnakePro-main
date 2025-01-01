@@ -263,9 +263,8 @@ void Snake::update(sf::Time delta)
         static unsigned long long now;
         now = utils::timestamp();
         plus = ((hisAngle_ > 0 && angleTmp > 0) || (hisAngle_ < 0 && angleTmp < 0) ? hisAngle_ - angleTmp : hisAngle_ + angleTmp) * 100;
-        static unsigned long long tmpDiff;
         if (plus) {
-            tmpDiff = abs(plus) * 5;
+            unsigned long long tmpDiff = abs(plus) * 5;
             if (plus > 0) {
                 if (plus < 1) {
                     plus = 1;
@@ -283,15 +282,15 @@ void Snake::update(sf::Time delta)
                 turn_left = -plus;
                 turn_right = 0;
             }
+
+            if (now - turning > 200000) {
+                turning = min(now - 200000 + tmpDiff, now);
+            } else {
+                turning = min(turning + tmpDiff, now);
+            }
         } else {
             turn_right = 0;
             turn_left = 0;
-        }
-
-        if (now - turning > 200000) {
-            turning = min(now - 200000 + tmpDiff, now);
-        } else {
-            turning = min(turning + tmpDiff, now);
         }
 
         radian = angle_ * PI / 180.0f;
