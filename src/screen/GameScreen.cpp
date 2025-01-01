@@ -16,19 +16,19 @@ using namespace sfSnake;
 GameScreen::GameScreen()
     : snake_(), grid_(), pauseButton_()
 {
-    pauseButton_.update("assets/image/pauseUI.png", 1 / 16.0f);
+    pauseButton_.update("assets/image/pauseUI.png", 1 / 24.0f);
     pauseButton_.setPosition(
-        Game::GlobalVideoMode.width / 15.0 * 14.0,
-        Game::GlobalVideoMode.width / 15.0);
+        Game::GlobalVideoMode.width / 15.0 * 14.0 + 35,
+        Game::GlobalVideoMode.width / 15.0 - 40);
 
-    score_.setFont(Game::GlobalFont);
-    score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
-    score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
-    score_.setFillColor(Game::Color::Yellow);
-    setOriginMiddle(score_);
-    score_.setPosition(
-        Game::GlobalVideoMode.width / 2.0f,
-        Game::GlobalVideoMode.width * 0.05f);
+    // score_.setFont(Game::GlobalFont);
+    // score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
+    // score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
+    // score_.setFillColor(Game::Color::Yellow);
+    // setOriginMiddle(score_);
+    // score_.setPosition(
+    //     Game::GlobalVideoMode.width / 2.0f,
+    //     Game::GlobalVideoMode.width * 0.05f);
 }
 
 void GameScreen::handleInput(sf::RenderWindow &window)
@@ -74,7 +74,7 @@ void GameScreen::update(sf::Time delta)
         snake_.grow(-1);
     }
     
-    score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore() - 5));
+    // score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore() - 5));
     
 }
 
@@ -86,7 +86,7 @@ void GameScreen::render(sf::RenderWindow &window)
     for (auto fruit : fruit_)
         fruit.render(window);
     pauseButton_.render(window);
-    window.draw(score_);
+    // window.draw(score_);
 }
 
 void GameScreen::generateFruit()

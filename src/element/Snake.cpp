@@ -445,6 +445,7 @@ void Snake::checkSelfCollisions()
 {
     SnakePathNode head = path_.front();
     int count = 0;
+    bool hitSelf = false;
 
     for (auto i = path_.begin(); i != path_.end(); i++, count++) {
 
@@ -459,26 +460,19 @@ void Snake::checkSelfCollisions()
 
         if (count >= 30 && dis(head, *i) < culSelfCollisionDis(nodeRadius_))
         {
-            dieSound_.stop();
-            dieSound_.play();
-            hitSelf_ = true;
+            // dieSound_.stop();
+            // dieSound_.play();
+            hitSelf = true;
             pain_ += CHAR_PLUS;
 
             hurting = utils::timestamp();
-            return;
         }
     }
-    // unsigned long long now = utils::timestamp(),
-    //                     diff = (now - hurting) / 10;
-    // if (diff < CHAR_PLUS) {
-    //     diff = CHAR_PLUS - diff + min((now - turning) / 2000, 100ull);
-    // } else {
-    //     diff = min((now - turning) / 2000, 100ull);
-    // }
-    // if (diff) {
-    //     pain_ += diff;
-    // }
-    hitSelf_ = false;
+    unsigned long long diff = min((utils::timestamp() - turning) / 2000, 100ull);
+    if (diff) {
+        pain_ += diff;
+    }
+    hitSelf_ = hitSelf;
 }
 
 bool inWindow(SnakePathNode &node)
