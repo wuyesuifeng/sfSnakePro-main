@@ -652,7 +652,7 @@ void Snake::render(sf::RenderWindow &window)
                     break;
                 default:
                     val = out_tmp;
-                    *val = 10;
+                    *val = 5;
                     val = out_tmp + VISION_CHECK_POS;
                     *val = 0;
                     val = out_tmp + VISION_HARM_POS;
