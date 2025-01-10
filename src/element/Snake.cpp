@@ -553,8 +553,10 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
     }
   }
 
-  if ((node.x < 0 || node.x > Game::GlobalVideoMode.width) ||
-      (node.y < 0 || node.y > Game::GlobalVideoMode.height)) {
+  static sf::Vector2u TextureSize = headTexture.getSize();
+  static long xSize = TextureSize.x * 10, ySize = TextureSize.y * 10;
+  if ((node.x < -xSize || node.x > Game::GlobalVideoMode.width + xSize) &&
+      (node.y < -ySize || node.y > Game::GlobalVideoMode.height + ySize)) {
     path_.clear();
     initNodes();
   }
