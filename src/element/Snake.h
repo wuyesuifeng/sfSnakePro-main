@@ -32,6 +32,8 @@ namespace sfSnake {
     void update(sf::Time delta);
     void render(sf::RenderWindow &window);
 
+    void reset();
+
     void checkFruitCollisions(std::deque<Fruit> &fruits);
 
     bool hitSelf() const;

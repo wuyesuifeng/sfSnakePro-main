@@ -178,7 +178,7 @@ ShareMemory::~ShareMemory() {
 }
 
 unsigned char* ShareMemory::getReadPos() {
-    return readPos + 1;
+    return readPos + 2;
 }
 
 unsigned char* ShareMemory::getWritePos() {
