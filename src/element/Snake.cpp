@@ -17,6 +17,11 @@
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
+#define MAX_VITALITY 255000.0f
+#define MIN_VITALITY -255000.0f
+#define VITALITY_STEP_CNT 180000.0f
+#define VITALITY_STEP 0.001f
+#define VITALITY_PAIN 127
 
 using namespace sfSnake;
 
@@ -35,13 +40,15 @@ float culAngle(sf::Vector2f recDirection) {
 
 Snake::Snake()
     : hitSelf_(false),
-      turning(utils::timestamp()),
       pain_(0),
       delight_(0),
-      turn_left(0),
-      turn_right(0),
-      stuck_left(0),
-      stuck_right(0),
+      turnLeft(0),
+      turnRight(0),
+      stuckLeft(0),
+      stuckRight(0),
+      turnDirection_(0),
+      leftVitality(0),
+      rightVitality(0),
       hurting(0),
       eating(0),
       //   speedup_(false),
@@ -49,7 +56,8 @@ Snake::Snake()
       direction_(Direction(0, -1)),
       angle_(180),
       hisAngle_(angle_),
-      headAngle_(angle_),
+      bodyDir_(angle_),
+      headAngle_(0),
       radian(angle_ * PI / 180.0f),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
       tailOverlap_(0u),
@@ -192,78 +200,72 @@ void Snake::update(sf::Time delta) {
     angle_ = parseAngle2(angle_ + plus);
 
     // cout << angle_;
-    float angle = parseAngle(angle_), headAngle = parseAngle(headAngle_);
-    float angleTmp = angle - headAngle;
-    if (angleTmp > ANGLE_PLUS_THRESHOLD) {
-      angleTmp = angleTmp - 360;
-    } else if (angleTmp < -ANGLE_PLUS_THRESHOLD) {
-      angleTmp = 360 + angleTmp;
+    float angle = parseAngle(angle_);
+    headAngle_ = angle - bodyDir_;
+    if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
+      headAngle_ = headAngle_ - 360;
+    } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
+      headAngle_ = 360 + headAngle_;
     }
-    if (angleTmp > 0) {
-      if (angleTmp > ANGLE_PLUS_THRESHOLD2) {
-        angle_ = parseAngle2(headAngle + ANGLE_PLUS_THRESHOLD2);
-        stuck_right = (angleTmp - ANGLE_PLUS_THRESHOLD2) * 10;
-        if (stuck_right > XY_CHAR_MAX) {
-          stuck_right = XY_CHAR_MAX;
+    if (headAngle_ > 0) {
+      
+      if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
+        angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
+        stuckRight = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
+        if (stuckRight > XY_CHAR_MAX) {
+          stuckRight = XY_CHAR_MAX;
         }
-        pain_ += stuck_right;
+        pain_ += stuckRight;
       } else {
-        stuck_right = 0;
+        stuckRight = 0;
       }
-      stuck_left = 0;
-    } else if (angleTmp < 0) {
-      if (angleTmp < -ANGLE_PLUS_THRESHOLD2) {
-        angle_ = parseAngle2(headAngle - ANGLE_PLUS_THRESHOLD2);
-        stuck_left = -(ANGLE_PLUS_THRESHOLD2 + angleTmp) * 10;
-        if (stuck_left > XY_CHAR_MAX) {
-          stuck_left = XY_CHAR_MAX;
+      stuckLeft = 0;
+    } else if (headAngle_ < 0) {
+      if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
+        angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
+        stuckLeft = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
+        if (stuckLeft > XY_CHAR_MAX) {
+          stuckLeft = XY_CHAR_MAX;
         }
-        pain_ += stuck_left;
+        pain_ += stuckLeft;
       } else {
-        stuck_left = 0;
+        stuckLeft = 0;
       }
-      stuck_right = 0;
+      stuckRight = 0;
     } else {
-      stuck_right = 0;
-      stuck_left = 0;
+      stuckRight = 0;
+      stuckLeft = 0;
     }
 
     // cout << "\t" << angle_ << endl;
 
     static unsigned long long now;
     now = utils::timestamp();
-    plus = ((hisAngle_ > 0 && angleTmp > 0) || (hisAngle_ < 0 && angleTmp < 0)
-                ? hisAngle_ - angleTmp
-                : hisAngle_ + angleTmp) *
+    plus = ((hisAngle_ > 0 && headAngle_ > 0) || (hisAngle_ < 0 && headAngle_ < 0)
+                ? hisAngle_ - headAngle_
+                : hisAngle_ + headAngle_) *
            100;
     if (plus) {
-      unsigned long long tmpDiff = abs(plus) * 5;
       if (plus > 0) {
         if (plus < 1) {
           plus = 1;
         } else if (plus > XY_CHAR_MAX) {
           plus = XY_CHAR_MAX;
         }
-        turn_right = plus;
-        turn_left = 0;
+        turnRight = plus;
+        turnLeft = 0;
       } else {
         if (plus > -1) {
           plus = -1;
         } else if (plus < -XY_CHAR_MAX) {
           plus = -XY_CHAR_MAX;
         }
-        turn_left = -plus;
-        turn_right = 0;
-      }
-
-      if (now - turning > 200000) {
-        turning = min(now - 200000 + tmpDiff, now);
-      } else {
-        turning = min(turning + tmpDiff, now);
+        turnLeft = -plus;
+        turnRight = 0;
       }
     } else {
-      turn_right = 0;
-      turn_left = 0;
+      turnRight = 0;
+      turnLeft = 0;
     }
 
     radian = angle_ * PI / 180.0f;
@@ -276,14 +278,34 @@ void Snake::update(sf::Time delta) {
     direction_.x /= directionSize;
     direction_.y /= directionSize;
 
-    hisAngle_ = angleTmp;
+    hisAngle_ = headAngle_;
 
     // printf("angle_: %f\n", angle_);
   } else {
-    stuck_right = 0;
-    stuck_left = 0;
-    turn_right = 0;
-    turn_left = 0;
+    stuckRight = 0;
+    stuckLeft = 0;
+    turnRight = 0;
+    turnLeft = 0;
+  }
+
+  if (headAngle_ > 0) {
+    float headAngle = abs(headAngle_);
+    leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
+    rightVitality = max(rightVitality - max(VITALITY_STEP, (-rightVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+  } else if (headAngle_ < 0) {
+    float headAngle = abs(headAngle_);
+    leftVitality = max(leftVitality - max(VITALITY_STEP, (-leftVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+    rightVitality = min(rightVitality + max((MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
+  } else {
+    leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
+    rightVitality = min(rightVitality + max((MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
+  }
+
+  if (leftVitality) {
+    pain_ += abs(leftVitality) * VITALITY_PAIN / MAX_VITALITY;
+  }
+  if (rightVitality) {
+    pain_ += abs(rightVitality) * VITALITY_PAIN / MAX_VITALITY;
   }
 
   move();
@@ -379,7 +401,7 @@ void Snake::move() {
   } else {
     // int times = speedup_ ? 2 : 1;
     if (speed_ > 0) {
-      headAngle_ = angle_;
+      bodyDir_ = parseAngle(angle_);
       for (int i = 1; i <= speed_; i++) {
         path_.push_front(
             SnakePathNode(headNode.x + direction_.x * i * nodeRadius_ / 5.0,
@@ -419,10 +441,7 @@ void Snake::checkSelfCollisions() {
       hurting = utils::timestamp();
     }
   }
-  unsigned long long diff = min((utils::timestamp() - turning) / 2000, 100ull);
-  if (diff) {
-    pain_ += diff;
-  }
+  
   hitSelf_ = hitSelf;
 }
 
@@ -573,8 +592,9 @@ void Snake::render(sf::RenderWindow &window) {
   pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
   *(out + 1) = pain_;
 
-  *(out + 2) = turn_left;
-  *(out + 3) = stuck_left;
+  *(out + 2) = headAngle_ < 0 ? -headAngle_ : 0;
+  *(out + 3) = turnLeft;
+  *(out + 4) = stuckLeft;
 
   unsigned char *out_tmp = out + 4;
 
@@ -629,8 +649,9 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += VISION_HARM_POS;
-  *(out_tmp++) = stuck_right;
-  *(out_tmp++) = turn_right;
+  *(out_tmp++) = stuckRight;
+  *(out_tmp++) = turnRight;
+  *(out_tmp++) = headAngle_ > 0 ? headAngle_ : 0;
 
   *(out_tmp++) = pain_;
   pain_ = 0;
