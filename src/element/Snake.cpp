@@ -17,9 +17,9 @@
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
-#define MAX_VITALITY 255000.0f
-#define MIN_VITALITY -255000.0f
-#define VITALITY_STEP_CNT 180000.0f
+#define MAX_VITALITY 255.0f
+#define MIN_VITALITY -255.0f
+#define VITALITY_STEP_CNT 9999999.0f
 #define VITALITY_STEP 0.001f
 #define VITALITY_PAIN 127
 
@@ -177,6 +177,10 @@ float parseAngle2(float angle) {
   return angle > ANGLE_PLUS_THRESHOLD ? angle - 360 : angle;
 }
 
+float pow(float val) {
+  return val * val;
+}
+
 void Snake::update(sf::Time delta) {
   float plus = 0;
 
@@ -290,15 +294,15 @@ void Snake::update(sf::Time delta) {
 
   if (headAngle_ > 0) {
     float headAngle = abs(headAngle_);
-    leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
-    rightVitality = max(rightVitality - max(VITALITY_STEP, (-rightVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+    leftVitality = min(leftVitality + max(pow(MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
+    rightVitality = max(rightVitality - max(VITALITY_STEP, pow(-rightVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
   } else if (headAngle_ < 0) {
     float headAngle = abs(headAngle_);
-    leftVitality = max(leftVitality - max(VITALITY_STEP, (-leftVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
-    rightVitality = min(rightVitality + max((MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
+    leftVitality = max(leftVitality - max(VITALITY_STEP, pow(-leftVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+    rightVitality = min(rightVitality + max(pow(MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
   } else {
-    leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
-    rightVitality = min(rightVitality + max((MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
+    leftVitality = min(leftVitality + max(pow(MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
+    rightVitality = min(rightVitality + max(pow(MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
   }
 
   if (leftVitality) {
