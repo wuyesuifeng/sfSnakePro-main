@@ -19,7 +19,7 @@
 #define ANGLE_PLUS_THRESHOLD3 120
 #define MAX_VITALITY 127.0f
 #define MIN_VITALITY -127.0f
-#define VITALITY_STEP_CNT 25500.0f
+#define VITALITY_STEP_CNT 99999.0f
 #define VITALITY_STEP 0.001f
 #define VITALITY_PAIN 127
 
@@ -291,15 +291,23 @@ void Snake::update(sf::Time delta) {
     stuckLeft = 0;
     turnRight = 0;
     turnLeft = 0;
+
+    float angle = parseAngle(angle_);
+    headAngle_ = angle - bodyDir_;
+    if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
+      headAngle_ = headAngle_ - 360;
+    } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
+      headAngle_ = 360 + headAngle_;
+    }
   }
 
   if (headAngle_ > 0) {
     float headAngle = abs(headAngle_);
     leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
-    rightVitality = max(rightVitality - max(VITALITY_STEP, (-rightVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+    rightVitality = max(rightVitality - max(VITALITY_STEP, (-rightVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle * headAngle), MIN_VITALITY);
   } else if (headAngle_ < 0) {
     float headAngle = abs(headAngle_);
-    leftVitality = max(leftVitality - max(VITALITY_STEP, (-leftVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle), MIN_VITALITY);
+    leftVitality = max(leftVitality - max(VITALITY_STEP, (-leftVitality - MIN_VITALITY) / VITALITY_STEP_CNT * headAngle * headAngle), MIN_VITALITY);
     rightVitality = min(rightVitality + max((MAX_VITALITY - rightVitality) / VITALITY_STEP_CNT * headAngle, VITALITY_STEP), MAX_VITALITY);
   } else {
     leftVitality = min(leftVitality + max((MAX_VITALITY - leftVitality) / VITALITY_STEP_CNT, VITALITY_STEP), MAX_VITALITY);
