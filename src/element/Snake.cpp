@@ -598,6 +598,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 void Snake::reset() {
   leftVitality = 0;
   rightVitality = 0;
+  headAngle_ = 0;
   path_.clear();
   initNodes();
   *(in - 1) = 0;
