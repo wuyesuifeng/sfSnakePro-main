@@ -598,6 +598,8 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 void Snake::reset() {
   leftVitality = 0;
   rightVitality = 0;
+  stuckLeft = 0;
+  stuckRight = 0;
   headAngle_ = 0;
   path_.clear();
   initNodes();
@@ -615,7 +617,7 @@ void Snake::render(sf::RenderWindow &window) {
 
   *(out + 2) = headAngle_ < 0 ? -headAngle_ : 0;
   *(out + 3) = turnLeft;
-  *(out + 4) = stuckRight;
+  *(out + 4) = stuckLeft;
   *(out + 5) = rightVitality + 127;
 
   unsigned char *out_tmp = out + 6;
@@ -672,7 +674,7 @@ void Snake::render(sf::RenderWindow &window) {
 
   out_tmp += VISION_HARM_POS;
   *(out_tmp++) = leftVitality + 127;
-  *(out_tmp++) = stuckLeft;
+  *(out_tmp++) = stuckRight;
   *(out_tmp++) = turnRight;
   *(out_tmp++) = headAngle_ > 0 ? headAngle_ : 0;
 
