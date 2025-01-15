@@ -601,6 +601,9 @@ void Snake::reset() {
   stuckLeft = 0;
   stuckRight = 0;
   headAngle_ = 0;
+  hisAngle_ = 0;
+  angle_ = 0;
+  bodyDir_ = 0;
   path_.clear();
   initNodes();
   *(in - 1) = 0;
