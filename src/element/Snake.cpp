@@ -618,7 +618,7 @@ void Snake::render(sf::RenderWindow &window) {
   *(out + 4) = stuckRight;
   *(out + 5) = rightVitality + 127;
 
-  unsigned char *out_tmp = out + 4;
+  unsigned char *out_tmp = out + 6;
 
   SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
   float angle = angle_;
