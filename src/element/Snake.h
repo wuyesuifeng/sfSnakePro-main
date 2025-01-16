@@ -83,6 +83,7 @@ namespace sfSnake {
     sf::Sprite headSprite;
 
     static const int InitialSize;
+    int snakeLen;
     unsigned int score_;
 
     sf::SoundBuffer pickupBuffer_;

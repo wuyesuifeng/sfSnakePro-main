@@ -66,6 +66,7 @@ Snake::Snake()
       score_(InitialSize),
       hisX(Game::HIS_XY),
       hisY(Game::HIS_XY) {
+  snakeLen = 10 * InitialSize;
   initNodes();
 
   nodeShape.setFillColor(sf::Color(0xf1c40fff));
@@ -99,7 +100,7 @@ Snake::Snake()
 void Snake::initNodes() {
   path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f,
                                 Game::GlobalVideoMode.height / 2.0f));
-  for (int i = 1; i <= 10 * InitialSize; i++) {
+  for (int i = 1; i <= snakeLen; i++) {
     path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f -
                                       direction_.x * i * nodeRadius_ / 5.0,
                                   Game::GlobalVideoMode.height / 2.0f -
@@ -321,10 +322,10 @@ void Snake::update(sf::Time delta) {
     pain_ += abs(rightVitality) * VITALITY_PAIN / MAX_VITALITY;
   }
 
+  checkSelfCollisions();
   move();
   toWindow(path_.front(), direction_, abs(tan(radian)));
   look();
-  checkSelfCollisions();
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
@@ -377,26 +378,24 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
   }
 
   if (toRemove != fruits.end()) {
-    pickupSound_.play();
+    // pickupSound_.play();
     grow(toRemove->score_);
     fruits.erase(toRemove);
     delight_ = min(delight_ + CHAR_PLUS, XY_CHAR_MAX);
     eating = utils::timestamp();
+    leftVitality = 0;
+    rightVitality = 0;
   } else {
     unsigned long long diff = (utils::timestamp() - eating) / 10;
     if (diff < CHAR_PLUS) {
-      delight_ = max(delight_, (int)(CHAR_PLUS - diff));
-    } else {
-      delight_ = 0;
+      delight_ += CHAR_PLUS - diff;
     }
   }
 }
 
 void Snake::grow(int score) {
-  if (score_ > InitialSize || score > 0) {
-    tailOverlap_ += score * 10;
-    score_ += score;
-  }
+  tailOverlap_ += score * 10;
+  score_ += score;
 }
 
 unsigned Snake::getScore() const { return score_; }
@@ -406,16 +405,14 @@ bool Snake::hitSelf() const { return hitSelf_; }
 void Snake::move() {
   SnakePathNode &headNode = path_.front();
 
-  if (tailOverlap_ < 0) {
-    do {
-      path_.pop_front();
-      tailOverlap_++;
-    } while (tailOverlap_ < 0);
-  } else {
-    // int times = speedup_ ? 2 : 1;
-    if (speed_ > 0) {
-      bodyDir_ = parseAngle(angle_);
-      for (int i = 1; i <= speed_; i++) {
+  if (speed_ > 0) {
+    bodyDir_ = parseAngle(angle_);
+    for (int i = 1; i <= speed_; i++) {
+      if (hitSelf_) {
+        if (path_.size() > snakeLen) {
+          path_.pop_front();
+        }
+      } else {
         path_.push_front(
             SnakePathNode(headNode.x + direction_.x * i * nodeRadius_ / 5.0,
                           headNode.y + direction_.y * i * nodeRadius_ / 5.0));
@@ -425,15 +422,21 @@ void Snake::move() {
           path_.pop_back();
         }
       }
-      speed_ = 0;
     }
+    speed_ = 0;
   }
 }
 
 void Snake::checkSelfCollisions() {
-  SnakePathNode head = path_.front();
+  Direction dir = direction_;
+  dir.x *= speed_ * 10;
+  dir.y *= speed_ * 10;
+  SnakePathNode head = path_.front() + dir;
   int count = 0;
-  bool hitSelf = false;
+
+  if (hitSelf_) {
+    hitSelf_ = false;
+  }
 
   for (auto i = path_.begin(); i != path_.end(); i++, count++) {
     for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
@@ -448,14 +451,17 @@ void Snake::checkSelfCollisions() {
     if (count >= 30 && dis(head, *i) < culSelfCollisionDis(nodeRadius_)) {
       // dieSound_.stop();
       // dieSound_.play();
-      hitSelf = true;
+      hitSelf_ = true;
       pain_ += CHAR_PLUS;
 
       hurting = utils::timestamp();
+    } else {
+      unsigned long long diff = (utils::timestamp() - hurting) / 10;
+      if (diff < CHAR_PLUS) {
+        pain_ += CHAR_PLUS - diff;
+      }
     }
   }
-  
-  hitSelf_ = hitSelf;
 }
 
 bool inWindow(SnakePathNode &node) {

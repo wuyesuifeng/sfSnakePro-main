@@ -69,10 +69,10 @@ void GameScreen::update(sf::Time delta)
     snake_.update(delta);
     snake_.checkFruitCollisions(fruit_);
 
-    if (snake_.hitSelf())
-    {
-        snake_.grow(-1);
-    }
+    // if (snake_.hitSelf())
+    // {
+    //     snake_.grow(-1);
+    // }
     
     // score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore() - 5));
     
