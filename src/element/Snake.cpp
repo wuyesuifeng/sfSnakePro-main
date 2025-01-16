@@ -322,10 +322,10 @@ void Snake::update(sf::Time delta) {
     pain_ += abs(rightVitality) * VITALITY_PAIN / MAX_VITALITY;
   }
 
+  look();
   checkSelfCollisions();
   move();
   toWindow(path_.front(), direction_, abs(tan(radian)));
-  look();
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
