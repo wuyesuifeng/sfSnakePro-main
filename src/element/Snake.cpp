@@ -407,11 +407,11 @@ void Snake::move() {
   SnakePathNode &headNode = path_.front();
 
   if (speed_ > 0) {
-    bodyDir_ = parseAngle(angle_);
+    if (!hitSelf_) bodyDir_ = parseAngle(angle_);
     for (int i = 1; i <= speed_; i++) {
       if (hitSelf_) {
         if (path_.size() > snakeLen) {
-          path_.pop_front();
+          path_.pop_back();
         }
       } else {
         path_.push_front(
