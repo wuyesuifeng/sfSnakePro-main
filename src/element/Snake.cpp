@@ -17,11 +17,11 @@
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
-#define MAX_VITALITY 127.0f
-#define MIN_VITALITY -127.0f
+#define MAX_VITALITY 64.0f
+#define MIN_VITALITY -64.0f
 #define VITALITY_STEP_CNT 99999.0f
 #define VITALITY_STEP 0.001f
-#define VITALITY_PAIN 127
+#define VITALITY_PAIN 64
 
 using namespace sfSnake;
 
@@ -699,7 +699,7 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += VISION_HARM_POS;
-  *(out_tmp++) = leftVitality + 127;
+  *(out_tmp++) = leftVitality + VITALITY_PAIN;
   *(out_tmp++) = stuckRight;
   *(out_tmp++) = turnRight;
   *(out_tmp++) = headAngle_ > 0 ? headAngle_ : 0;
