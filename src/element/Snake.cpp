@@ -25,7 +25,7 @@
 
 using namespace sfSnake;
 
-const int Snake::InitialSize = 5;
+const int Snake::InitialSize = 25;
 
 static const float VISION_X_HALF = VISION_X_SUM / 2,
                    VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF,
@@ -92,6 +92,7 @@ Snake::Snake()
   // dieBuffer_.loadFromFile("assets/sounds/die.wav");
   // dieSound_.setBuffer(dieBuffer_);
   // dieSound_.setVolume(50);
+  threads.init(thread::hardware_concurrency() - 5);
 
   in = Game::share.getReadPos();
   out = Game::share.getWritePos();
@@ -427,6 +428,42 @@ void Snake::move() {
   }
 }
 
+double dis2(sf::Vector2<float> node1,
+                   sf::Vector2<float> node2) noexcept {
+  return std::sqrt(
+      std::pow((static_cast<double>(node1.x) - static_cast<double>(node2.x)),
+               2) +
+      std::pow((static_cast<double>(node1.y) - static_cast<double>(node2.y)),
+               2));
+}
+
+void checkVisionY(int count, bool *hitSelf_, int *pain_, SnakePathNode *head,
+                  vision *vision_, unsigned long long *hurting, SnakePathNode *i,
+                  float nodeRadius_) {
+  for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
+    for (y = 0; y < VISION_Y_SUM; y++) {
+      size_t index = x * VISION_Y_SUM + y;
+      if (dis2(vision_[index].pos, *i) < culSelfCollisionDis(nodeRadius_)) {
+        vision_[index].color = VISION_HARM_COLOR;
+      }
+    }
+  }
+
+  if (count >= 30 && dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
+    // dieSound_.stop();
+    // dieSound_.play();
+    *hitSelf_ = true;
+    *pain_ += CHAR_PLUS;
+
+    *hurting = utils::timestamp();
+  } else {
+    unsigned long long diff = (utils::timestamp() - *hurting) / 10;
+    if (diff < CHAR_PLUS) {
+      *pain_ += CHAR_PLUS - diff;
+    }
+  }
+}
+
 void Snake::checkSelfCollisions() {
   Direction dir = direction_;
   dir.x *= speed_ * 10;
@@ -437,31 +474,11 @@ void Snake::checkSelfCollisions() {
   if (hitSelf_) {
     hitSelf_ = false;
   }
-
   for (auto i = path_.begin(); i != path_.end(); i++, count++) {
-    for (int x = 0, y = 0; x < VISION_X_SUM; x++, y = 0) {
-      for (; y < VISION_Y_SUM; y++) {
-        vision &v = vision_[x][y];
-        if (dis(v.pos, *i) < culSelfCollisionDis(nodeRadius_)) {
-          v.color = VISION_HARM_COLOR;
-        }
-      }
-    }
-
-    if (count >= 30 && dis(head, *i) < culSelfCollisionDis(nodeRadius_)) {
-      // dieSound_.stop();
-      // dieSound_.play();
-      hitSelf_ = true;
-      pain_ += CHAR_PLUS;
-
-      hurting = utils::timestamp();
-    } else {
-      unsigned long long diff = (utils::timestamp() - hurting) / 10;
-      if (diff < CHAR_PLUS) {
-        pain_ += CHAR_PLUS - diff;
-      }
-    }
+    utils::addThread(threads, checkVisionY, count, &hitSelf_, &pain_, &head,
+                     (vision *)vision_, &hurting, &(*i), nodeRadius_);
   }
+  threads.join();
 }
 
 bool inWindow(SnakePathNode &node) {

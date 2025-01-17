@@ -80,6 +80,7 @@
                 "${workspaceRoot}/src/element/TitleSprite.cpp",
                 "${workspaceRoot}/src/utils/ShareMemory.cpp",
                 "${workspaceRoot}/src/utils/Time.cpp",
+                "${workspaceRoot}/src/utils/Threads.cpp",
                 // "-IC:/Users/thego/Software/SFML-2.6.1/include",
                 "-I${workspaceRoot}/src",
                 "-I${workspaceRoot}/src/screen",
