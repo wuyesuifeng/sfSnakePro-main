@@ -477,7 +477,7 @@ void Snake::checkSelfCollisions() {
   if (hitSelf_) {
     hitSelf_ = false;
   }
-  for (auto i = path_.begin() + 10; i < path_.end(); i += 10) {
+  for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
     utils::addThread(threads, checkVisionY, &hitSelf_, &pain_, &head,
                      (vision *)vision_, &hurting, &(*i), nodeRadius_);
   }
