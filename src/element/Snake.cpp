@@ -98,6 +98,10 @@ Snake::Snake()
   out = Game::share.getWritePos();
 }
 
+Snake::~Snake() {
+  threads.join();
+}
+
 void Snake::initNodes() {
   path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f,
                                 Game::GlobalVideoMode.height / 2.0f));
@@ -437,7 +441,7 @@ double dis2(sf::Vector2<float> node1,
                2));
 }
 
-void checkVisionY(int count, bool *hitSelf_, int *pain_, SnakePathNode *head,
+void checkVisionY(bool *hitSelf_, int *pain_, SnakePathNode *head,
                   vision *vision_, unsigned long long *hurting, SnakePathNode *i,
                   float nodeRadius_) {
   for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
@@ -449,7 +453,7 @@ void checkVisionY(int count, bool *hitSelf_, int *pain_, SnakePathNode *head,
     }
   }
 
-  if (count >= 30 && dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
+  if (dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
     // dieSound_.stop();
     // dieSound_.play();
     *hitSelf_ = true;
@@ -469,13 +473,12 @@ void Snake::checkSelfCollisions() {
   dir.x *= speed_ * 10;
   dir.y *= speed_ * 10;
   SnakePathNode head = path_.front() + dir;
-  int count = 0;
 
   if (hitSelf_) {
     hitSelf_ = false;
   }
-  for (auto i = path_.begin(); i != path_.end(); i++, count++) {
-    utils::addThread(threads, checkVisionY, count, &hitSelf_, &pain_, &head,
+  for (auto i = path_.begin() + 10; i < path_.end(); i += 10) {
+    utils::addThread(threads, checkVisionY, &hitSelf_, &pain_, &head,
                      (vision *)vision_, &hurting, &(*i), nodeRadius_);
   }
   threads.join();

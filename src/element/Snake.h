@@ -28,6 +28,8 @@ namespace sfSnake {
         public:
             Snake();
 
+            ~Snake();
+
             void handleInput(sf::RenderWindow &window);
             void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
             void update(sf::Time delta);
