@@ -13,7 +13,7 @@
 
 #define XY_CHAR_MAX 255
 #define XY_CHAR_MIN 0
-#define CHAR_PLUS 80
+#define CHAR_PLUS 40
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
@@ -441,7 +441,7 @@ double dis2(sf::Vector2<float> node1,
                2));
 }
 
-void checkVisionY(bool *hitSelf_, int *pain_, SnakePathNode *head,
+void checkVisionY(short speed_, bool *hitSelf_, int *pain_, SnakePathNode *head,
                   vision *vision_, unsigned long long *hurting, SnakePathNode *i,
                   float nodeRadius_) {
   for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
@@ -453,11 +453,11 @@ void checkVisionY(bool *hitSelf_, int *pain_, SnakePathNode *head,
     }
   }
 
-  if (dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
+  if (speed_ && dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
     // dieSound_.stop();
     // dieSound_.play();
     *hitSelf_ = true;
-    *pain_ += CHAR_PLUS;
+    *pain_ += CHAR_PLUS * speed_;
 
     *hurting = utils::timestamp();
   } else {
@@ -478,7 +478,7 @@ void Snake::checkSelfCollisions() {
     hitSelf_ = false;
   }
   for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
-    utils::addThread(threads, checkVisionY, &hitSelf_, &pain_, &head,
+    utils::addThread(threads, checkVisionY, speed_, &hitSelf_, &pain_, &head,
                      (vision *)vision_, &hurting, &(*i), nodeRadius_);
   }
   threads.join();
