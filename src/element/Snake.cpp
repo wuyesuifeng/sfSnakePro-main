@@ -49,7 +49,6 @@ Snake::Snake()
       turnDirection_(0),
       leftVitality(0),
       rightVitality(0),
-      hurting(0),
       eating(0),
       //   speedup_(false),
       speed_(0),
@@ -339,9 +338,8 @@ void Snake::look() {
   SnakePathNode head = path_.front();
 
   float cosR = cos(radian), sinR = sin(radian), tanVal = abs(tan(radian)),
-        moveY = cosR * VISION_PIXEL_WIDTH, moveX = sinR * VISION_PIXEL_WIDTH,
-        interX = 1.0f,
-        visionPadding = VISION_PIXEL_WIDTH + culSelfCollisionDis(nodeRadius_);
+        moveY = cosR * VISION_PIXEL_WIDTH, moveX = sinR * VISION_PIXEL_WIDTH;
+  static float visionPadding = (VISION_PIXEL_WIDTH + nodeRadius_) / 2;
 
   sf::Vector2f center = sf::Vector2f(head.x + direction_.x * visionPadding,
                                      head.y + direction_.y * visionPadding);
@@ -442,7 +440,7 @@ double dis2(sf::Vector2<float> node1,
 }
 
 void checkVisionY(short speed_, bool *hitSelf_, int *pain_, SnakePathNode *head,
-                  vision *vision_, unsigned long long *hurting, SnakePathNode *i,
+                  vision *vision_, SnakePathNode *i,
                   float nodeRadius_) {
   for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
     for (y = 0; y < VISION_Y_SUM; y++) {
@@ -458,13 +456,6 @@ void checkVisionY(short speed_, bool *hitSelf_, int *pain_, SnakePathNode *head,
     // dieSound_.play();
     *hitSelf_ = true;
     *pain_ += CHAR_PLUS * speed_;
-
-    *hurting = utils::timestamp();
-  } else {
-    unsigned long long diff = (utils::timestamp() - *hurting) / 10;
-    if (diff < CHAR_PLUS) {
-      *pain_ += CHAR_PLUS - diff;
-    }
   }
 }
 
@@ -479,7 +470,7 @@ void Snake::checkSelfCollisions() {
   }
   for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
     utils::addThread(threads, checkVisionY, speed_, &hitSelf_, &pain_, &head,
-                     (vision *)vision_, &hurting, &(*i), nodeRadius_);
+                     (vision *)vision_, &(*i), nodeRadius_);
   }
   threads.join();
 }

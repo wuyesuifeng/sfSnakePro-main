@@ -68,7 +68,7 @@ namespace sfSnake {
             bool hitSelf_;
             char turnDirection_;
             int pain_, delight_;
-            unsigned long long hurting, eating;
+            unsigned long long eating;
             // bool speedup_;
             short int speed_;
 
