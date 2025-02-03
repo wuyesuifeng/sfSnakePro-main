@@ -11,7 +11,7 @@
 #include "element/TitleSprite.h"
 
 #include "utils/ShareMemory.h"
-#include "utils/ReadConf.cpp"
+#include "utils/ReadConf.hpp"
 
 namespace sfSnake
 {
@@ -69,6 +69,7 @@ namespace sfSnake
         static bool ifShowedHelp;
 
         static utils::ShareMemory share;
+        static utils::config_data cfg;
 
         static const int HIS_XY = -9999;
 

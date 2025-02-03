@@ -14,20 +14,21 @@
 
 #define READ_P_LEN 2
 #define READ_LEN 5 + 2
-#define VISION_CHECK_POS 800
-#define VISION_HARM_POS 1600
-#define WRITE_LEN 2412 + 1
 
 namespace utils {
     class ShareMemory {
         public:
-            ShareMemory(char *xyExecFile);
+            ShareMemory(char *xyExecFile, size_t writeSize);
             ~ShareMemory();
             unsigned char* getReadPos();
             unsigned char* getWritePos();
         private:
             unsigned char *writePos = nullptr;
             unsigned char *readPos = nullptr;
+            int readSize;
+            int writeSize;
+            int visionFruitPos;
+            int visionBodyPos;
 #ifdef _WIN32
             HANDLE read;
             HANDLE write;

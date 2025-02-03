@@ -8,6 +8,7 @@
 #include "element/Fruit.h"
 #include "element/Grid.h"
 #include "element/Button.h"
+#include "utils/ReadConf.hpp"
 
 namespace sfSnake
 {

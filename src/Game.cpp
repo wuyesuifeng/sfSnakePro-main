@@ -10,13 +10,19 @@
 
 using namespace sfSnake;
 
+inline utils::config_data initCfg() {
+    utils::ReadConf read;
+    return read.getCfg();
+}
+
 inline utils::ShareMemory initShare() {
-    char *path = utils::getPath();
-    utils::ShareMemory shareTmp = utils::ShareMemory(path);
+    char *path = Game::cfg.gamePath;
+    utils::ShareMemory shareTmp = utils::ShareMemory(path, (Game::cfg.visionXSum * Game::cfg.visionYSum) * 3 + 12 + 1);
     free(path);
     return shareTmp;
 }
 
+utils::config_data Game::cfg = initCfg();
 utils::ShareMemory Game::share = initShare();
 
 /* Global Color settings

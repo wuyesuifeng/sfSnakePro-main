@@ -6,13 +6,12 @@
 #endif
 
 #define READ_SIZE sizeof(char) * READ_LEN
-#define WRITE_SIZE sizeof(char) * WRITE_LEN
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 
 using namespace utils;
 
-ShareMemory::ShareMemory(char *xyExecFile) {
+ShareMemory::ShareMemory(char *xyExecFile, size_t writeSize) {
     int writeKey, readKey;
 
     char *tmp = NULL;
@@ -56,7 +55,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
             NULL,   // 默认安全级别
             PAGE_READWRITE,   // 可读可写
             0,   // 高位文件大小
-            WRITE_SIZE,   // 低位文件大小
+            writeSize,   // 低位文件大小
             me_path   // 共享内存名称
         );
         if (GetLastError()) {
@@ -123,7 +122,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
         throw "ftoke readKey failed";
     }
 
-    if ((writeId = shmget(writeKey, WRITE_SIZE, FLAG)) == -1) {
+    if ((writeId = shmget(writeKey, writeSize, FLAG)) == -1) {
         throw "shmget writeId failed";
     }
 

@@ -6,10 +6,11 @@
 
 #include "Fruit.h"
 #include "utils/Threads.hpp"
+#include "utils/ReadConf.hpp"
 
 #define PI 3.14159265358979323846f
-#define VISION_X_SUM 20
-#define VISION_Y_SUM 40
+#define VISION_X_SUM Game::cfg.visionXSum
+#define VISION_Y_SUM Game::cfg.visionYSum
 #define VISION_PIXEL_WIDTH 10.0f
 #define VISION_DEF_COLOR 0x55c40f99
 #define VISION_CHECK_COLOR 0xee60ec99
@@ -26,26 +27,26 @@ namespace sfSnake {
 
     class Snake {
         public:
-            Snake();
+         Snake();
 
-            ~Snake();
+         ~Snake();
 
-            void handleInput(sf::RenderWindow &window);
-            void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
-            void update(sf::Time delta);
-            void render(sf::RenderWindow &window);
+         void handleInput(sf::RenderWindow &window);
+         void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
+         void update(sf::Time delta);
+         void render(sf::RenderWindow &window);
 
-            void reset();
+         void reset();
 
-            void checkFruitCollisions(std::deque<Fruit> &fruits);
+         void checkFruitCollisions(std::deque<Fruit> &fruits);
 
-            bool hitSelf() const;
+         bool hitSelf() const;
 
-            unsigned getScore() const;
+         unsigned getScore() const;
 
-            void printhead() const;
+         void printhead() const;
 
-            void grow(int score);
+         void grow(int score);
 
         private:
             utils::Threads threads;
@@ -78,15 +79,13 @@ namespace sfSnake {
             Direction direction_;
             float nodeRadius_;
             std::deque<SnakePathNode> path_;
-            vision vision_[VISION_X_SUM][VISION_Y_SUM];
+            vision *vision_;
             int tailOverlap_;
 
             sf::CircleShape nodeShape;
             sf::RectangleShape nodeMiddle;
             sf::Texture headTexture;
             sf::Sprite headSprite;
-
-            static const int InitialSize;
             int snakeLen;
             unsigned int score_;
 

@@ -14,21 +14,19 @@
 using namespace sfSnake;
 
 GameScreen::GameScreen()
-    : snake_(), grid_(), pauseButton_()
-{
-    pauseButton_.update("assets/image/pauseUI.png", 1 / 24.0f);
-    pauseButton_.setPosition(
-        Game::GlobalVideoMode.width / 15.0 * 14.0 + 35,
-        Game::GlobalVideoMode.width / 15.0 - 40);
+    : grid_(), pauseButton_() {
+  pauseButton_.update("assets/image/pauseUI.png", 1 / 24.0f);
+  pauseButton_.setPosition(Game::GlobalVideoMode.width / 15.0 * 14.0 + 35,
+                           Game::GlobalVideoMode.width / 15.0 - 40);
 
-    // score_.setFont(Game::GlobalFont);
-    // score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
-    // score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
-    // score_.setFillColor(Game::Color::Yellow);
-    // setOriginMiddle(score_);
-    // score_.setPosition(
-    //     Game::GlobalVideoMode.width / 2.0f,
-    //     Game::GlobalVideoMode.width * 0.05f);
+  // score_.setFont(Game::GlobalFont);
+  // score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
+  // score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
+  // score_.setFillColor(Game::Color::Yellow);
+  // setOriginMiddle(score_);
+  // score_.setPosition(
+  //     Game::GlobalVideoMode.width / 2.0f,
+  //     Game::GlobalVideoMode.width * 0.05f);
 }
 
 void GameScreen::handleInput(sf::RenderWindow &window)
@@ -57,7 +55,7 @@ void GameScreen::handleInput(sf::RenderWindow &window)
 
 void GameScreen::update(sf::Time delta)
 {
-    int fsize = max(((int) (utils::timestamp() / 20000)) % 10, 0);
+    int fsize = std::max(((int) (utils::timestamp() / 20000)) % 50, 0);
     
     while (fruit_.size() < fsize) {
         generateFruit();

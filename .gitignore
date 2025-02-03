@@ -3,7 +3,9 @@ sfSnake.vcxproj.filters
 Debug/
 Release/
 [Bb]uild/run*
-[Bb]uild/*.*
+[Bb]uild/*.dll
+[Bb]uild/*.bat
+[Bb]uild/*.exe
 [Bb]uild/assets
 *.exe
 *.log
