@@ -72,6 +72,15 @@ utils::ReadConf::ReadConf() {
       } else if (ret[0] == "visionYSum") {
         utils::trim(ret[1]);
         cfg.visionYSum = stoi(ret[1]);
+      } else if (ret[0] == "visionBlankVol") {
+        utils::trim(ret[1]);
+        cfg.visionBlankVol = stoi(ret[1]);
+      } else if (ret[0] == "visionBodyVol") {
+        utils::trim(ret[1]);
+        cfg.visionBodyVol = stoi(ret[1]);
+      } else if (ret[0] == "visionFruitVol") {
+        utils::trim(ret[1]);
+        cfg.visionFruitVol = stoi(ret[1]);
       }
     }
     ifs.close();

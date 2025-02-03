@@ -666,7 +666,7 @@ void Snake::render(sf::RenderWindow &window) {
       switch (v.color) {
         case VISION_HARM_COLOR:
           val = out_tmp + Game::cfg.visionBodyPos;
-          *val = 10;
+          *val = Game::cfg.visionBodyVol;
           val = out_tmp + Game::cfg.visionFruitPos;
           *val = 0;
           val = out_tmp;
@@ -674,7 +674,7 @@ void Snake::render(sf::RenderWindow &window) {
           break;
         case VISION_CHECK_COLOR:
           val = out_tmp + Game::cfg.visionFruitPos;
-          *val = 80;
+          *val = Game::cfg.visionFruitVol;
           val = out_tmp + Game::cfg.visionBodyPos;
           *val = 0;
           val = out_tmp;
@@ -682,7 +682,7 @@ void Snake::render(sf::RenderWindow &window) {
           break;
         default:
           val = out_tmp;
-          *val = 1;
+          *val = Game::cfg.visionBlankVol;
           val = out_tmp + Game::cfg.visionFruitPos;
           *val = 0;
           val = out_tmp + Game::cfg.visionBodyPos;
