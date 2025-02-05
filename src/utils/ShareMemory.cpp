@@ -5,7 +5,7 @@
 #include <cstring>
 #endif
 
-#define READ_SIZE sizeof(char) * READ_LEN
+#define READ_SIZE sizeof(SHARE_DATA_TYPE) * READ_LEN
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 
@@ -177,7 +177,7 @@ ShareMemory::~ShareMemory() {
 }
 
 unsigned char* ShareMemory::getReadPos() {
-    return readPos + 2;
+    return readPos + 1;
 }
 
 unsigned char* ShareMemory::getWritePos() {

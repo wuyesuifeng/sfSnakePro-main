@@ -96,6 +96,5 @@ namespace sfSnake {
             sf::Sound dieSound_;
 
             unsigned char *in = nullptr, *out = nullptr;
-            int hisX, hisY;
     };
 }  // namespace sfSnake

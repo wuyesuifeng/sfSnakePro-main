@@ -81,6 +81,15 @@ utils::ReadConf::ReadConf() {
       } else if (ret[0] == "visionFruitVol") {
         utils::trim(ret[1]);
         cfg.visionFruitVol = stoi(ret[1]);
+      } else if (ret[0] == "startBit") {
+        utils::trim(ret[1]);
+        cfg.startBit = stoi(ret[1]);
+      } else if (ret[0] == "speedLevel1") {
+        utils::trim(ret[1]);
+        cfg.speedLevel1 = stoi(ret[1]);
+      } else if (ret[0] == "speedLevel2") {
+        utils::trim(ret[1]);
+        cfg.speedLevel2 = stoi(ret[1]);
       }
     }
     ifs.close();

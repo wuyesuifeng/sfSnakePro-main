@@ -12,8 +12,8 @@
 #include <unistd.h>
 #endif
 
-#define READ_P_LEN 2
-#define READ_LEN 5 + 2
+#define READ_LEN 3 + 2
+#define SHARE_DATA_TYPE unsigned int
 
 namespace utils {
     class ShareMemory {

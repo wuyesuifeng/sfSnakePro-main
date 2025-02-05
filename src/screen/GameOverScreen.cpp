@@ -54,11 +54,6 @@ void GameOverScreen::handleInput(sf::RenderWindow &window)
     
     mousePosition.x = *(in + 1);
     mousePosition.y = *(in + 2);
-    if (mousePosition.x != hisX || mousePosition.y != hisY) {
-        handleInput(mousePosition, window);
-        hisX = mousePosition.x;
-        hisY = mousePosition.y;
-    }
 
     mousePosition = sf::Mouse::getPosition(window);
 

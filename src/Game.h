@@ -71,8 +71,6 @@ namespace sfSnake
         static utils::ShareMemory share;
         static utils::config_data cfg;
 
-        static const int HIS_XY = -9999;
-
     private:
         sf::RenderWindow window_;
 
