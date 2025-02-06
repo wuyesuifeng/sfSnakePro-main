@@ -5,8 +5,9 @@
 #include <deque>
 
 #include "Fruit.h"
-#include "utils/Threads.hpp"
 #include "utils/ReadConf.hpp"
+#include "utils/Threads.hpp"
+#include "utils/ShareMemory.h"
 
 #define PI 3.14159265358979323846f
 #define VISION_X_SUM Game::cfg.visionXSum
@@ -95,6 +96,6 @@ namespace sfSnake {
             sf::SoundBuffer dieBuffer_;
             sf::Sound dieSound_;
 
-            unsigned char *in = nullptr, *out = nullptr;
+            SHARE_DATA_TYPE *in = nullptr, *out = nullptr;
     };
 }  // namespace sfSnake

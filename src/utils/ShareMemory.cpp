@@ -84,7 +84,7 @@ ShareMemory::ShareMemory(char *xyExecFile, size_t writeSize) {
     }
 
     SetLastError(0);
-    writePos = (unsigned char *) MapViewOfFile(
+    writePos = (SHARE_DATA_TYPE *) MapViewOfFile(
 		write,            // 共享内存的句柄
 		FILE_MAP_ALL_ACCESS, // 可读写许可
 		0,
@@ -98,7 +98,7 @@ ShareMemory::ShareMemory(char *xyExecFile, size_t writeSize) {
     }
 
     SetLastError(0);
-    readPos = (unsigned char *) MapViewOfFile(
+    readPos = (SHARE_DATA_TYPE *) MapViewOfFile(
 		read,            // 共享内存的句柄
 		FILE_MAP_ALL_ACCESS, // 可读写许可
 		0,
@@ -130,12 +130,12 @@ ShareMemory::ShareMemory(char *xyExecFile, size_t writeSize) {
         throw "shmget readId failed";
     }
 
-    if ((writePos = (unsigned char*) shmat(writeId, NULL, 0)) == nullptr) {
-        throw "shmat writePos failed";
+    if ((writePos = (SHARE_DATA_TYPE *)shmat(writeId, NULL, 0)) == nullptr) {
+      throw "shmat writePos failed";
     }
 
-    if ((readPos = (unsigned char*) shmat(readId, NULL, 0)) == nullptr) {
-        throw "shmat readPos failed";
+    if ((readPos = (SHARE_DATA_TYPE *)shmat(readId, NULL, 0)) == nullptr) {
+      throw "shmat readPos failed";
     }
 #endif
 
@@ -176,10 +176,6 @@ ShareMemory::~ShareMemory() {
     }
 }
 
-unsigned char* ShareMemory::getReadPos() {
-    return readPos + 1;
-}
+SHARE_DATA_TYPE *ShareMemory::getReadPos() { return readPos + 1; }
 
-unsigned char* ShareMemory::getWritePos() {
-    return writePos + 1;
-}
+SHARE_DATA_TYPE *ShareMemory::getWritePos() { return writePos + 1; }

@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Game.h"
-#include "element/Fruit.h"
 #include "screen/GameOverScreen.h"
 #include "utils/Time.hpp"
 
@@ -646,7 +645,7 @@ void Snake::render(sf::RenderWindow &window) {
   *(out + 4) = stuckLeft * Game::cfg.startBit;
   *(out + 5) = (rightVitality + Game::cfg.vitalityPain) * Game::cfg.startBit;
 
-  static unsigned char *out_tmp;
+  static SHARE_DATA_TYPE *out_tmp;
   out_tmp = out + 6;
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
@@ -672,7 +671,7 @@ void Snake::render(sf::RenderWindow &window) {
       shape.setPosition(v.pos);
       window.draw(shape);
 
-      unsigned char *val;
+      SHARE_DATA_TYPE *val;
       switch (v.color) {
         case VISION_HARM_COLOR:
           val = out_tmp + Game::cfg.visionBodyPos;

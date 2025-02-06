@@ -20,11 +20,11 @@ namespace utils {
         public:
             ShareMemory(char *xyExecFile, size_t writeSize);
             ~ShareMemory();
-            unsigned char* getReadPos();
-            unsigned char* getWritePos();
+            SHARE_DATA_TYPE* getReadPos();
+            SHARE_DATA_TYPE* getWritePos();
         private:
-            unsigned char *writePos = nullptr;
-            unsigned char *readPos = nullptr;
+            SHARE_DATA_TYPE *writePos = nullptr;
+            SHARE_DATA_TYPE *readPos = nullptr;
             int readSize;
             int writeSize;
             int visionFruitPos;

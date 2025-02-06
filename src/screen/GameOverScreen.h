@@ -27,6 +27,6 @@ namespace sfSnake
         OptionButton helpButton_;
         OptionButton aboutButton_;
 
-        unsigned char *in = nullptr, *out = nullptr;
+        SHARE_DATA_TYPE *in = nullptr, *out = nullptr;
     };
 }
