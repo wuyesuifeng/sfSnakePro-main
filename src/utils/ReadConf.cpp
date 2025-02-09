@@ -81,9 +81,15 @@ utils::ReadConf::ReadConf() {
       } else if (ret[0] == "visionFruitVol") {
         utils::trim(ret[1]);
         cfg.visionFruitVol = stoi(ret[1]);
-      } else if (ret[0] == "startBit") {
+      } else if (ret[0] == "outStartBit") {
         utils::trim(ret[1]);
-        cfg.startBit = stoi(ret[1]);
+        cfg.outStartBit = stoi(ret[1]);
+      } else if (ret[0] == "angleStartBit") {
+        utils::trim(ret[1]);
+        cfg.angleStartBit = stoi(ret[1]);
+      } else if (ret[0] == "runStartBit") {
+        utils::trim(ret[1]);
+        cfg.runStartBit = stoi(ret[1]);
       } else if (ret[0] == "speedLevel1") {
         utils::trim(ret[1]);
         cfg.speedLevel1 = stoi(ret[1]);

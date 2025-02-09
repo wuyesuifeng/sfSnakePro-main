@@ -26,6 +26,7 @@ static float VISION_X_HALF,
                 VISION_HALF_WIDTH2;
 
 static unsigned int speed_level1, speed_level2, vision_blank_vol, vision_fruit_vol, vision_body_vol;
+// static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
 
 float culAngle(sf::Vector2f recDirection) {
   float angle = std::acos(recDirection.y / length(recDirection)) / PI * 180.0;
@@ -82,11 +83,11 @@ Snake::Snake()
   VISION_X_HALF = VISION_X_SUM / 2;
   VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF;
   VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
-  speed_level1 = Game::cfg.speedLevel1 * Game::cfg.startBit;
-  speed_level2 = Game::cfg.speedLevel2 * Game::cfg.startBit;
-  vision_blank_vol = Game::cfg.visionBlankVol * Game::cfg.startBit;
-  vision_fruit_vol = Game::cfg.visionFruitVol * Game::cfg.startBit;
-  vision_body_vol = Game::cfg.visionBodyVol * Game::cfg.startBit;
+  speed_level1 = Game::cfg.speedLevel1 * Game::cfg.runStartBit;
+  speed_level2 = Game::cfg.speedLevel2 * Game::cfg.runStartBit;
+  vision_blank_vol = Game::cfg.visionBlankVol * Game::cfg.outStartBit;
+  vision_fruit_vol = Game::cfg.visionFruitVol * Game::cfg.outStartBit;
+  vision_body_vol = Game::cfg.visionBodyVol * Game::cfg.outStartBit;
 
   // pickupBuffer_.loadFromFile("assets/sounds/pickup.wav");
   // pickupSound_.setBuffer(pickupBuffer_);
@@ -194,13 +195,13 @@ void Snake::update(sf::Time delta) {
 
   float plus = 0;
 
-  plus += (float)(in[1]) * ANGLE_PLUS_THRESHOLD2 / Game::cfg.startBit;
+  plus += (float)(in[1]) / Game::cfg.angleStartBit;
 
   if (in[2] > speed_level1) {
     speed_ = in[2] > speed_level2 ? 2 : 1;
   }
 
-  plus -= (float)in[3] * ANGLE_PLUS_THRESHOLD2 / Game::cfg.startBit;
+  plus -= (float)in[3] / Game::cfg.angleStartBit;
 
   if (plus) {
     if (plus > ANGLE_PLUS_THRESHOLD3) {
@@ -638,12 +639,12 @@ void Snake::render(sf::RenderWindow &window) {
   *out = delight_;
   pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
   static unsigned int headAngle;
-  headAngle = headAngle_ * Game::cfg.startBit;
+  headAngle = headAngle_ * Game::cfg.outStartBit;
   *(out + 1) = pain_;
   *(out + 2) = headAngle_ < 0 ? -headAngle : 0;
-  *(out + 3) = turnLeft * Game::cfg.startBit;
-  *(out + 4) = stuckLeft * Game::cfg.startBit;
-  *(out + 5) = (rightVitality + Game::cfg.vitalityPain) * Game::cfg.startBit;
+  *(out + 3) = turnLeft * Game::cfg.outStartBit;
+  *(out + 4) = stuckLeft * Game::cfg.outStartBit;
+  *(out + 5) = (rightVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit;
 
   static SHARE_DATA_TYPE *out_tmp;
   out_tmp = out + 6;
@@ -701,9 +702,9 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += Game::cfg.visionBodyPos;
-  *(out_tmp++) = (leftVitality + Game::cfg.vitalityPain) * Game::cfg.startBit;
-  *(out_tmp++) = stuckRight * Game::cfg.startBit;
-  *(out_tmp++) = turnRight * Game::cfg.startBit;
+  *(out_tmp++) = (leftVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit;
+  *(out_tmp++) = stuckRight * Game::cfg.outStartBit;
+  *(out_tmp++) = turnRight * Game::cfg.outStartBit;
   *(out_tmp++) = headAngle_ > 0 ? headAngle : 0;
   *(out_tmp++) = pain_;
   *out_tmp = delight_;
