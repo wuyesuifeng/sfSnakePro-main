@@ -189,10 +189,6 @@ float parseAngle2(float angle) {
 }
 
 void Snake::update(sf::Time delta) {
-  if (*in) {
-    reset();
-    *in = 0;
-  }
 
   float plus = 0;
 
@@ -625,13 +621,19 @@ void Snake::reset() {
   angle_ = 180;
   hisAngle_ = angle_;
   bodyDir_ = angle_;
+  direction_ = Direction(0, -1);
   path_.clear();
   initNodes();
-  headSprite.setPosition(*path_.begin());
-  headSprite.setRotation(angle_);
+  radian = angle_ *PI / 180.0f;
 }
 
 void Snake::render(sf::RenderWindow &window) {
+  if (*in) {
+    reset();
+    *in = 0;
+    return;
+  }
+
   static int count, j, x, y;
   j = 7;
   x = 0;
