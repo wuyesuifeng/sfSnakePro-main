@@ -191,6 +191,7 @@ float parseAngle2(float angle) {
 void Snake::update(sf::Time delta) {
   if (*in) {
     reset();
+    *in = 0;
   }
 
   float plus = 0;
@@ -626,7 +627,6 @@ void Snake::reset() {
   bodyDir_ = 0;
   path_.clear();
   initNodes();
-  *(in - 1) = 0;
 }
 
 void Snake::render(sf::RenderWindow &window) {
