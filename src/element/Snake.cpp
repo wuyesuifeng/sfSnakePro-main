@@ -622,11 +622,13 @@ void Snake::reset() {
   stuckLeft = 0;
   stuckRight = 0;
   headAngle_ = 0;
-  hisAngle_ = 0;
-  angle_ = 0;
-  bodyDir_ = 0;
+  angle_ = 180;
+  hisAngle_ = angle_;
+  bodyDir_ = angle_;
   path_.clear();
   initNodes();
+  headSprite.setPosition(*path_.begin());
+  headSprite.setRotation(angle_);
 }
 
 void Snake::render(sf::RenderWindow &window) {
