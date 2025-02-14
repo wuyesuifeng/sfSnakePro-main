@@ -176,6 +176,6 @@ ShareMemory::~ShareMemory() {
     }
 }
 
-SHARE_DATA_TYPE *ShareMemory::getReadPos() { return readPos + 1; }
+SHARE_DATA_TYPE *ShareMemory::getReadPos() { return readPos + 2; }
 
 SHARE_DATA_TYPE *ShareMemory::getWritePos() { return writePos + 1; }

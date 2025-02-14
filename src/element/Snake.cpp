@@ -17,7 +17,11 @@
 #define ANGLE_PLUS_THRESHOLD3 120
 #define max std::max
 #define min std::min
-#define CUL_VISION_INDEX(x, y) x *VISION_Y_SUM + y
+#define CUL_VISION_INDEX(x, y) x * VISION_Y_SUM + y
+
+#define INPUT_CNT_LEFT 300
+#define INPUT_CNT_RUN 300
+#define INPUT_CNT_RIGHT 300
 
 using namespace sfSnake;
 
@@ -189,17 +193,48 @@ float parseAngle2(float angle) {
 }
 
 void Snake::update(sf::Time delta) {
+  static SHARE_DATA_TYPE *leftPtr, 
+                          *runPtr = in + INPUT_CNT_LEFT,
+                          *rightPtr = runPtr + INPUT_CNT_RUN,
+                          *endPtr = rightPtr + INPUT_CNT_RIGHT,
+                          distance;
+  leftPtr = in;
 
-  float plus = 0;
+  static unsigned long long plusTmp;
 
-  plus += (float)(in[1]) / Game::cfg.angleStartBit;
+  static float plus;
+  plus = 0;
+  distance = 0;
 
-  if (in[2] > speed_level1) {
-    speed_ = in[2] > speed_level2 ? 2 : 1;
+  plusTmp = 0;
+  do {
+    plusTmp += *leftPtr;
+    leftPtr++;
+  } while (leftPtr != runPtr);
+
+  plus = (float) plusTmp / INPUT_CNT_LEFT / Game::cfg.angleStartBit;
+
+  plusTmp = 0;
+  do {
+    plusTmp += *leftPtr;
+    leftPtr++;
+  } while (leftPtr != rightPtr);
+
+  distance = (float) plusTmp / INPUT_CNT_RUN;
+
+  if (distance > speed_level1) {
+    speed_ = distance > speed_level2 ? 2 : 1;
   }
 
-  plus -= (float)in[3] / Game::cfg.angleStartBit;
+  plusTmp = 0;
+  do {
+    plusTmp += *leftPtr;
+    leftPtr++;
+  } while (leftPtr != endPtr);
 
+  plus -= (float) plusTmp / INPUT_CNT_RIGHT / Game::cfg.angleStartBit;
+
+  static float angle;
   if (plus) {
     if (plus > ANGLE_PLUS_THRESHOLD3) {
       plus = ANGLE_PLUS_THRESHOLD3;
@@ -210,7 +245,7 @@ void Snake::update(sf::Time delta) {
     angle_ = parseAngle2(angle_ + plus);
 
     // cout << angle_;
-    float angle = parseAngle(angle_);
+    angle = parseAngle(angle_);
     headAngle_ = angle - bodyDir_;
     if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
       headAngle_ = headAngle_ - 360;
@@ -297,7 +332,7 @@ void Snake::update(sf::Time delta) {
     turnRight = 0;
     turnLeft = 0;
 
-    float angle = parseAngle(angle_);
+    angle = parseAngle(angle_);
     headAngle_ = angle - bodyDir_;
     if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
       headAngle_ = headAngle_ - 360;
@@ -306,12 +341,13 @@ void Snake::update(sf::Time delta) {
     }
   }
 
+  static float headAngle;
   if (headAngle_ > 0) {
-    float headAngle = abs(headAngle_);
+    headAngle = abs(headAngle_);
     leftVitality = min(leftVitality + max((Game::cfg.maxVitality - leftVitality) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
     rightVitality = max(rightVitality - max(Game::cfg.vitalityStep, (-rightVitality - Game::cfg.minVitality) / Game::cfg.vitalityStepCnt * headAngle), Game::cfg.minVitality);
   } else if (headAngle_ < 0) {
-    float headAngle = abs(headAngle_);
+    headAngle = abs(headAngle_);
     leftVitality = max(leftVitality - max(Game::cfg.vitalityStep, (-leftVitality - Game::cfg.minVitality) / Game::cfg.vitalityStepCnt * headAngle), Game::cfg.minVitality);
     rightVitality = min(rightVitality + max((Game::cfg.maxVitality - rightVitality) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
   } else {
@@ -628,9 +664,10 @@ void Snake::reset() {
 }
 
 void Snake::render(sf::RenderWindow &window) {
-  if (*in) {
+  static SHARE_DATA_TYPE *judgementPtr = in - 1;
+  if (*judgementPtr) {
     reset();
-    *in = 0;
+    *judgementPtr = 0;
     return;
   }
 
