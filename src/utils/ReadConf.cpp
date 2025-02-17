@@ -39,6 +39,9 @@ utils::ReadConf::ReadConf() {
       } else if (ret[0] == "eatDelight") {
         utils::trim(ret[1]);
         cfg.eatDelight = stoi(ret[1]);
+      } else if (ret[0] == "eatDelightDuration") {
+        utils::trim(ret[1]);
+        cfg.eatDelightDuration = stoi(ret[1]);
       } else if (ret[0] == "bitePain") {
         utils::trim(ret[1]);
         cfg.bitePain = stoi(ret[1]);

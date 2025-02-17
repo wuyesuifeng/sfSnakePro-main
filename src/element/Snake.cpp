@@ -425,7 +425,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
     leftVitality = 0;
     rightVitality = 0;
   } else {
-    unsigned long long diff = (utils::timestamp() - eating) / 10;
+    unsigned long long diff = (utils::timestamp() - eating) / Game::cfg.eatDelightDuration;
     if (diff < Game::cfg.eatDelight) {
       delight_ += Game::cfg.eatDelight - diff;
     }
