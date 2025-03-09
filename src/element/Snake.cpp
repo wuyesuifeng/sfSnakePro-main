@@ -87,8 +87,8 @@ Snake::Snake()
   VISION_X_HALF = VISION_X_SUM / 2;
   VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF;
   VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
-  speed_level1 = Game::cfg.speedLevel1 * Game::cfg.runStartBit;
-  speed_level2 = Game::cfg.speedLevel2 * Game::cfg.runStartBit;
+  speed_level1 = Game::cfg.speedLevel1;
+  speed_level2 = Game::cfg.speedLevel2;
   vision_blank_vol = Game::cfg.visionBlankVol * Game::cfg.outStartBit;
   vision_fruit_vol = Game::cfg.visionFruitVol * Game::cfg.outStartBit;
   vision_body_vol = Game::cfg.visionBodyVol * Game::cfg.outStartBit;
@@ -212,7 +212,7 @@ void Snake::update(sf::Time delta) {
     leftPtr++;
   } while (leftPtr != runPtr);
 
-  plus = (float) plusTmp / INPUT_CNT_LEFT / Game::cfg.angleStartBit;
+  plus = (float) plusTmp / INPUT_CNT_LEFT;
 
   plusTmp = 0;
   do {
@@ -232,7 +232,7 @@ void Snake::update(sf::Time delta) {
     leftPtr++;
   } while (leftPtr != endPtr);
 
-  plus -= (float) plusTmp / INPUT_CNT_RIGHT / Game::cfg.angleStartBit;
+  plus -= (float) plusTmp / INPUT_CNT_RIGHT;
 
   static float angle;
   if (plus) {
@@ -676,19 +676,26 @@ void Snake::render(sf::RenderWindow &window) {
   x = 0;
   y = 0;
 
-  // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-  *out = delight_;
-  pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
-  static unsigned int headAngle;
-  headAngle = headAngle_ * Game::cfg.outStartBit;
-  *(out + 1) = pain_;
-  *(out + 2) = headAngle_ < 0 ? -headAngle : 0;
-  *(out + 3) = turnLeft * Game::cfg.outStartBit;
-  *(out + 4) = stuckLeft * Game::cfg.outStartBit;
-  *(out + 5) = (rightVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit;
-
   static SHARE_DATA_TYPE *out_tmp;
-  out_tmp = out + 6;
+  out_tmp = out;
+
+  static size_t fillSize = sizeof(SHARE_DATA_TYPE) * Game::cfg.fillCount;
+
+  // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
+  memset(out_tmp, delight_, fillSize);
+  pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
+  static SHARE_DATA_TYPE headAngle;
+  headAngle = headAngle_ * Game::cfg.outStartBit;
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, pain_, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, headAngle_ < 0 ? -headAngle : 0, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, turnLeft * Game::cfg.outStartBit, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, stuckLeft * Game::cfg.outStartBit, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, (rightVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit, fillSize);
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
   static float angle;
@@ -743,12 +750,18 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += Game::cfg.visionBodyPos;
-  *(out_tmp++) = (leftVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit;
-  *(out_tmp++) = stuckRight * Game::cfg.outStartBit;
-  *(out_tmp++) = turnRight * Game::cfg.outStartBit;
-  *(out_tmp++) = headAngle_ > 0 ? headAngle : 0;
-  *(out_tmp++) = pain_;
-  *out_tmp = delight_;
+
+  memset(out_tmp, (leftVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, stuckRight * Game::cfg.outStartBit, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, turnRight * Game::cfg.outStartBit, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, headAngle_ > 0 ? headAngle : 0, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, pain_, fillSize);
+  out_tmp += Game::cfg.fillCount;
+  memset(out_tmp, delight_, fillSize);
   pain_ = 0;
   delight_ = 0;
 

@@ -87,18 +87,15 @@ utils::ReadConf::ReadConf() {
       } else if (ret[0] == "outStartBit") {
         utils::trim(ret[1]);
         cfg.outStartBit = stoi(ret[1]);
-      } else if (ret[0] == "angleStartBit") {
-        utils::trim(ret[1]);
-        cfg.angleStartBit = stoi(ret[1]);
-      } else if (ret[0] == "runStartBit") {
-        utils::trim(ret[1]);
-        cfg.runStartBit = stoi(ret[1]);
       } else if (ret[0] == "speedLevel1") {
         utils::trim(ret[1]);
         cfg.speedLevel1 = stoi(ret[1]);
       } else if (ret[0] == "speedLevel2") {
         utils::trim(ret[1]);
         cfg.speedLevel2 = stoi(ret[1]);
+      } else if (ret[0] == "fillCount") {
+        utils::trim(ret[1]);
+        cfg.fillCount = stoi(ret[1]);
       }
     }
     ifs.close();

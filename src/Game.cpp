@@ -17,7 +17,7 @@ inline utils::config_data initCfg() {
 
 inline utils::ShareMemory initShare() {
     char *path = Game::cfg.gamePath;
-    utils::ShareMemory shareTmp = utils::ShareMemory(path, ((Game::cfg.visionXSum * Game::cfg.visionYSum) * 3 + 12 + 1) * sizeof(SHARE_DATA_TYPE));
+    utils::ShareMemory shareTmp = utils::ShareMemory(path, ((Game::cfg.visionXSum * Game::cfg.visionYSum) * 3 + 12 * Game::cfg.fillCount + 1) * sizeof(SHARE_DATA_TYPE));
     free(path);
     return shareTmp;
 }

@@ -13,7 +13,7 @@
 #endif
 
 #define READ_LEN 3 + 2
-#define SHARE_DATA_TYPE unsigned int
+#define SHARE_DATA_TYPE float
 
 namespace utils {
     class ShareMemory {
