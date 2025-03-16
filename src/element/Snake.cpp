@@ -22,10 +22,6 @@
 #define min std::min
 #define CUL_VISION_INDEX(x, y) x * VISION_Y_SUM + y
 
-#define INPUT_CNT_LEFT 300
-#define INPUT_CNT_RUN 300
-#define INPUT_CNT_RIGHT 300
-
 using namespace sfSnake;
 
 static float VISION_X_HALF,
@@ -197,10 +193,10 @@ float parseAngle2(float angle) {
 
 void Snake::update(sf::Time delta) {
   static TYPE_VOL *leftPtr, 
-                          *runPtr = in + INPUT_CNT_LEFT,
-                          *rightPtr = runPtr + INPUT_CNT_RUN,
-                          *endPtr = rightPtr + INPUT_CNT_RIGHT,
-                          distance;
+                  *runPtr = in + INPUT_CNT_LEFT,
+                  *rightPtr = runPtr + INPUT_CNT_RUN,
+                  *endPtr = rightPtr + INPUT_CNT_RIGHT,
+                  distance;
   leftPtr = in;
 
   static unsigned long long plusTmp;
@@ -686,10 +682,10 @@ void Snake::render(sf::RenderWindow &window) {
 
   // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
   memset(out_tmp, delight_, fillSize);
+  out_tmp += Game::cfg.fillCount;
   pain_ = max(min(pain_, MAX_VITALITY), MIN_VITALITY);
   static TYPE_VOL headAngle;
   headAngle = headAngle_;
-  out_tmp += Game::cfg.fillCount;
   memset(out_tmp, pain_, fillSize);
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, headAngle_ < 0 ? -headAngle : 0, fillSize);
@@ -699,6 +695,7 @@ void Snake::render(sf::RenderWindow &window) {
   memset(out_tmp, stuckLeft, fillSize);
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, (rightVitality + Game::cfg.vitalityPain), fillSize);
+  out_tmp += Game::cfg.fillCount;
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
   static float angle;
