@@ -2,14 +2,17 @@
 
 #include <vector>
 
+#include "def.h"
+
 namespace utils {
     struct config_data {
-      float maxVitality, minVitality, vitalityStep, vitalityStepCnt;
-      int visionFruitPos, visionBodyPos, visionBlankVol, visionBodyVol, visionFruitVol;
-      unsigned int outStartBit;
+      TYPE_VOL maxVitality, minVitality, vitalityStep, vitalityStepCnt,
+          eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
+          visionFruitVol;
+      unsigned int visionFruitPos, visionBodyPos;
+      short initialSize, visionXSum, visionYSum, speedLevel1, speedLevel2,
+          eatDelightDuration, fillCount;
       char *gamePath;
-      short eatDelight, bitePain, vitalityPain, initialSize, visionXSum,
-          visionYSum, speedLevel1, speedLevel2, eatDelightDuration, fillCount;
     };
 
     class ReadConf {

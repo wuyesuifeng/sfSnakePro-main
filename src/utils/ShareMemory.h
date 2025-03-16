@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include "def.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,19 +13,16 @@
 #include <unistd.h>
 #endif
 
-#define READ_LEN 3 + 2
-#define SHARE_DATA_TYPE float
-
 namespace utils {
     class ShareMemory {
         public:
             ShareMemory(char *xyExecFile, size_t writeSize);
             ~ShareMemory();
-            SHARE_DATA_TYPE* getReadPos();
-            SHARE_DATA_TYPE* getWritePos();
+            TYPE_VOL* getReadPos();
+            TYPE_VOL* getWritePos();
         private:
-            SHARE_DATA_TYPE *writePos = nullptr;
-            SHARE_DATA_TYPE *readPos = nullptr;
+            TYPE_VOL *writePos = nullptr;
+            TYPE_VOL *readPos = nullptr;
             int readSize;
             int writeSize;
             int visionFruitPos;

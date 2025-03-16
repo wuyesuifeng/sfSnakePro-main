@@ -36,30 +36,30 @@ utils::ReadConf::ReadConf() {
         char *resChar = (char *)calloc(len, len * sizeof(char));
         memcpy(resChar, ret[1].c_str(), len);
         cfg.gamePath = resChar;
-      } else if (ret[0] == "eatDelight") {
-        utils::trim(ret[1]);
-        cfg.eatDelight = stoi(ret[1]);
       } else if (ret[0] == "eatDelightDuration") {
         utils::trim(ret[1]);
         cfg.eatDelightDuration = stoi(ret[1]);
+      } else if (ret[0] == "eatDelight") {
+        utils::trim(ret[1]);
+        cfg.eatDelight = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "bitePain") {
         utils::trim(ret[1]);
-        cfg.bitePain = stoi(ret[1]);
+        cfg.bitePain = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "maxVitality") {
         utils::trim(ret[1]);
-        cfg.maxVitality = stof(ret[1]);
-      } else if (ret[0] == "minVitality") {
-        utils::trim(ret[1]);
-        cfg.minVitality = stof(ret[1]);
-      } else if (ret[0] == "vitalityStep") {
-        utils::trim(ret[1]);
-        cfg.vitalityStep = stof(ret[1]);
-      } else if (ret[0] == "vitalityStepCnt") {
-        utils::trim(ret[1]);
-        cfg.vitalityStepCnt = stof(ret[1]);
+        cfg.maxVitality = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "vitalityPain") {
         utils::trim(ret[1]);
-        cfg.vitalityPain = stoi(ret[1]);
+        cfg.vitalityPain = STO_FUNC_VOL(ret[1]);
+      } else if (ret[0] == "minVitality") {
+        utils::trim(ret[1]);
+        cfg.minVitality = STO_FUNC_VOL(ret[1]);
+      } else if (ret[0] == "vitalityStep") {
+        utils::trim(ret[1]);
+        cfg.vitalityStep = STO_FUNC_VOL(ret[1]);
+      } else if (ret[0] == "vitalityStepCnt") {
+        utils::trim(ret[1]);
+        cfg.vitalityStepCnt = stoi(ret[1]);
       } else if (ret[0] == "initialSize") {
         utils::trim(ret[1]);
         cfg.initialSize = stoi(ret[1]);
@@ -77,16 +77,13 @@ utils::ReadConf::ReadConf() {
         cfg.visionYSum = stoi(ret[1]);
       } else if (ret[0] == "visionBlankVol") {
         utils::trim(ret[1]);
-        cfg.visionBlankVol = stoi(ret[1]);
+        cfg.visionBlankVol = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "visionBodyVol") {
         utils::trim(ret[1]);
-        cfg.visionBodyVol = stoi(ret[1]);
+        cfg.visionBodyVol = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "visionFruitVol") {
         utils::trim(ret[1]);
-        cfg.visionFruitVol = stoi(ret[1]);
-      } else if (ret[0] == "outStartBit") {
-        utils::trim(ret[1]);
-        cfg.outStartBit = stoi(ret[1]);
+        cfg.visionFruitVol = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "speedLevel1") {
         utils::trim(ret[1]);
         cfg.speedLevel1 = stoi(ret[1]);

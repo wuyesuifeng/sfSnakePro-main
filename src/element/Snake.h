@@ -5,9 +5,10 @@
 #include <deque>
 
 #include "Fruit.h"
+#include "def.h"
 #include "utils/ReadConf.hpp"
-#include "utils/Threads.hpp"
 #include "utils/ShareMemory.h"
+#include "utils/Threads.hpp"
 
 #define PI 3.14159265358979323846f
 #define VISION_X_SUM Game::cfg.visionXSum
@@ -69,7 +70,7 @@ namespace sfSnake {
 
             bool hitSelf_;
             char turnDirection_;
-            int pain_, delight_;
+            TYPE_VOL pain_, delight_;
             unsigned long long eating;
             // bool speedup_;
             short int speed_;
@@ -96,6 +97,6 @@ namespace sfSnake {
             sf::SoundBuffer dieBuffer_;
             sf::Sound dieSound_;
 
-            SHARE_DATA_TYPE *in = nullptr, *out = nullptr;
+            TYPE_VOL *in = nullptr, *out = nullptr;
     };
 }  // namespace sfSnake

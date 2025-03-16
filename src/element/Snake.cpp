@@ -1,4 +1,4 @@
-#include "element/Snake.h"
+
 
 #include <math.h>
 
@@ -6,12 +6,15 @@
 #include <iostream>
 #include <memory>
 
+#include "element/Snake.h"
 #include "Game.h"
 #include "screen/GameOverScreen.h"
 #include "utils/Time.hpp"
 
-#define XY_CHAR_MAX 255
-#define XY_CHAR_MIN 0
+#ifdef __linux
+#include <string.h>
+#endif
+
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
@@ -89,9 +92,9 @@ Snake::Snake()
   VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
   speed_level1 = Game::cfg.speedLevel1;
   speed_level2 = Game::cfg.speedLevel2;
-  vision_blank_vol = Game::cfg.visionBlankVol * Game::cfg.outStartBit;
-  vision_fruit_vol = Game::cfg.visionFruitVol * Game::cfg.outStartBit;
-  vision_body_vol = Game::cfg.visionBodyVol * Game::cfg.outStartBit;
+  vision_blank_vol = Game::cfg.visionBlankVol;
+  vision_fruit_vol = Game::cfg.visionFruitVol;
+  vision_body_vol = Game::cfg.visionBodyVol;
 
   // pickupBuffer_.loadFromFile("assets/sounds/pickup.wav");
   // pickupSound_.setBuffer(pickupBuffer_);
@@ -193,7 +196,7 @@ float parseAngle2(float angle) {
 }
 
 void Snake::update(sf::Time delta) {
-  static SHARE_DATA_TYPE *leftPtr, 
+  static TYPE_VOL *leftPtr, 
                           *runPtr = in + INPUT_CNT_LEFT,
                           *rightPtr = runPtr + INPUT_CNT_RUN,
                           *endPtr = rightPtr + INPUT_CNT_RIGHT,
@@ -257,8 +260,8 @@ void Snake::update(sf::Time delta) {
       if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
         angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
         stuckRight = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
-        if (stuckRight > XY_CHAR_MAX) {
-          stuckRight = XY_CHAR_MAX;
+        if (stuckRight > MAX_VITALITY) {
+          stuckRight = MAX_VITALITY;
         }
         pain_ += stuckRight;
       } else {
@@ -269,8 +272,8 @@ void Snake::update(sf::Time delta) {
       if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
         angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
         stuckLeft = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
-        if (stuckLeft > XY_CHAR_MAX) {
-          stuckLeft = XY_CHAR_MAX;
+        if (stuckLeft > MAX_VITALITY) {
+          stuckLeft = MAX_VITALITY;
         }
         pain_ += stuckLeft;
       } else {
@@ -294,16 +297,16 @@ void Snake::update(sf::Time delta) {
       if (plus > 0) {
         if (plus < 1) {
           plus = 1;
-        } else if (plus > XY_CHAR_MAX) {
-          plus = XY_CHAR_MAX;
+        } else if (plus > MAX_VITALITY) {
+          plus = MAX_VITALITY;
         }
         turnRight = plus;
         turnLeft = 0;
       } else {
         if (plus > -1) {
           plus = -1;
-        } else if (plus < -XY_CHAR_MAX) {
-          plus = -XY_CHAR_MAX;
+        } else if (plus < -MAX_VITALITY) {
+          plus = -MAX_VITALITY;
         }
         turnLeft = -plus;
         turnRight = 0;
@@ -420,7 +423,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
     // pickupSound_.play();
     grow(toRemove->score_);
     fruits.erase(toRemove);
-    delight_ = min(delight_ + Game::cfg.eatDelight, XY_CHAR_MAX);
+    delight_ = min(delight_ + Game::cfg.eatDelight, MAX_VITALITY);
     eating = utils::timestamp();
     leftVitality = 0;
     rightVitality = 0;
@@ -475,7 +478,7 @@ double dis2(sf::Vector2<float> node1,
                2));
 }
 
-void checkVisionY(short speed_, bool *hitSelf_, int *pain_, SnakePathNode *head,
+void checkVisionY(short speed_, bool *hitSelf_, TYPE_VOL *pain_, SnakePathNode *head,
                   vision *vision_, SnakePathNode *i,
                   float nodeRadius_) {
   for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
@@ -664,7 +667,7 @@ void Snake::reset() {
 }
 
 void Snake::render(sf::RenderWindow &window) {
-  static SHARE_DATA_TYPE *judgementPtr = in - 1;
+  static TYPE_VOL *judgementPtr = in - 1;
   if (*judgementPtr) {
     reset();
     *judgementPtr = 0;
@@ -676,26 +679,26 @@ void Snake::render(sf::RenderWindow &window) {
   x = 0;
   y = 0;
 
-  static SHARE_DATA_TYPE *out_tmp;
+  static TYPE_VOL *out_tmp;
   out_tmp = out;
 
-  static size_t fillSize = sizeof(SHARE_DATA_TYPE) * Game::cfg.fillCount;
+  static size_t fillSize = sizeof(TYPE_VOL) * Game::cfg.fillCount;
 
   // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
   memset(out_tmp, delight_, fillSize);
-  pain_ = max(min(pain_, XY_CHAR_MAX), XY_CHAR_MIN);
-  static SHARE_DATA_TYPE headAngle;
-  headAngle = headAngle_ * Game::cfg.outStartBit;
+  pain_ = max(min(pain_, MAX_VITALITY), MIN_VITALITY);
+  static TYPE_VOL headAngle;
+  headAngle = headAngle_;
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, pain_, fillSize);
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, headAngle_ < 0 ? -headAngle : 0, fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, turnLeft * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, turnLeft, fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, stuckLeft * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, stuckLeft, fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, (rightVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, (rightVitality + Game::cfg.vitalityPain), fillSize);
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
   static float angle;
@@ -720,7 +723,7 @@ void Snake::render(sf::RenderWindow &window) {
       shape.setPosition(v.pos);
       window.draw(shape);
 
-      SHARE_DATA_TYPE *val;
+      TYPE_VOL *val;
       switch (v.color) {
         case VISION_HARM_COLOR:
           val = out_tmp + Game::cfg.visionBodyPos;
@@ -751,11 +754,11 @@ void Snake::render(sf::RenderWindow &window) {
 
   out_tmp += Game::cfg.visionBodyPos;
 
-  memset(out_tmp, (leftVitality + Game::cfg.vitalityPain) * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, (leftVitality + Game::cfg.vitalityPain), fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, stuckRight * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, stuckRight, fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, turnRight * Game::cfg.outStartBit, fillSize);
+  memset(out_tmp, turnRight, fillSize);
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, headAngle_ > 0 ? headAngle : 0, fillSize);
   out_tmp += Game::cfg.fillCount;
