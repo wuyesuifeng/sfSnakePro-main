@@ -141,6 +141,9 @@ ShareMemory::ShareMemory(char *xyExecFile, size_t writeSize) {
 
     free(me_path);
 
+    memset(writePos, 0, writeSize);
+    memset(readPos, 0, readSize);
+
     *writePos = 1;
     *readPos = 1;
 }

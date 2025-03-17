@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                // "-g", // 调试
+                "-g", // 调试
                 // "-static",
                 "${workspaceRoot}/src/main.cpp",
                 "${workspaceRoot}/src/Game.cpp",

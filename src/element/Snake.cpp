@@ -11,10 +11,6 @@
 #include "screen/GameOverScreen.h"
 #include "utils/Time.hpp"
 
-#ifdef __linux
-#include <string.h>
-#endif
-
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 120
@@ -28,7 +24,8 @@ static float VISION_X_HALF,
                 VISION_HALF_WIDTH,
                 VISION_HALF_WIDTH2;
 
-static unsigned int speed_level1, speed_level2, vision_blank_vol, vision_fruit_vol, vision_body_vol;
+static unsigned int speed_level1, speed_level2;
+static TYPE_VOL vision_blank_vol, vision_fruit_vol, vision_body_vol;
 // static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
 
 float culAngle(sf::Vector2f recDirection) {
@@ -694,7 +691,7 @@ void Snake::render(sf::RenderWindow &window) {
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, stuckLeft, fillSize);
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, (rightVitality + Game::cfg.vitalityPain), fillSize);
+  memset(out_tmp, rightVitality, fillSize);
   out_tmp += Game::cfg.fillCount;
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
@@ -750,8 +747,8 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += Game::cfg.visionBodyPos;
-
-  memset(out_tmp, (leftVitality + Game::cfg.vitalityPain), fillSize);
+  *out_tmp = leftVitality;
+  memset(out_tmp, leftVitality, fillSize);
   out_tmp += Game::cfg.fillCount;
   memset(out_tmp, stuckRight, fillSize);
   out_tmp += Game::cfg.fillCount;
