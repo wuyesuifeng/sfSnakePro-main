@@ -675,23 +675,25 @@ void Snake::render(sf::RenderWindow &window) {
   static TYPE_VOL *out_tmp;
   out_tmp = out;
 
-  static size_t fillSize = sizeof(TYPE_VOL) * Game::cfg.fillCount;
+  static unsigned int shareIndex = 0;
+
+  static unsigned int fillCount = Game::cfg.fillCount - 1;
 
   // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-  memset(out_tmp, delight_, fillSize);
+  out_tmp[shareIndex] = delight_;
   out_tmp += Game::cfg.fillCount;
   pain_ = max(min(pain_, MAX_VITALITY), MIN_VITALITY);
   static TYPE_VOL headAngle;
   headAngle = headAngle_;
-  memset(out_tmp, pain_, fillSize);
+  out_tmp[shareIndex] = pain_;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, headAngle_ < 0 ? -headAngle : 0, fillSize);
+  out_tmp[shareIndex] = headAngle_ < 0 ? -headAngle : 0;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, turnLeft, fillSize);
+  out_tmp[shareIndex] = turnLeft;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, stuckLeft, fillSize);
+  out_tmp[shareIndex] = stuckLeft;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, rightVitality, fillSize);
+  out_tmp[shareIndex] = rightVitality;
   out_tmp += Game::cfg.fillCount;
 
   static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
@@ -748,17 +750,17 @@ void Snake::render(sf::RenderWindow &window) {
 
   out_tmp += Game::cfg.visionBodyPos;
   *out_tmp = leftVitality;
-  memset(out_tmp, leftVitality, fillSize);
+  out_tmp[shareIndex] = leftVitality;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, stuckRight, fillSize);
+  out_tmp[shareIndex] = stuckRight;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, turnRight, fillSize);
+  out_tmp[shareIndex] = turnRight;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, headAngle_ > 0 ? headAngle : 0, fillSize);
+  out_tmp[shareIndex] = headAngle_ > 0 ? headAngle : 0;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, pain_, fillSize);
+  out_tmp[shareIndex] = pain_;
   out_tmp += Game::cfg.fillCount;
-  memset(out_tmp, delight_, fillSize);
+  out_tmp[shareIndex] = delight_;
   pain_ = 0;
   delight_ = 0;
 
@@ -781,6 +783,12 @@ void Snake::render(sf::RenderWindow &window) {
       renderNode(nowSnakeNode, nodeShape, window, 0);
       renderNode(lastMiddleNode, nodeMiddle, window, 0);
     }
+  }
+
+  if (shareIndex < fillCount) {
+      shareIndex++;
+  } else {
+      shareIndex = 0;
   }
 }
 
