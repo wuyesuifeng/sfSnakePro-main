@@ -749,7 +749,6 @@ void Snake::render(sf::RenderWindow &window) {
   }
 
   out_tmp += Game::cfg.visionBodyPos;
-  *out_tmp = leftVitality;
   out_tmp[shareIndex] = leftVitality;
   out_tmp += Game::cfg.fillCount;
   out_tmp[shareIndex] = stuckRight;
