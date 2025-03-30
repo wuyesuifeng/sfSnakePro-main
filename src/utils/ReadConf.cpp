@@ -36,9 +36,6 @@ utils::ReadConf::ReadConf() {
         char *resChar = (char *)calloc(len, len * sizeof(char));
         memcpy(resChar, ret[1].c_str(), len);
         cfg.gamePath = resChar;
-      } else if (ret[0] == "eatDelightDuration") {
-        utils::trim(ret[1]);
-        cfg.eatDelightDuration = stoi(ret[1]);
       } else if (ret[0] == "eatDelight") {
         utils::trim(ret[1]);
         cfg.eatDelight = STO_FUNC_VOL(ret[1]);
@@ -47,7 +44,7 @@ utils::ReadConf::ReadConf() {
         cfg.bitePain = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "maxVitality") {
         utils::trim(ret[1]);
-        cfg.maxVitality = STO_FUNC_VOL(ret[1]);
+        cfg.maxVitality = stof(ret[1]);
       } else if (ret[0] == "vitalityPain") {
         utils::trim(ret[1]);
         cfg.vitalityPain = STO_FUNC_VOL(ret[1]);
@@ -86,10 +83,10 @@ utils::ReadConf::ReadConf() {
         cfg.visionFruitVol = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "speedLevel1") {
         utils::trim(ret[1]);
-        cfg.speedLevel1 = stoi(ret[1]);
+        cfg.speedLevel1 = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "speedLevel2") {
         utils::trim(ret[1]);
-        cfg.speedLevel2 = stoi(ret[1]);
+        cfg.speedLevel2 = STO_FUNC_VOL(ret[1]);
       } else if (ret[0] == "fillCount") {
         utils::trim(ret[1]);
         cfg.fillCount = stoi(ret[1]);

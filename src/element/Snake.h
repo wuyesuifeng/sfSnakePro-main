@@ -18,6 +18,15 @@
 #define VISION_CHECK_COLOR 0xee60ec99
 #define VISION_HARM_COLOR 0xf0321d99
 
+#define ADD_SHARE_INDEX(index, fillCount) \
+    do {                                  \
+        if (index < fillCount) {          \
+            index++;                      \
+        } else {                          \
+            index = 0;                    \
+        }                                 \
+    } while (0)
+
 namespace sfSnake {
     typedef sf::Vector2f Direction;
     typedef sf::Vector2f SnakePathNode;
@@ -70,13 +79,14 @@ namespace sfSnake {
 
             bool hitSelf_;
             char turnDirection_;
-            TYPE_VOL pain_, delight_;
-            unsigned long long eating;
+            UPPER_TYPE_VOL pain_, delight_, hisPain_, hisDelight_;
             // bool speedup_;
             short int speed_;
 
             float angle_, hisAngle_, bodyDir_, headAngle_, radian, turnLeft, turnRight,
                 stuckLeft, stuckRight, leftVitality, rightVitality;
+
+            unsigned int shareIndex_, delightIndex_, painIndex_;
 
             Direction direction_;
             float nodeRadius_;

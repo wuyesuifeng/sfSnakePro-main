@@ -6,13 +6,12 @@
 
 namespace utils {
     struct config_data {
-      TYPE_VOL maxVitality, minVitality, vitalityStep, vitalityStepCnt,
-          eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
-          visionFruitVol;
-      unsigned int visionFruitPos, visionBodyPos;
-      short initialSize, visionXSum, visionYSum, speedLevel1, speedLevel2,
-          eatDelightDuration, fillCount;
-      char *gamePath;
+        TYPE_VOL maxVitality, minVitality, vitalityStep, vitalityStepCnt,
+            eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
+            visionFruitVol, speedLevel1, speedLevel2;
+        unsigned int visionFruitPos, visionBodyPos;
+        char *gamePath;
+        short initialSize, visionXSum, visionYSum, fillCount;
     };
 
     class ReadConf {
