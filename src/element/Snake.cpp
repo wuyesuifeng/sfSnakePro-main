@@ -691,7 +691,7 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp += Game::cfg.fillCount;
     out_tmp[shareIndex_] = stuckLeft;
     out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = rightVitality;
+    out_tmp[shareIndex_] = rightVitality - Game::cfg.minVitality;
     out_tmp += Game::cfg.fillCount;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
@@ -747,7 +747,7 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     out_tmp += Game::cfg.visionBodyPos;
-    out_tmp[shareIndex_] = leftVitality;
+    out_tmp[shareIndex_] = leftVitality - Game::cfg.minVitality;
     out_tmp += Game::cfg.fillCount;
     out_tmp[shareIndex_] = stuckRight;
     out_tmp += Game::cfg.fillCount;
