@@ -39,8 +39,8 @@ Snake::Snake()
     : vision_((vision *)malloc(sizeof(vision) * Game::cfg.visionXSum * Game::cfg.visionYSum)),
       hitSelf_(false),
       shareIndex_(0),
-      hisPain_(0),
-      hisDelight_(0),
+    //   hisPain_(0),
+    //   hisDelight_(0),
       delightIndex_(0),
       painIndex_(0),
       pain_(0),
@@ -670,17 +670,17 @@ void Snake::render(sf::RenderWindow &window) {
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     delight_ = max(min(delight_, MAX_VOL), MIN_VOL);
-    if (delight_ != hisDelight_) {
-        delightIndex_ = 0;
-        hisDelight_ = delight_;
-    }
+    // if (delight_ != hisDelight_) {
+    //     delightIndex_ = 0;
+    //     hisDelight_ = delight_;
+    // }
     out_tmp[delightIndex_] = delight_;
     out_tmp += Game::cfg.fillCount;
     pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
-    if (pain_ != hisPain_) {
-        painIndex_ = 0;
-        hisPain_ = pain_;
-    }
+    // if (pain_ != hisPain_) {
+    //     painIndex_ = 0;
+    //     hisPain_ = pain_;
+    // }
     static TYPE_VOL headAngle;
     headAngle = headAngle_;
     out_tmp[painIndex_] = pain_;

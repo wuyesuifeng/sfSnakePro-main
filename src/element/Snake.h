@@ -79,7 +79,7 @@ namespace sfSnake {
 
             bool hitSelf_;
             char turnDirection_;
-            UPPER_TYPE_VOL pain_, delight_, hisPain_, hisDelight_;
+            UPPER_TYPE_VOL pain_, delight_;
             // bool speedup_;
             short int speed_;
 
