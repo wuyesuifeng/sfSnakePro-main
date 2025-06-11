@@ -759,7 +759,9 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp += Game::cfg.fillCount;
     out_tmp[delightIndex_] = delight_;
     pain_ = 0;
-    delight_ = 0;
+    if (delight_ > 0) {
+        delight_--;
+    }
 
     renderNode(wNowHeadNode, headSprite, window, 3);
 
