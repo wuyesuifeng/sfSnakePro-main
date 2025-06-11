@@ -8,7 +8,7 @@ namespace utils {
     struct config_data {
         TYPE_VOL maxVitality, minVitality, vitalityStep, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
-            visionFruitVol, speedLevel1, speedLevel2;
+            visionFruitVol, speedLevel1, speedLevel2, delightConsum;
         unsigned int visionFruitPos, visionBodyPos;
         char *gamePath;
         short initialSize, visionXSum, visionYSum, fillCount;

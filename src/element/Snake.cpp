@@ -760,7 +760,7 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp[delightIndex_] = delight_;
     pain_ = 0;
     if (delight_ > 0) {
-        delight_--;
+        delight_ = max(Game::cfg.delightConsum, 0.0f);
     }
 
     renderNode(wNowHeadNode, headSprite, window, 3);
