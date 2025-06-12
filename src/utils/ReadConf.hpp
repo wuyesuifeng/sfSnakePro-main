@@ -11,7 +11,7 @@ namespace utils {
             visionFruitVol, speedLevel1, speedLevel2, delightConsum;
         unsigned int visionFruitPos, visionBodyPos;
         char *gamePath;
-        short initialSize, visionXSum, visionYSum, fillCount;
+        short initialSize, visionXSum, visionYSum, fillCount, maxFruit;
     };
 
     class ReadConf {

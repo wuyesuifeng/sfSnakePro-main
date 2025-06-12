@@ -93,6 +93,9 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "delightConsum") {
                 utils::trim(ret[1]);
                 cfg.delightConsum = STO_FUNC_VOL(ret[1]);
+            } else if (ret[0] == "maxFruit") {
+                utils::trim(ret[1]);
+                cfg.maxFruit = stoi(ret[1]);
             }
         }
         ifs.close();
