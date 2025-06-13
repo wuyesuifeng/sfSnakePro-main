@@ -98,7 +98,7 @@ utils::ReadConf::ReadConf() {
                 cfg.maxFruit = stoi(ret[1]);
             } else if (ret[0] == "heath") {
                 utils::trim(ret[1]);
-                cfg.heath = stoll(ret[1]);
+                cfg.heath = stol(ret[1]);
             }
         }
         ifs.close();

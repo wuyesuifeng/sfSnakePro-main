@@ -428,7 +428,11 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         leftVitality_ = 0;
         rightVitality_ = 0;
 
-        heath_ = Game::cfg.heath;
+        static long long maxHealth = 100 * Game::cfg.heath;
+
+        if (heath_ < maxHealth) {
+            heath_ += Game::cfg.heath;
+        }
     } else {
         heath_--;
     }
