@@ -506,7 +506,7 @@ void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNod
         *hitSelf = true;
         *pain += Game::cfg.bitePain * speed;
         if (!death) {
-            *health--;
+             *health -= 1;
         }
     }
 }
