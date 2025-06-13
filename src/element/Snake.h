@@ -77,14 +77,21 @@ namespace sfSnake {
             SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
                                     float sin, float cos, int num, sf::Vector2f head);
 
+            long long heath_;
+            TYPE_VOL *deathFlag_;
+
+            short fillCount_;
+            unsigned int visionBodyPos_, visionFruitPos_;
+            TYPE_VITALITY minVitality_;
+
             bool hitSelf_;
             char turnDirection_;
             UPPER_TYPE_VOL pain_, delight_;
             // bool speedup_;
             short int speed_;
 
-            float angle_, hisAngle_, bodyDir_, headAngle_, radian, turnLeft, turnRight,
-                stuckLeft, stuckRight, leftVitality, rightVitality;
+            float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
+                stuckLeft_, stuckRight_, leftVitality_, rightVitality_;
 
             unsigned int shareIndex_, delightIndex_, painIndex_;
 
@@ -94,11 +101,11 @@ namespace sfSnake {
             vision *vision_;
             int tailOverlap_;
 
-            sf::CircleShape nodeShape;
-            sf::RectangleShape nodeMiddle;
-            sf::Texture headTexture;
-            sf::Sprite headSprite;
-            int snakeLen;
+            sf::CircleShape nodeShape_;
+            sf::RectangleShape nodeMiddle_;
+            sf::Texture headTexture_;
+            sf::Sprite headSprite_;
+            int snakeLen_;
             unsigned int score_;
 
             sf::SoundBuffer pickupBuffer_;
@@ -107,6 +114,6 @@ namespace sfSnake {
             sf::SoundBuffer dieBuffer_;
             sf::Sound dieSound_;
 
-            TYPE_VOL *in = nullptr, *out = nullptr;
+            TYPE_VOL *in_ = nullptr, *out_ = nullptr;
     };
 }  // namespace sfSnake

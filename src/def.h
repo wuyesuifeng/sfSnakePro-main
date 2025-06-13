@@ -1,6 +1,9 @@
 #pragma once
 
-#define READ_LEN 300 + 2
+#define WRITE_LEN 3602
+#define VISION_LEN 2400
+#define READ_LEN 301
+#define TYPE_VITALITY float
 #define TYPE_VOL float
 #define STO_FUNC_VOL stof
 

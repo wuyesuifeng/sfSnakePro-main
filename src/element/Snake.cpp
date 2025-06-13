@@ -39,49 +39,59 @@ Snake::Snake()
     : vision_((vision *)malloc(sizeof(vision) * Game::cfg.visionXSum * Game::cfg.visionYSum)),
       hitSelf_(false),
       shareIndex_(0),
-    //   hisPain_(0),
-    //   hisDelight_(0),
       delightIndex_(0),
       painIndex_(0),
       pain_(0),
       delight_(0),
-      turnLeft(0),
-      turnRight(0),
-      stuckLeft(0),
-      stuckRight(0),
+      turnLeft_(0),
+      turnRight_(0),
+      stuckLeft_(0),
+      stuckRight_(0),
       turnDirection_(0),
-      leftVitality(0),
-      rightVitality(0),
+      leftVitality_(0),
+      rightVitality_(0),
       speed_(0),
       direction_(Direction(0, -1)),
       angle_(180),
       hisAngle_(angle_),
       bodyDir_(angle_),
       headAngle_(0),
-      radian(angle_ * PI / 180.0f),
+      radian_(angle_ * PI / 180.0f),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
       tailOverlap_(0u),
-      nodeShape(nodeRadius_),
-      nodeMiddle(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
+      nodeShape_(nodeRadius_),
+      nodeMiddle_(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
       score_(Game::cfg.initialSize) {
-    snakeLen = 10 * Game::cfg.initialSize;
+
+    snakeLen_ = 10 * Game::cfg.initialSize;
+
+    heath_ = Game::cfg.heath;
+
+    fillCount_ = Game::cfg.fillCount;
+
+    visionBodyPos_ = Game::cfg.visionBodyPos;
+
+    visionFruitPos_ = Game::cfg.visionFruitPos;
+
+    minVitality_ = Game::cfg.minVitality;
+
     initNodes();
 
-    nodeShape.setFillColor(sf::Color(0xf1c40fff));
+    nodeShape_.setFillColor(sf::Color(0xf1c40fff));
 
-    nodeMiddle.setFillColor(sf::Color(0x1c2833ff));
+    nodeMiddle_.setFillColor(sf::Color(0x1c2833ff));
 
-    setOriginMiddle(nodeShape);
-    setOriginMiddle(nodeMiddle);
+    setOriginMiddle(nodeShape_);
+    setOriginMiddle(nodeMiddle_);
 
-    headTexture.loadFromFile("assets/image/snakeHeadImage.png");
-    headTexture.setSmooth(true);
-    sf::Vector2u TextureSize = headTexture.getSize();
+    headTexture_.loadFromFile("assets/image/snakeHeadImage.png");
+    headTexture_.setSmooth(true);
+    sf::Vector2u TextureSize = headTexture_.getSize();
     float headScale = nodeRadius_ / TextureSize.y * 2.6;
-    headSprite.setTexture(headTexture);
-    headSprite.setScale(headScale, headScale);
+    headSprite_.setTexture(headTexture_);
+    headSprite_.setScale(headScale, headScale);
 
-    setOriginMiddle(headSprite);
+    setOriginMiddle(headSprite_);
 
     VISION_X_HALF = VISION_X_SUM / 2;
     VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF;
@@ -101,8 +111,10 @@ Snake::Snake()
     // dieSound_.setVolume(50);
     threads.init(std::thread::hardware_concurrency() - 5);
 
-    in = Game::share.getReadPos();
-    out = Game::share.getWritePos();
+    in_ = Game::share.getReadPos();
+    out_ = Game::share.getWritePos();
+
+    deathFlag_ = out_ - 1;
 }
 
 Snake::~Snake() {
@@ -113,7 +125,7 @@ Snake::~Snake() {
 void Snake::initNodes() {
     path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f,
                                   Game::GlobalVideoMode.height / 2.0f));
-    for (int i = 1; i <= snakeLen; i++) {
+    for (int i = 1; i <= snakeLen_; i++) {
         path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f -
                                           direction_.x * i * nodeRadius_ / 5.0,
                                       Game::GlobalVideoMode.height / 2.0f -
@@ -129,25 +141,25 @@ void Snake::handleInput(sf::RenderWindow &window) {
         direction_ = Direction(0, -1);
 
         angle_ = culAngle(direction_);
-        radian = angle_ * PI / 180.0f;
+        radian_ = angle_ * PI / 180.0f;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         direction_ = Direction(0, 1);
 
         angle_ = culAngle(direction_);
-        radian = angle_ * PI / 180.0f;
+        radian_ = angle_ * PI / 180.0f;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
         direction_ = Direction(-1, 0);
 
         angle_ = culAngle(direction_);
-        radian = angle_ * PI / 180.0f;
+        radian_ = angle_ * PI / 180.0f;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         direction_ = Direction(1, 0);
 
         angle_ = culAngle(direction_);
-        radian = angle_ * PI / 180.0f;
+        radian_ = angle_ * PI / 180.0f;
     }
 
     if (!Game::mouseButtonLocked) {
@@ -157,7 +169,7 @@ void Snake::handleInput(sf::RenderWindow &window) {
             handleInput(mousePosition, window);
 
             angle_ = culAngle(direction_);
-            radian = angle_ * PI / 180.0f;
+            radian_ = angle_ * PI / 180.0f;
         }
     }
 
@@ -193,11 +205,11 @@ float parseAngle2(float angle) {
 
 void Snake::update(sf::Time delta) {
     static TYPE_VOL *leftPtr,
-        *runPtr = in + INPUT_CNT_LEFT,
+        *runPtr = in_ + INPUT_CNT_LEFT,
         *rightPtr = runPtr + INPUT_CNT_RUN,
         *endPtr = rightPtr + INPUT_CNT_RIGHT,
         distance;
-    leftPtr = in;
+    leftPtr = in_;
 
     static UPPER_TYPE_VOL plusTmp, plus;
     plus = 0;
@@ -253,30 +265,30 @@ void Snake::update(sf::Time delta) {
 
             if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
-                stuckRight = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
-                if (stuckRight > MAX_VOL) {
-                    stuckRight = MAX_VOL;
+                stuckRight_ = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
+                if (stuckRight_ > MAX_VOL) {
+                    stuckRight_ = MAX_VOL;
                 }
-                pain_ += stuckRight;
+                pain_ += stuckRight_;
             } else {
-                stuckRight = 0;
+                stuckRight_ = 0;
             }
-            stuckLeft = 0;
+            stuckLeft_ = 0;
         } else if (headAngle_ < 0) {
             if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
-                stuckLeft = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
-                if (stuckLeft > MAX_VOL) {
-                    stuckLeft = MAX_VOL;
+                stuckLeft_ = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
+                if (stuckLeft_ > MAX_VOL) {
+                    stuckLeft_ = MAX_VOL;
                 }
-                pain_ += stuckLeft;
+                pain_ += stuckLeft_;
             } else {
-                stuckLeft = 0;
+                stuckLeft_ = 0;
             }
-            stuckRight = 0;
+            stuckRight_ = 0;
         } else {
-            stuckRight = 0;
-            stuckLeft = 0;
+            stuckRight_ = 0;
+            stuckLeft_ = 0;
         }
 
         // cout << "\t" << angle_ << endl;
@@ -291,24 +303,24 @@ void Snake::update(sf::Time delta) {
                 if (plus > MAX_VOL) {
                     plus = MAX_VOL;
                 }
-                turnRight = plus;
-                turnLeft = 0;
+                turnRight_ = plus;
+                turnLeft_ = 0;
             } else {
                 if (plus < -MAX_VOL) {
                     plus = -MAX_VOL;
                 }
-                turnLeft = -plus;
-                turnRight = 0;
+                turnLeft_ = -plus;
+                turnRight_ = 0;
             }
         } else {
-            turnRight = 0;
-            turnLeft = 0;
+            turnRight_ = 0;
+            turnLeft_ = 0;
         }
 
-        radian = angle_ * PI / 180.0f;
+        radian_ = angle_ * PI / 180.0f;
 
-        direction_.y += cos(radian) * headTexture.getSize().y;
-        direction_.x -= sin(radian) * headTexture.getSize().y;
+        direction_.y += cos(radian_) * headTexture_.getSize().y;
+        direction_.x -= sin(radian_) * headTexture_.getSize().y;
 
         static double directionSize;
         directionSize = length(direction_);
@@ -319,10 +331,10 @@ void Snake::update(sf::Time delta) {
 
         // printf("angle_: %f\n", angle_);
     } else {
-        stuckRight = 0;
-        stuckLeft = 0;
-        turnRight = 0;
-        turnLeft = 0;
+        stuckRight_ = 0;
+        stuckLeft_ = 0;
+        turnRight_ = 0;
+        turnLeft_ = 0;
 
         angle = parseAngle(angle_);
         headAngle_ = angle - bodyDir_;
@@ -336,28 +348,28 @@ void Snake::update(sf::Time delta) {
     static float headAngle;
     if (headAngle_ > 0) {
         headAngle = abs(headAngle_);
-        leftVitality = min(leftVitality + max((Game::cfg.maxVitality - leftVitality) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
-        rightVitality = max(rightVitality - max(Game::cfg.vitalityStep, (-rightVitality - Game::cfg.minVitality) / Game::cfg.vitalityStepCnt * headAngle), Game::cfg.minVitality);
+        leftVitality_ = min(leftVitality_ + max((Game::cfg.maxVitality - leftVitality_) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
+        rightVitality_ = max(rightVitality_ - max(Game::cfg.vitalityStep, (-rightVitality_ - minVitality_) / Game::cfg.vitalityStepCnt * headAngle), minVitality_);
     } else if (headAngle_ < 0) {
         headAngle = abs(headAngle_);
-        leftVitality = max(leftVitality - max(Game::cfg.vitalityStep, (-leftVitality - Game::cfg.minVitality) / Game::cfg.vitalityStepCnt * headAngle), Game::cfg.minVitality);
-        rightVitality = min(rightVitality + max((Game::cfg.maxVitality - rightVitality) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
+        leftVitality_ = max(leftVitality_ - max(Game::cfg.vitalityStep, (-leftVitality_ - minVitality_) / Game::cfg.vitalityStepCnt * headAngle), minVitality_);
+        rightVitality_ = min(rightVitality_ + max((Game::cfg.maxVitality - rightVitality_) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
     } else {
-        leftVitality = min(leftVitality + max((Game::cfg.maxVitality - leftVitality) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
-        rightVitality = min(rightVitality + max((Game::cfg.maxVitality - rightVitality) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
+        leftVitality_ = min(leftVitality_ + max((Game::cfg.maxVitality - leftVitality_) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
+        rightVitality_ = min(rightVitality_ + max((Game::cfg.maxVitality - rightVitality_) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
     }
 
-    if (leftVitality) {
-        pain_ += abs(leftVitality) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
+    if (leftVitality_) {
+        pain_ += abs(leftVitality_) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
     }
-    if (rightVitality) {
-        pain_ += abs(rightVitality) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
+    if (rightVitality_) {
+        pain_ += abs(rightVitality_) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
     }
 
     look();
     checkSelfCollisions();
     move();
-    toWindow(path_.front(), direction_, abs(tan(radian)));
+    toWindow(path_.front(), direction_, abs(tan(radian_)));
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
@@ -365,7 +377,7 @@ float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 void Snake::look() {
     SnakePathNode head = path_.front();
 
-    float cosR = cos(radian), sinR = sin(radian), tanVal = abs(tan(radian)),
+    float cosR = cos(radian_), sinR = sin(radian_), tanVal = abs(tan(radian_)),
           moveY = cosR * VISION_PIXEL_WIDTH, moveX = sinR * VISION_PIXEL_WIDTH;
     static float visionPadding = (VISION_PIXEL_WIDTH + nodeRadius_) / 2;
 
@@ -413,8 +425,12 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         grow(toRemove->score_);
         fruits.erase(toRemove);
         delight_ += Game::cfg.eatDelight;
-        leftVitality = 0;
-        rightVitality = 0;
+        leftVitality_ = 0;
+        rightVitality_ = 0;
+
+        heath_ = Game::cfg.heath;
+    } else {
+        heath_--;
     }
 }
 
@@ -435,7 +451,7 @@ void Snake::move() {
             bodyDir_ = parseAngle(angle_);
         for (int i = 1; i <= speed_; i++) {
             if (hitSelf_) {
-                if (path_.size() > snakeLen) {
+                if (path_.size() > snakeLen_) {
                     path_.pop_back();
                 }
             } else {
@@ -464,7 +480,7 @@ double dis2(sf::Vector2<float> node1,
 
 void checkVisionY(short speed_, bool *hitSelf_, UPPER_TYPE_VOL *pain_, SnakePathNode *head,
                   vision *vision_, SnakePathNode *i,
-                  float nodeRadius_) {
+                  float nodeRadius_, long long *heath) {
     for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
         for (y = 0; y < VISION_Y_SUM; y++) {
             size_t index = CUL_VISION_INDEX(x, y);
@@ -493,7 +509,7 @@ void Snake::checkSelfCollisions() {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
         utils::addThread(threads, checkVisionY, speed_, &hitSelf_, &pain_, &head,
-                         (vision *)vision_, &(*i), nodeRadius_);
+                         (vision *)vision_, &(*i), nodeRadius_, &heath_);
     }
     threads.join();
 }
@@ -625,7 +641,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
         }
     }
 
-    static sf::Vector2u TextureSize = headTexture.getSize();
+    static sf::Vector2u TextureSize = headTexture_.getSize();
     static long xSize = TextureSize.x * 10, ySize = TextureSize.y * 10;
     if ((node.x < -xSize || node.x > Game::GlobalVideoMode.width + xSize) &&
         (node.y < -ySize || node.y > Game::GlobalVideoMode.height + ySize)) {
@@ -636,10 +652,11 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 }
 
 void Snake::reset() {
-    leftVitality = 0;
-    rightVitality = 0;
-    stuckLeft = 0;
-    stuckRight = 0;
+    heath_ = Game::cfg.heath;
+    leftVitality_ = 0;
+    rightVitality_ = 0;
+    stuckLeft_ = 0;
+    stuckRight_ = 0;
     headAngle_ = 0;
     angle_ = 180;
     hisAngle_ = angle_;
@@ -647,14 +664,32 @@ void Snake::reset() {
     direction_ = Direction(0, -1);
     path_.clear();
     initNodes();
-    radian = angle_ * PI / 180.0f;
+    radian_ = angle_ * PI / 180.0f;
+
+    for (int i = 0, j; i < fillCount_; i++) {
+        out_[i] = 0;
+        out_[j = i + fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+
+        out_[j += VISION_LEN] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j += fillCount_] = 0;
+        out_[j + fillCount_] = 0;
+    }
 }
 
 void Snake::render(sf::RenderWindow &window) {
-    static TYPE_VOL *judgementPtr = in - 1;
-    if (*judgementPtr) {
+    pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
+    heath_ -= pain_;
+
+    if (heath_ <= 0) {
         reset();
-        *judgementPtr = 0;
+        *deathFlag_ = 1;
         return;
     }
 
@@ -664,9 +699,9 @@ void Snake::render(sf::RenderWindow &window) {
     y = 0;
 
     static TYPE_VOL *out_tmp;
-    out_tmp = out;
+    out_tmp = out_;
 
-    static unsigned int fillCount = Game::cfg.fillCount - 1;
+    static unsigned int fillCount = fillCount_ - 1;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     delight_ = max(min(delight_, MAX_VOL), MIN_VOL);
@@ -675,8 +710,7 @@ void Snake::render(sf::RenderWindow &window) {
     //     hisDelight_ = delight_;
     // }
     out_tmp[delightIndex_] = delight_;
-    out_tmp += Game::cfg.fillCount;
-    pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
+    out_tmp += fillCount_;
     // if (pain_ != hisPain_) {
     //     painIndex_ = 0;
     //     hisPain_ = pain_;
@@ -684,15 +718,15 @@ void Snake::render(sf::RenderWindow &window) {
     static TYPE_VOL headAngle;
     headAngle = headAngle_;
     out_tmp[painIndex_] = pain_;
-    out_tmp += Game::cfg.fillCount;
+    out_tmp += fillCount_;
     out_tmp[shareIndex_] = headAngle_ < 0 ? -headAngle : 0;
-    out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = turnLeft;
-    out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = stuckLeft;
-    out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = rightVitality - Game::cfg.minVitality;
-    out_tmp += Game::cfg.fillCount;
+    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = turnLeft_;
+    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = stuckLeft_;
+    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = rightVitality_ - minVitality_;
+    out_tmp += fillCount_;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     static float angle;
@@ -702,8 +736,8 @@ void Snake::render(sf::RenderWindow &window) {
 
     lastSnakeNode = *path_.begin();
     wNowHeadNode = lastSnakeNode;
-    headSprite.setPosition(wNowHeadNode);
-    headSprite.setRotation(angle);
+    headSprite_.setPosition(wNowHeadNode);
+    headSprite_.setRotation(angle);
 
     static sf::RectangleShape shape;
     shape = sf::RectangleShape();
@@ -720,17 +754,17 @@ void Snake::render(sf::RenderWindow &window) {
             TYPE_VOL *val;
             switch (v.color) {
             case VISION_HARM_COLOR:
-                val = out_tmp + Game::cfg.visionBodyPos;
+                val = out_tmp + visionBodyPos_;
                 *val = vision_body_vol;
-                val = out_tmp + Game::cfg.visionFruitPos;
+                val = out_tmp + visionFruitPos_;
                 *val = 0;
                 val = out_tmp;
                 *val = 0;
                 break;
             case VISION_CHECK_COLOR:
-                val = out_tmp + Game::cfg.visionFruitPos;
+                val = out_tmp + visionFruitPos_;
                 *val = vision_fruit_vol;
-                val = out_tmp + Game::cfg.visionBodyPos;
+                val = out_tmp + visionBodyPos_;
                 *val = 0;
                 val = out_tmp;
                 *val = 0;
@@ -738,32 +772,32 @@ void Snake::render(sf::RenderWindow &window) {
             default:
                 val = out_tmp;
                 *val = vision_blank_vol;
-                val = out_tmp + Game::cfg.visionFruitPos;
+                val = out_tmp + visionFruitPos_;
                 *val = 0;
-                val = out_tmp + Game::cfg.visionBodyPos;
+                val = out_tmp + visionBodyPos_;
                 *val = 0;
             }
         }
     }
 
-    out_tmp += Game::cfg.visionBodyPos;
-    out_tmp[shareIndex_] = leftVitality - Game::cfg.minVitality;
-    out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = stuckRight;
-    out_tmp += Game::cfg.fillCount;
-    out_tmp[shareIndex_] = turnRight;
-    out_tmp += Game::cfg.fillCount;
+    out_tmp += visionBodyPos_;
+    out_tmp[shareIndex_] = leftVitality_ - minVitality_;
+    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = stuckRight_;
+    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = turnRight_;
+    out_tmp += fillCount_;
     out_tmp[shareIndex_] = headAngle_ > 0 ? headAngle : 0;
-    out_tmp += Game::cfg.fillCount;
+    out_tmp += fillCount_;
     out_tmp[painIndex_] = pain_;
-    out_tmp += Game::cfg.fillCount;
+    out_tmp += fillCount_;
     out_tmp[delightIndex_] = delight_;
     pain_ = 0;
     if (delight_ > 0) {
         delight_ = max(delight_ - Game::cfg.delightConsum, 0.0);
     }
 
-    renderNode(wNowHeadNode, headSprite, window, 3);
+    renderNode(wNowHeadNode, headSprite_, window, 3);
 
     count = 5;
     for (auto i = path_.begin() + 5, end = path_.end(); i < end;
@@ -775,12 +809,12 @@ void Snake::render(sf::RenderWindow &window) {
         else {
             nowSnakeNode = body;
             angle = culAngle(nowSnakeNode - lastSnakeNode);
-            nodeMiddle.setRotation(angle);
+            nodeMiddle_.setRotation(angle);
 
             lastSnakeNode = nowSnakeNode;
 
-            renderNode(nowSnakeNode, nodeShape, window, 0);
-            renderNode(lastMiddleNode, nodeMiddle, window, 0);
+            renderNode(nowSnakeNode, nodeShape_, window, 0);
+            renderNode(lastMiddleNode, nodeMiddle_, window, 0);
         }
     }
 

@@ -16,7 +16,7 @@
 namespace utils {
     class ShareMemory {
         public:
-            ShareMemory(char *xyExecFile, size_t writeSize);
+            ShareMemory(char *xyExecFile);
             ~ShareMemory();
             TYPE_VOL* getReadPos();
             TYPE_VOL* getWritePos();
