@@ -13,6 +13,7 @@ namespace utils {
         char *gamePath;
         long heath;
         short initialSize, visionXSum, visionYSum, fillCount, maxFruit;
+        bool death;
     };
 
     class ReadConf {

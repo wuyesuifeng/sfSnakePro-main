@@ -65,7 +65,9 @@ Snake::Snake()
 
     snakeLen_ = 10 * Game::cfg.initialSize;
 
-    heath_ = Game::cfg.heath;
+    health_ = Game::cfg.heath;
+
+    death_ = Game::cfg.death;
 
     fillCount_ = Game::cfg.fillCount;
 
@@ -430,11 +432,15 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
 
         static long long maxHealth = 100 * Game::cfg.heath;
 
-        if (heath_ < maxHealth) {
-            heath_ += Game::cfg.heath;
+        if (death_) {
+            if (health_ < maxHealth) {
+                health_ += Game::cfg.heath;
+            }
+        } else {
+            health_ = Game::cfg.heath;
         }
-    } else {
-        heath_--;
+    } else if (death_) {
+        health_--;
     }
 }
 
@@ -482,23 +488,26 @@ double dis2(sf::Vector2<float> node1,
                  2));
 }
 
-void checkVisionY(short speed_, bool *hitSelf_, UPPER_TYPE_VOL *pain_, SnakePathNode *head,
-                  vision *vision_, SnakePathNode *i,
-                  float nodeRadius_, long long *heath) {
+void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNode *head,
+                  vision *vision, SnakePathNode *i,
+                  float nodeRadius, bool death, long *health) {
     for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
         for (y = 0; y < VISION_Y_SUM; y++) {
             size_t index = CUL_VISION_INDEX(x, y);
-            if (dis2(vision_[index].pos, *i) < culSelfCollisionDis(nodeRadius_)) {
-                vision_[index].color = VISION_HARM_COLOR;
+            if (dis2(vision[index].pos, *i) < culSelfCollisionDis(nodeRadius)) {
+                vision[index].color = VISION_HARM_COLOR;
             }
         }
     }
 
-    if (speed_ && dis2(*head, *i) < culSelfCollisionDis(nodeRadius_)) {
+    if (speed && dis2(*head, *i) < culSelfCollisionDis(nodeRadius)) {
         // dieSound_.stop();
         // dieSound_.play();
-        *hitSelf_ = true;
-        *pain_ += Game::cfg.bitePain * speed_;
+        *hitSelf = true;
+        *pain += Game::cfg.bitePain * speed;
+        if (!death) {
+            *health--;
+        }
     }
 }
 
@@ -513,7 +522,7 @@ void Snake::checkSelfCollisions() {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
         utils::addThread(threads, checkVisionY, speed_, &hitSelf_, &pain_, &head,
-                         (vision *)vision_, &(*i), nodeRadius_, &heath_);
+                         (vision *)vision_, &(*i), nodeRadius_, death_, &health_);
     }
     threads.join();
 }
@@ -656,7 +665,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 }
 
 void Snake::reset() {
-    heath_ = Game::cfg.heath;
+    health_ = Game::cfg.heath;
     leftVitality_ = 0;
     rightVitality_ = 0;
     stuckLeft_ = 0;
@@ -689,9 +698,12 @@ void Snake::reset() {
 
 void Snake::render(sf::RenderWindow &window) {
     pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
-    heath_ -= pain_;
 
-    if (heath_ <= 0) {
+    if (death_) {
+        health_ -= pain_;
+    }
+
+    if (health_ <= 0) {
         reset();
         *deathFlag_ = 1;
         return;

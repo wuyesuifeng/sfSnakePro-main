@@ -77,12 +77,13 @@ namespace sfSnake {
             SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
                                     float sin, float cos, int num, sf::Vector2f head);
 
-            long long heath_;
+            long health_;
             TYPE_VOL *deathFlag_;
 
             short fillCount_;
             unsigned int visionBodyPos_, visionFruitPos_;
             TYPE_VITALITY minVitality_;
+            bool death_;
 
             bool hitSelf_;
             char turnDirection_;

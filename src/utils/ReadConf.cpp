@@ -99,6 +99,9 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "heath") {
                 utils::trim(ret[1]);
                 cfg.heath = stol(ret[1]);
+            } else if (ret[0] == "death") {
+                utils::trim(ret[1]);
+                cfg.death = stoi(ret[1]);
             }
         }
         ifs.close();
