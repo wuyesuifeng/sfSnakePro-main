@@ -708,7 +708,10 @@ void Snake::render(sf::RenderWindow &window) {
 
     if (health_ <= 0) {
         reset();
-        *deathFlag_ = 1;
+
+        if (death_) {
+            *deathFlag_ = 1;
+        }
         return;
     }
 
