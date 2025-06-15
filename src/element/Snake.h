@@ -93,7 +93,7 @@ namespace sfSnake {
             float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
                 stuckLeft_, stuckRight_, leftVitality_, rightVitality_;
 
-            unsigned int shareIndex_, delightIndex_, painIndex_;
+            unsigned int shareIndex_;
 
             Direction direction_;
             float nodeRadius_;

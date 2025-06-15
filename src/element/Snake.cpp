@@ -39,8 +39,6 @@ Snake::Snake()
     : vision_((vision *)malloc(sizeof(vision) * Game::cfg.visionXSum * Game::cfg.visionYSum)),
       hitSelf_(false),
       shareIndex_(0),
-      delightIndex_(0),
-      painIndex_(0),
       pain_(0),
       delight_(0),
       turnLeft_(0),
@@ -684,8 +682,8 @@ void Snake::reset() {
     health_ = Game::cfg.heath;
     leftVitality_ = rightVitality_ = 0;
     stuckLeft_ = stuckRight_ = headAngle_ = 0;
-    painIndex_ = delightIndex_ = shareIndex_ = 0;
-    angle_ = delightIndex_ = bodyDir_ = 180;
+    shareIndex_ = 0;
+    angle_ = bodyDir_ = 180;
     radian_ = angle_ * PI / 180.0f;
     direction_ = Direction(0, -1);
     path_.clear();
@@ -726,8 +724,6 @@ void Snake::render(sf::RenderWindow &window) {
 
     static int count, j, x, y;
     j = 7;
-    x = 0;
-    y = 0;
 
     static TYPE_VOL *out_tmp;
     out_tmp = out_;
@@ -740,19 +736,25 @@ void Snake::render(sf::RenderWindow &window) {
     //     delightIndex_ = 0;
     //     hisDelight_ = delight_;
     // }
-    out_tmp[delightIndex_] = delight_;
+    out_tmp[shareIndex_] = delight_;
     out_tmp += FILL_CNT;
     // if (pain_ != hisPain_) {
     //     painIndex_ = 0;
     //     hisPain_ = pain_;
     // }
-    out_tmp[painIndex_] = pain_;
+    out_tmp[shareIndex_] = pain_;
     out_tmp += FILL_CNT;
     static TYPE_VOL headAngle;
     headAngle = headAngle_;
-    out_tmp[shareIndex_] = headAngle_ > 0 ? headAngle : 0;
+    static TYPE_VOL angleTmp;
+    angleTmp = headAngle_ > 0 ? headAngle : 0;
+    for (x = 0; x < FILL_CNT; x++) {
+        out_tmp[x] = angleTmp;
+    }
     out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = turnRight_;
+    for (x = 0; x < FILL_CNT; x++) {
+        out_tmp[x] = turnRight_;
+    }
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckRight_;
     out_tmp += FILL_CNT;
@@ -775,8 +777,8 @@ void Snake::render(sf::RenderWindow &window) {
     shape.setSize(sf::Vector2f(VISION_PIXEL_WIDTH, VISION_PIXEL_WIDTH));
     shape.setRotation(angle);
     static vision v;
-    for (; x < VISION_X_SUM; x++, y = 0) {
-        for (; y < VISION_Y_SUM; y++, out_tmp++) {
+    for (x = 0; x < VISION_X_SUM; x++) {
+        for (y = 0; y < VISION_Y_SUM; y++, out_tmp++) {
             v = vision_[CUL_VISION_INDEX(x, y)];
             shape.setFillColor(sf::Color(v.color));
             shape.setPosition(v.pos);
@@ -816,13 +818,18 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckLeft_;
     out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = turnRight_;
+    for (x = 0; x < FILL_CNT; x++) {
+        out_tmp[x] = turnLeft_;
+    }
     out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = headAngle_ < 0 ? -headAngle : 0;
+    angleTmp = headAngle_ < 0 ? -headAngle : 0;
+    for (x = 0; x < FILL_CNT; x++) {
+        out_tmp[x] = angleTmp;
+    }
     out_tmp += FILL_CNT;
-    out_tmp[painIndex_] = pain_;
+    out_tmp[shareIndex_] = pain_;
     out_tmp += FILL_CNT;
-    out_tmp[delightIndex_] = delight_;
+    out_tmp[shareIndex_] = delight_;
     pain_ = 0;
     if (delight_ > 0) {
         delight_ = max(delight_ - Game::cfg.delightConsum, 0.0);
@@ -850,10 +857,6 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     ADD_SHARE_INDEX(shareIndex_, fillCount);
-
-    ADD_SHARE_INDEX(painIndex_, fillCount);
-
-    ADD_SHARE_INDEX(delightIndex_, fillCount);
 }
 
 template <typename T>
