@@ -80,7 +80,6 @@ namespace sfSnake {
             long health_;
             TYPE_VOL *deathFlag_;
 
-            short fillCount_;
             unsigned int visionBodyPos_, visionFruitPos_;
             TYPE_VITALITY minVitality_;
             bool death_;

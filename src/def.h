@@ -1,5 +1,6 @@
 #pragma once
 
+#define FILL_CNT 100
 #define WRITE_LEN 3602
 #define VISION_LEN 2400
 #define READ_LEN 301

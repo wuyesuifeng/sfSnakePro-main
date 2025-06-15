@@ -87,9 +87,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "speedLevel2") {
                 utils::trim(ret[1]);
                 cfg.speedLevel2 = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "fillCount") {
-                utils::trim(ret[1]);
-                cfg.fillCount = stoi(ret[1]);
             } else if (ret[0] == "delightConsum") {
                 utils::trim(ret[1]);
                 cfg.delightConsum = STO_FUNC_VOL(ret[1]);

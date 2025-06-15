@@ -69,8 +69,6 @@ Snake::Snake()
 
     death_ = Game::cfg.death;
 
-    fillCount_ = Game::cfg.fillCount;
-
     visionBodyPos_ = Game::cfg.visionBodyPos;
 
     visionFruitPos_ = Game::cfg.visionFruitPos;
@@ -684,33 +682,29 @@ bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 
 void Snake::reset() {
     health_ = Game::cfg.heath;
-    leftVitality_ = 0;
-    rightVitality_ = 0;
-    stuckLeft_ = 0;
-    stuckRight_ = 0;
-    headAngle_ = 0;
-    angle_ = 180;
-    hisAngle_ = angle_;
-    bodyDir_ = angle_;
+    leftVitality_ = rightVitality_ = 0;
+    stuckLeft_ = stuckRight_ = headAngle_ = 0;
+    painIndex_ = delightIndex_ = shareIndex_ = 0;
+    angle_ = delightIndex_ = bodyDir_ = 180;
+    radian_ = angle_ * PI / 180.0f;
     direction_ = Direction(0, -1);
     path_.clear();
     initNodes();
-    radian_ = angle_ * PI / 180.0f;
 
-    for (int i = 0, j; i < fillCount_; i++) {
+    for (int i = 0, j; i < FILL_CNT; i++) {
         out_[i] = 0;
-        out_[j = i + fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
+        out_[j = i + FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
 
         out_[j += VISION_LEN] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j += fillCount_] = 0;
-        out_[j + fillCount_] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j += FILL_CNT] = 0;
+        out_[j + FILL_CNT] = 0;
     }
 }
 
@@ -738,7 +732,7 @@ void Snake::render(sf::RenderWindow &window) {
     static TYPE_VOL *out_tmp;
     out_tmp = out_;
 
-    static unsigned int fillCount = fillCount_ - 1;
+    static unsigned int fillCount = FILL_CNT - 1;
 
     // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
     delight_ = max(min(delight_, MAX_VOL), MIN_VOL);
@@ -747,23 +741,23 @@ void Snake::render(sf::RenderWindow &window) {
     //     hisDelight_ = delight_;
     // }
     out_tmp[delightIndex_] = delight_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
     // if (pain_ != hisPain_) {
     //     painIndex_ = 0;
     //     hisPain_ = pain_;
     // }
+    out_tmp[painIndex_] = pain_;
+    out_tmp += FILL_CNT;
     static TYPE_VOL headAngle;
     headAngle = headAngle_;
-    out_tmp[painIndex_] = pain_;
-    out_tmp += fillCount_;
-    out_tmp[shareIndex_] = headAngle_ < 0 ? -headAngle : 0;
-    out_tmp += fillCount_;
+    out_tmp[shareIndex_] = headAngle_ > 0 ? headAngle : 0;
+    out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = turnRight_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckRight_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = rightVitality_ - minVitality_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     static float angle;
@@ -819,15 +813,15 @@ void Snake::render(sf::RenderWindow &window) {
 
     out_tmp += visionBodyPos_;
     out_tmp[shareIndex_] = leftVitality_ - minVitality_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckLeft_;
-    out_tmp += fillCount_;
-    out_tmp[shareIndex_] = turnLeft_;
-    out_tmp += fillCount_;
-    out_tmp[shareIndex_] = headAngle_ > 0 ? headAngle : 0;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
+    out_tmp[shareIndex_] = turnRight_;
+    out_tmp += FILL_CNT;
+    out_tmp[shareIndex_] = headAngle_ < 0 ? -headAngle : 0;
+    out_tmp += FILL_CNT;
     out_tmp[painIndex_] = pain_;
-    out_tmp += fillCount_;
+    out_tmp += FILL_CNT;
     out_tmp[delightIndex_] = delight_;
     pain_ = 0;
     if (delight_ > 0) {
