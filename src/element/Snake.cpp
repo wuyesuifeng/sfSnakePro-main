@@ -111,7 +111,7 @@ Snake::Snake()
     // dieBuffer_.loadFromFile("assets/sounds/die.wav");
     // dieSound_.setBuffer(dieBuffer_);
     // dieSound_.setVolume(50);
-    threads.init(std::thread::hardware_concurrency() - 5);
+    threads_.init(std::thread::hardware_concurrency() - 5);
 
     in_ = Game::share.getReadPos();
     out_ = Game::share.getWritePos();
@@ -120,7 +120,7 @@ Snake::Snake()
 }
 
 Snake::~Snake() {
-    threads.join();
+    threads_.join();
     free(vision_);
 }
 
@@ -371,16 +371,34 @@ void Snake::update(sf::Time delta) {
         }
     }
 
-    look();
-    checkSelfCollisions();
-    move();
-    toWindow(path_.front(), direction_, abs(tan(radian_)));
+    Direction dir = direction_;
+    static short int speed, outOfWin;
+    speed = speed_ * 10;
+    dir.x *= speed;
+    dir.y *= speed;
+    static SnakePathNode headNode;
+    headNode = path_.front() + dir;
+    outOfWin = toWindow(headNode, direction_, abs(tan(radian_)));
+    look(headNode);
+    checkSelfCollisions(headNode);
+    if (hitSelf_ && outOfWin) {
+        look(path_.front());
+        checkSelfCollisions(path_.front());
+        for (int i = 1; i <= speed_; i++) {
+            if (path_.size() > snakeLen_) {
+                path_.pop_back();
+            }
+        }
+        speed_ = 0;
+    } else {
+        move(path_.front());
+        toWindow(path_.front(), direction_, abs(tan(radian_)));
+    }
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 
-void Snake::look() {
-    SnakePathNode head = path_.front();
+void Snake::look(SnakePathNode head) {
 
     float cosR = cos(radian_), sinR = sin(radian_), tanVal = abs(tan(radian_)),
           moveY = cosR * VISION_PIXEL_WIDTH, moveX = sinR * VISION_PIXEL_WIDTH;
@@ -456,8 +474,7 @@ unsigned Snake::getScore() const { return score_; }
 
 bool Snake::hitSelf() const { return hitSelf_; }
 
-void Snake::move() {
-    SnakePathNode &headNode = path_.front();
+void Snake::move(SnakePathNode headNode) {
 
     if (speed_ > 0) {
         if (!hitSelf_)
@@ -509,25 +526,21 @@ void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNod
         *hitSelf = true;
         *pain += Game::cfg.bitePain * speed;
         if (!death) {
-             *health -= Game::cfg.healthTick;
+            *health -= Game::cfg.healthTick;
         }
     }
 }
 
-void Snake::checkSelfCollisions() {
-    Direction dir = direction_;
-    dir.x *= speed_ * 10;
-    dir.y *= speed_ * 10;
-    SnakePathNode head = path_.front() + dir;
+void Snake::checkSelfCollisions(SnakePathNode head) {
 
     if (hitSelf_) {
         hitSelf_ = false;
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
-        utils::addThread(threads, checkVisionY, speed_, &hitSelf_, &pain_, &head,
+        utils::addThread(threads_, checkVisionY, speed_, &hitSelf_, &pain_, &head,
                          (vision *)vision_, &(*i), nodeRadius_, death_, &health_);
     }
-    threads.join();
+    threads_.join();
 }
 
 bool inWindow(SnakePathNode &node) {
@@ -592,17 +605,19 @@ void reverse(float &x, float &y, float hx, float hy, float dx, float dy,
     }
 }
 
-SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
-                              float tanVal) {
+bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
+                     float tanVal) {
     return toWindow(node, dir, tanVal, 0, 0, -1, node);
 }
 
-SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
-                              float tanVal, float sin, float cos, int num,
-                              SnakePathNode head) {
+bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
+                     float tanVal, float sin, float cos, int num,
+                     SnakePathNode head) {
     bool negativeX = node.x < 0, negativeY = node.y < 0,
          beyondX = negativeX || node.x > Game::GlobalVideoMode.width,
          beyondY = negativeY || node.y > Game::GlobalVideoMode.height;
+
+    sf::Vector2f nodeTmp = node;
     if (beyondX) {
         if (dir.y == 0) {
             node.x = negativeX ? node.x + Game::GlobalVideoMode.width
@@ -664,7 +679,7 @@ SnakePathNode Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
         reset();
     }
 
-    return node;
+    return beyondX || beyondY;
 }
 
 void Snake::reset() {

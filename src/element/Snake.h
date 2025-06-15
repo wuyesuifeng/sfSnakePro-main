@@ -60,22 +60,22 @@ namespace sfSnake {
          void grow(int score);
 
         private:
-            utils::Threads threads;
+            utils::Threads threads_;
             void initNodes();
-            void move();
+            void move(SnakePathNode headNode);
 
             void checkOutOfWindow();
-            void checkSelfCollisions();
-            void look();
+            void checkSelfCollisions(SnakePathNode head);
+            void look(SnakePathNode head);
 
             template <typename T>
             void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
                             int offset);
 
-            SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
+            bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
 
-            SnakePathNode toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
-                                    float sin, float cos, int num, sf::Vector2f head);
+            bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
+                          float sin, float cos, int num, sf::Vector2f head);
 
             long health_;
             TYPE_VOL *deathFlag_;
