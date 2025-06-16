@@ -93,6 +93,9 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "maxFruit") {
                 utils::trim(ret[1]);
                 cfg.maxFruit = stoi(ret[1]);
+            } else if (ret[0] == "minFruit") {
+                utils::trim(ret[1]);
+                cfg.minFruit = stoi(ret[1]);
             } else if (ret[0] == "heath") {
                 utils::trim(ret[1]);
                 cfg.heath = stol(ret[1]);

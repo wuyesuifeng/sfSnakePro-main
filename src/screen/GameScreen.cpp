@@ -15,35 +15,32 @@ using namespace sfSnake;
 
 GameScreen::GameScreen()
     : grid_(), pauseButton_() {
-  pauseButton_.update("assets/image/pauseUI.png", 1 / 24.0f);
-  pauseButton_.setPosition(Game::GlobalVideoMode.width / 15.0 * 14.0 + 35,
-                           Game::GlobalVideoMode.width / 15.0 - 40);
+    pauseButton_.update("assets/image/pauseUI.png", 1 / 24.0f);
+    pauseButton_.setPosition(Game::GlobalVideoMode.width / 15.0 * 14.0 + 35,
+                             Game::GlobalVideoMode.width / 15.0 - 40);
 
-  // score_.setFont(Game::GlobalFont);
-  // score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
-  // score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
-  // score_.setFillColor(Game::Color::Yellow);
-  // setOriginMiddle(score_);
-  // score_.setPosition(
-  //     Game::GlobalVideoMode.width / 2.0f,
-  //     Game::GlobalVideoMode.width * 0.05f);
+    // score_.setFont(Game::GlobalFont);
+    // score_.setString(sf::String(L"分数:") + std::to_string(snake_.getScore()));
+    // score_.setCharacterSize(Game::GlobalVideoMode.width / 25.0f);
+    // score_.setFillColor(Game::Color::Yellow);
+    // setOriginMiddle(score_);
+    // score_.setPosition(
+    //     Game::GlobalVideoMode.width / 2.0f,
+    //     Game::GlobalVideoMode.width * 0.05f);
 }
 
-void GameScreen::handleInput(sf::RenderWindow &window)
-{
+void GameScreen::handleInput(sf::RenderWindow &window) {
     snake_.handleInput(window);
 
     auto mousePosition = sf::Mouse::getPosition(window);
 
     pauseButton_.focused(false);
 
-    if (pauseButton_.contain(mousePosition))
-    {
+    if (pauseButton_.contain(mousePosition)) {
         pauseButton_.focused(true);
         if (
             !Game::mouseButtonLocked &&
-            sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
+            sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             Game::mouseButtonCDtime = sf::Time::Zero;
             Game::mouseButtonLocked = true;
             Game::TmpGameScreen = Game::MainScreen;
@@ -53,10 +50,9 @@ void GameScreen::handleInput(sf::RenderWindow &window)
     }
 }
 
-void GameScreen::update(sf::Time delta)
-{
-    int fsize = std::max(((int) (utils::timestamp() / 20000)) % Game::cfg.maxFruit, 0);
-    
+void GameScreen::update(sf::Time delta) {
+    int fsize = std::max(((int)(utils::timestamp() / 20000)) % Game::cfg.maxFruit + Game::cfg.minFruit, 0);
+
     while (fruit_.size() < fsize) {
         generateFruit();
     }
@@ -71,13 +67,11 @@ void GameScreen::update(sf::Time delta)
     // {
     //     snake_.grow(-1);
     // }
-    
+
     // score_.setString(sf::String(L"分数:\t") + std::to_string(snake_.getScore() - 5));
-    
 }
 
-void GameScreen::render(sf::RenderWindow &window)
-{
+void GameScreen::render(sf::RenderWindow &window) {
     if (Game::GridVisibility)
         grid_.render(window);
     snake_.render(window);
@@ -87,8 +81,7 @@ void GameScreen::render(sf::RenderWindow &window)
     // window.draw(score_);
 }
 
-void GameScreen::generateFruit()
-{
+void GameScreen::generateFruit() {
     static std::default_random_engine engine(time(NULL));
     static std::default_random_engine colorEngine(time(NULL));
 
@@ -104,8 +97,7 @@ void GameScreen::generateFruit()
 
     static std::uniform_int_distribution<int> fruitColor(0, 7);
 
-    switch (fruitColor(colorEngine))
-    {
+    switch (fruitColor(colorEngine)) {
     case 0: // black
         fruit_.push_back(Fruit(
             sf::Vector2f(xPos(engine), yPos(engine)),

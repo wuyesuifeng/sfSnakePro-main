@@ -688,6 +688,8 @@ void Snake::reset() {
     direction_ = Direction(0, -1);
     path_.clear();
     initNodes();
+    delight_ = 0;
+    pain_ = 0;
 
     for (int i = 0, j; i < FILL_CNT; i++) {
         out_[i] = 0;
