@@ -506,7 +506,7 @@ double dis2(sf::Vector2<float> node1,
 
 void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNode *head,
                   vision *vision, SnakePathNode *i,
-                  float nodeRadius, bool death, long *health) {
+                  float nodeRadius) {
     for (int x = 0, y = 0; x < VISION_X_SUM; x++) {
         for (y = 0; y < VISION_Y_SUM; y++) {
             size_t index = CUL_VISION_INDEX(x, y);
@@ -521,9 +521,6 @@ void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNod
         // dieSound_.play();
         *hitSelf = true;
         *pain += Game::cfg.bitePain * speed;
-        if (!death) {
-            *health -= Game::cfg.healthTick;
-        }
     }
 }
 
@@ -534,7 +531,7 @@ void Snake::checkSelfCollisions(SnakePathNode head) {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
         utils::addThread(threads_, checkVisionY, speed_, &hitSelf_, &pain_, &head,
-                         (vision *)vision_, &(*i), nodeRadius_, death_, &health_);
+                         (vision *)vision_, &(*i), nodeRadius_);
     }
     threads_.join();
 }
@@ -711,8 +708,11 @@ void Snake::reset() {
 void Snake::render(sf::RenderWindow &window) {
     pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
 
+    static short heaelthTick = Game::cfg.healthTick;
     if (death_) {
-        health_ -= pain_;
+        health_ -= pain_ + heaelthTick;
+    } else {
+        health_ -= heaelthTick;
     }
 
     if (health_ <= 0) {
