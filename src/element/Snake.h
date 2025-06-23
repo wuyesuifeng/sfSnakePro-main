@@ -77,7 +77,7 @@ namespace sfSnake {
             bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
                           float sin, float cos, int num, sf::Vector2f head);
 
-            long health_;
+            float health_;
             TYPE_VOL *deathFlag_;
 
             unsigned int visionBodyPos_, visionFruitPos_;
