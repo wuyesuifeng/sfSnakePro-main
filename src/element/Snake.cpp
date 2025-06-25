@@ -23,8 +23,7 @@ static float VISION_X_HALF,
     VISION_HALF_WIDTH,
     VISION_HALF_WIDTH2;
 
-static unsigned int speed_level1, speed_level2;
-static TYPE_VOL vision_blank_vol, vision_fruit_vol, vision_body_vol;
+static TYPE_VOL speed_level1, speed_level2, vision_blank_vol, vision_fruit_vol, vision_body_vol;
 // static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
 
 float culAngle(sf::Vector2f recDirection) {
@@ -240,6 +239,8 @@ void Snake::update(sf::Time delta) {
 
         if (distance > speed_level1) {
             speed_ = distance > speed_level2 ? 2 : 1;
+        } else {
+            speed_ = 0;
         }
 
         plusTmp = 0;
@@ -401,7 +402,6 @@ void Snake::update(sf::Time delta) {
                 path_.pop_back();
             }
         }
-        speed_ = 0;
     } else {
         move(path_.front());
         toWindow(path_.front(), direction_, abs(tan(radian_)));
@@ -506,7 +506,6 @@ void Snake::move(SnakePathNode headNode) {
                 }
             }
         }
-        speed_ = 0;
     }
 }
 
