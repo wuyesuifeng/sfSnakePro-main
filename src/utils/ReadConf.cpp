@@ -48,12 +48,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "vitalityPain") {
                 utils::trim(ret[1]);
                 cfg.vitalityPain = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "minVitality") {
-                utils::trim(ret[1]);
-                cfg.minVitality = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "vitalityStep") {
-                utils::trim(ret[1]);
-                cfg.vitalityStep = STO_FUNC_VOL(ret[1]);
             } else if (ret[0] == "vitalityStepCnt") {
                 utils::trim(ret[1]);
                 cfg.vitalityStepCnt = stoi(ret[1]);

@@ -6,7 +6,7 @@
 
 namespace utils {
     struct config_data {
-        TYPE_VOL maxVitality, minVitality, vitalityStep, vitalityStepCnt,
+        TYPE_VOL maxVitality, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
             visionFruitVol, speedLevel1, speedLevel2, delightConsum;
         unsigned int visionFruitPos, visionBodyPos;

@@ -81,7 +81,7 @@ namespace sfSnake {
             TYPE_VOL *deathFlag_;
 
             unsigned int visionBodyPos_, visionFruitPos_;
-            TYPE_VITALITY minVitality_;
+            TYPE_VITALITY maxVitality_, minVitality_, vitalityStepCnt_, vitalityPain_;
             bool death_;
 
             bool hitSelf_;
@@ -91,7 +91,7 @@ namespace sfSnake {
             short int speed_;
 
             float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
-                stuckLeft_, stuckRight_, leftVitality_, rightVitality_;
+                stuckLeft_, stuckRight_, leftVitality_, rightVitality_, speedVitality_;
 
             unsigned int shareIndex_;
 

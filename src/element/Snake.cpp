@@ -48,6 +48,7 @@ Snake::Snake()
       turnDirection_(0),
       leftVitality_(0),
       rightVitality_(0),
+      speedVitality_(0),
       speed_(0),
       direction_(Direction(0, -1)),
       angle_(180),
@@ -71,7 +72,13 @@ Snake::Snake()
 
     visionFruitPos_ = Game::cfg.visionFruitPos;
 
-    minVitality_ = Game::cfg.minVitality;
+    maxVitality_ = Game::cfg.maxVitality;
+
+    minVitality_ = -maxVitality_;
+
+    vitalityStepCnt_ = Game::cfg.vitalityStepCnt;
+
+    vitalityPain_ = Game::cfg.vitalityPain / maxVitality_;
 
     initNodes();
 
@@ -347,23 +354,32 @@ void Snake::update(sf::Time delta) {
 
         static float headAngle;
         if (headAngle_ > 0) {
-            headAngle = abs(headAngle_);
-            leftVitality_ = min(leftVitality_ + max((Game::cfg.maxVitality - leftVitality_) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
-            rightVitality_ = max(rightVitality_ - max(Game::cfg.vitalityStep, (-rightVitality_ - minVitality_) / Game::cfg.vitalityStepCnt * headAngle), minVitality_);
+            headAngle = 1 + headAngle_;
+            leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
+            rightVitality_ = max(rightVitality_ - (rightVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
         } else if (headAngle_ < 0) {
-            headAngle = abs(headAngle_);
-            leftVitality_ = max(leftVitality_ - max(Game::cfg.vitalityStep, (-leftVitality_ - minVitality_) / Game::cfg.vitalityStepCnt * headAngle), minVitality_);
-            rightVitality_ = min(rightVitality_ + max((Game::cfg.maxVitality - rightVitality_) / Game::cfg.vitalityStepCnt * headAngle, Game::cfg.vitalityStep), Game::cfg.maxVitality);
-        } else {
-            leftVitality_ = min(leftVitality_ + max((Game::cfg.maxVitality - leftVitality_) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
-            rightVitality_ = min(rightVitality_ + max((Game::cfg.maxVitality - rightVitality_) / Game::cfg.vitalityStepCnt, Game::cfg.vitalityStep), Game::cfg.maxVitality);
+            headAngle = 1 - headAngle_;
+            leftVitality_ = max(leftVitality_ - (leftVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
+            rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
         }
 
         if (leftVitality_) {
-            pain_ += abs(leftVitality_) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
+            pain_ += abs(leftVitality_) * vitalityPain_;
         }
         if (rightVitality_) {
-            pain_ += abs(rightVitality_) * Game::cfg.vitalityPain / Game::cfg.maxVitality;
+            pain_ += abs(rightVitality_) * vitalityPain_;
+        }
+
+        if (speed_) {
+            if (speedVitality_) {
+                speedVitality_ /= 1 + speed_;
+            }
+        } else {
+            speedVitality_ = min(speedVitality_ + (maxVitality_ - speedVitality_) / vitalityStepCnt_, maxVitality_);
+        }
+
+        if (speedVitality_) {
+            pain_ += abs(speedVitality_) * vitalityPain_;
         }
     }
 
@@ -444,8 +460,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         grow(toRemove->score_);
         fruits.erase(toRemove);
         delight_ += Game::cfg.eatDelight;
-        leftVitality_ = 0;
-        rightVitality_ = 0;
+        leftVitality_ = rightVitality_ = speedVitality_ = 0;
 
         static long long maxHealth = 100 * Game::cfg.heath;
 
@@ -683,7 +698,7 @@ bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 
 void Snake::reset() {
     health_ = Game::cfg.heath;
-    leftVitality_ = rightVitality_ = 0;
+    leftVitality_ = rightVitality_ = speedVitality_ = 0;
     stuckLeft_ = stuckRight_ = headAngle_ = 0;
     shareIndex_ = 0;
     angle_ = bodyDir_ = 180;
@@ -766,6 +781,8 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = rightVitality_ - minVitality_;
     out_tmp += FILL_CNT;
+    out_tmp[shareIndex_] = speedVitality_;
+    out_tmp += FILL_CNT;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     static float angle;
@@ -820,6 +837,8 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     out_tmp += visionBodyPos_;
+    out_tmp[shareIndex_] = speedVitality_;
+    out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = leftVitality_ - minVitality_;
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckLeft_;
