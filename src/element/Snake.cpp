@@ -238,9 +238,7 @@ void Snake::update(sf::Time delta) {
         distance = plusTmp;
 
         if (distance > speed_level1) {
-            speed_ = distance > speed_level2 ? 2 : 1;
-        } else {
-            speed_ = 0;
+            speed_ += distance > speed_level2 ? 2 : 1;
         }
 
         plusTmp = 0;
@@ -881,6 +879,8 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     ADD_SHARE_INDEX(shareIndex_, fillCount);
+
+    speed_ = 0;
 }
 
 template <typename T>
