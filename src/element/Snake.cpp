@@ -47,7 +47,6 @@ Snake::Snake()
       turnDirection_(0),
       leftVitality_(0),
       rightVitality_(0),
-      speedVitality_(0),
       speed_(0),
       direction_(Direction(0, -1)),
       angle_(180),
@@ -78,6 +77,8 @@ Snake::Snake()
     vitalityStepCnt_ = Game::cfg.vitalityStepCnt;
 
     vitalityPain_ = Game::cfg.vitalityPain / maxVitality_;
+
+    speedVitality_ = maxVitality_;
 
     initNodes();
 
@@ -213,13 +214,11 @@ void Snake::update(sf::Time delta) {
         static TYPE_VOL *leftPtr,
             *runPtr = in_ + INPUT_CNT_LEFT,
             *rightPtr = runPtr + INPUT_CNT_RUN,
-            *endPtr = rightPtr + INPUT_CNT_RIGHT,
-            distance;
+            *endPtr = rightPtr + INPUT_CNT_RIGHT;
         leftPtr = in_;
 
         static UPPER_TYPE_VOL plusTmp, plus;
         plus = 0;
-        distance = 0;
 
         plusTmp = 0;
         do {
@@ -227,7 +226,7 @@ void Snake::update(sf::Time delta) {
             leftPtr++;
         } while (leftPtr != runPtr);
 
-        plus = plusTmp;
+        plus = -plusTmp * (leftVitality_ + maxVitality_);
 
         plusTmp = 0;
         do {
@@ -235,10 +234,10 @@ void Snake::update(sf::Time delta) {
             leftPtr++;
         } while (leftPtr != rightPtr);
 
-        distance = plusTmp;
+        plusTmp *= speedVitality_ / maxVitality_;
 
-        if (distance > speed_level1) {
-            speed_ += distance > speed_level2 ? 2 : 1;
+        if (plusTmp > speed_level1) {
+            speed_ += plusTmp > speed_level2 ? 2 : 1;
         }
 
         plusTmp = 0;
@@ -247,7 +246,9 @@ void Snake::update(sf::Time delta) {
             leftPtr++;
         } while (leftPtr != endPtr);
 
-        plus -= plusTmp;
+        plus += plusTmp * (rightVitality_ + maxVitality_);
+
+        plus /= maxVitality_;
 
         static float angle;
         if (plus) {
