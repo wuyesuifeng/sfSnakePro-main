@@ -9,6 +9,7 @@
 #include "element/Snake.h"
 #include "Game.h"
 #include "screen/GameOverScreen.h"
+#include "utils/Time.hpp"
 
 #define ANGLE_PLUS_THRESHOLD 180
 #define ANGLE_PLUS_THRESHOLD2 60
@@ -216,7 +217,10 @@ float parseAngle2(float angle) {
 
 void Snake::update(sf::Time delta) {
 
-    if (*deathFlag_) {
+    static long long sleeping;
+    static unsigned int waitTime = Game::cfg.waitTime;
+
+    if (*deathFlag_ || (sleeping && utils::timestamp() - sleeping < waitTime)) {
         return;
     }
 
@@ -258,8 +262,10 @@ void Snake::update(sf::Time delta) {
     plus += plusTmp * (rightVitality_ + maxVitality_);
 
     if (!plus && !speedTmp) {
+        sleeping = utils::timestamp();
         return;
     }
+    sleeping = 0;
 
     plus /= maxVitality_;
 

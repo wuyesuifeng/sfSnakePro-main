@@ -9,10 +9,10 @@ namespace utils {
         TYPE_VOL maxVitality, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
             visionFruitVol, speedLevel1, speedLevel2, delightConsum;
-        unsigned int visionFruitPos, visionBodyPos;
+        unsigned int visionFruitPos, visionBodyPos, waitTime;
+        int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
         char *gamePath;
         long heath;
-        int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
         bool death;
     };
 
