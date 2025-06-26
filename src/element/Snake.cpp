@@ -44,7 +44,6 @@ Snake::Snake()
       turnRight_(0),
       stuckLeft_(0),
       stuckRight_(0),
-      turnDirection_(0),
       leftVitality_(0),
       rightVitality_(0),
       speed_(0),
@@ -76,7 +75,9 @@ Snake::Snake()
 
     vitalityStepCnt_ = Game::cfg.vitalityStepCnt;
 
-    vitalityPain_ = Game::cfg.vitalityPain / maxVitality_;
+    vitalityPain_ = Game::cfg.vitalityPain;
+
+    vitalityPain2_ = vitalityPain_ / maxVitality_;
 
     speedVitality_ = maxVitality_;
 
@@ -139,6 +140,11 @@ void Snake::initNodes() {
 }
 
 void Snake::handleInput(sf::RenderWindow &window) {
+
+    if (*deathFlag_) {
+        return;
+    }
+
     static sf::Vector2i mousePosition;
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
@@ -367,10 +373,10 @@ void Snake::update(sf::Time delta) {
     }
 
     if (leftVitality_) {
-        pain_ += abs(leftVitality_) * vitalityPain_;
+        pain_ += abs(leftVitality_) * vitalityPain2_;
     }
     if (rightVitality_) {
-        pain_ += abs(rightVitality_) * vitalityPain_;
+        pain_ += abs(rightVitality_) * vitalityPain2_;
     }
 
     if (speed_) {
@@ -539,7 +545,8 @@ void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNod
         if (death) {
             *pain += Game::cfg.bitePain * speed;
         } else {
-            static TYPE_VOL tmp = Game::cfg.bitePain * speed;
+            static TYPE_VOL tmp;
+            tmp = Game::cfg.bitePain * speed;
             *pain += tmp;
             *health -= tmp;
         }
@@ -547,6 +554,10 @@ void checkVisionY(short speed, bool *hitSelf, UPPER_TYPE_VOL *pain, SnakePathNod
 }
 
 void Snake::checkSelfCollisions(SnakePathNode head) {
+
+    if (*deathFlag_) {
+        return;
+    }
 
     if (hitSelf_) {
         hitSelf_ = false;
@@ -698,18 +709,16 @@ bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 }
 
 void Snake::reset() {
+    snakeLen_ = 10 * Game::cfg.initialSize;
     health_ = Game::cfg.heath;
-    leftVitality_ = rightVitality_ = 0;
     speedVitality_ = maxVitality_;
-    stuckLeft_ = stuckRight_ = headAngle_ = 0;
-    shareIndex_ = 0;
-    angle_ = bodyDir_ = 180;
+    leftVitality_ = rightVitality_ = shareIndex_ = shareIndex_ = speed_ = delight_ = pain_ = stuckLeft_ = stuckRight_ = headAngle_ = turnRight_ = turnLeft_ = 0;
+    angle_ = hisAngle_ = bodyDir_ = 180;
     radian_ = angle_ * PI / 180.0f;
     direction_ = Direction(0, -1);
     path_.clear();
     initNodes();
-    delight_ = 0;
-    pain_ = 0;
+    hitSelf_ = false;
 
     for (int i = 0; i < OUT_CNT; i++) {
         out_[i] = 0;
