@@ -372,14 +372,14 @@ void Snake::update(sf::Time delta) {
 
         if (speed_) {
             if (speedVitality_) {
-                speedVitality_ /= 1 + speed_;
+                speedVitality_ = max(speedVitality_ - speedVitality_ * speed_ / vitalityStepCnt_, minVitality_);
             }
         } else {
             speedVitality_ = min(speedVitality_ + (maxVitality_ - speedVitality_) / vitalityStepCnt_, maxVitality_);
         }
 
-        if (speedVitality_) {
-            pain_ += abs(speedVitality_) * vitalityPain_;
+        if (speedVitality_ == maxVitality_) {
+            pain_ += vitalityPain_;
         }
     }
 
@@ -459,7 +459,8 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         grow(toRemove->score_);
         fruits.erase(toRemove);
         delight_ += Game::cfg.eatDelight;
-        leftVitality_ = rightVitality_ = speedVitality_ = 0;
+        speedVitality_ = maxVitality_;
+        stuckLeft_ = stuckRight_ = headAngle_ = 0;
 
         static long long maxHealth = 100 * Game::cfg.heath;
 
@@ -696,7 +697,8 @@ bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 
 void Snake::reset() {
     health_ = Game::cfg.heath;
-    leftVitality_ = rightVitality_ = speedVitality_ = 0;
+    leftVitality_ = rightVitality_ = 0;
+    speedVitality_ = maxVitality_;
     stuckLeft_ = stuckRight_ = headAngle_ = 0;
     shareIndex_ = 0;
     angle_ = bodyDir_ = 180;
