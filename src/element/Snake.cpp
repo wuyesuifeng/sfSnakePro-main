@@ -226,7 +226,7 @@ void Snake::update(sf::Time delta) {
         *endPtr = rightPtr + INPUT_CNT_RIGHT;
     leftPtr = in_;
 
-    static UPPER_TYPE_VOL plusTmp, plus;
+    static UPPER_TYPE_VOL plusTmp, speedTmp, plus;
     plus = 0;
 
     plusTmp = 0;
@@ -237,16 +237,16 @@ void Snake::update(sf::Time delta) {
 
     plus = -plusTmp * (leftVitality_ + maxVitality_);
 
-    plusTmp = 0;
+    speedTmp = 0;
     do {
-        plusTmp += *leftPtr;
+        speedTmp += *leftPtr;
         leftPtr++;
     } while (leftPtr != rightPtr);
 
-    plusTmp *= speedVitality_ / maxVitality_;
+    speedTmp *= speedVitality_ / maxVitality_;
 
-    if (plusTmp > speed_level1) {
-        speed_ += plusTmp > speed_level2 ? 2 : 1;
+    if (speedTmp > speed_level1) {
+        speed_ += speedTmp > speed_level2 ? 2 : 1;
     }
 
     plusTmp = 0;
@@ -256,6 +256,10 @@ void Snake::update(sf::Time delta) {
     } while (leftPtr != endPtr);
 
     plus += plusTmp * (rightVitality_ + maxVitality_);
+
+    if (!plus && !speedTmp) {
+        return;
+    }
 
     plus /= maxVitality_;
 
