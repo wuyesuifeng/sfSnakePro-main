@@ -210,177 +210,179 @@ float parseAngle2(float angle) {
 
 void Snake::update(sf::Time delta) {
 
-    if (!(*deathFlag_)) {
-        static TYPE_VOL *leftPtr,
-            *runPtr = in_ + INPUT_CNT_LEFT,
-            *rightPtr = runPtr + INPUT_CNT_RUN,
-            *endPtr = rightPtr + INPUT_CNT_RIGHT;
-        leftPtr = in_;
+    if (*deathFlag_) {
+        return;
+    }
 
-        static UPPER_TYPE_VOL plusTmp, plus;
-        plus = 0;
+    static TYPE_VOL *leftPtr,
+        *runPtr = in_ + INPUT_CNT_LEFT,
+        *rightPtr = runPtr + INPUT_CNT_RUN,
+        *endPtr = rightPtr + INPUT_CNT_RIGHT;
+    leftPtr = in_;
 
-        plusTmp = 0;
-        do {
-            plusTmp += *leftPtr;
-            leftPtr++;
-        } while (leftPtr != runPtr);
+    static UPPER_TYPE_VOL plusTmp, plus;
+    plus = 0;
 
-        plus = -plusTmp * (leftVitality_ + maxVitality_);
+    plusTmp = 0;
+    do {
+        plusTmp += *leftPtr;
+        leftPtr++;
+    } while (leftPtr != runPtr);
 
-        plusTmp = 0;
-        do {
-            plusTmp += *leftPtr;
-            leftPtr++;
-        } while (leftPtr != rightPtr);
+    plus = -plusTmp * (leftVitality_ + maxVitality_);
 
-        plusTmp *= speedVitality_ / maxVitality_;
+    plusTmp = 0;
+    do {
+        plusTmp += *leftPtr;
+        leftPtr++;
+    } while (leftPtr != rightPtr);
 
-        if (plusTmp > speed_level1) {
-            speed_ += plusTmp > speed_level2 ? 2 : 1;
+    plusTmp *= speedVitality_ / maxVitality_;
+
+    if (plusTmp > speed_level1) {
+        speed_ += plusTmp > speed_level2 ? 2 : 1;
+    }
+
+    plusTmp = 0;
+    do {
+        plusTmp += *leftPtr;
+        leftPtr++;
+    } while (leftPtr != endPtr);
+
+    plus += plusTmp * (rightVitality_ + maxVitality_);
+
+    plus /= maxVitality_;
+
+    static float angle;
+    if (plus) {
+        if (plus > ANGLE_PLUS_THRESHOLD3) {
+            plus = ANGLE_PLUS_THRESHOLD3;
+        } else if (plus < -ANGLE_PLUS_THRESHOLD3) {
+            plus = -ANGLE_PLUS_THRESHOLD3;
         }
 
-        plusTmp = 0;
-        do {
-            plusTmp += *leftPtr;
-            leftPtr++;
-        } while (leftPtr != endPtr);
+        angle_ = parseAngle2(angle_ + plus);
 
-        plus += plusTmp * (rightVitality_ + maxVitality_);
+        // cout << angle_;
+        angle = parseAngle(angle_);
+        headAngle_ = angle - bodyDir_;
+        if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
+            headAngle_ = headAngle_ - 360;
+        } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
+            headAngle_ = 360 + headAngle_;
+        }
+        if (headAngle_ > 0) {
 
-        plus /= maxVitality_;
-
-        static float angle;
-        if (plus) {
-            if (plus > ANGLE_PLUS_THRESHOLD3) {
-                plus = ANGLE_PLUS_THRESHOLD3;
-            } else if (plus < -ANGLE_PLUS_THRESHOLD3) {
-                plus = -ANGLE_PLUS_THRESHOLD3;
-            }
-
-            angle_ = parseAngle2(angle_ + plus);
-
-            // cout << angle_;
-            angle = parseAngle(angle_);
-            headAngle_ = angle - bodyDir_;
-            if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
-                headAngle_ = headAngle_ - 360;
-            } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
-                headAngle_ = 360 + headAngle_;
-            }
-            if (headAngle_ > 0) {
-
-                if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
-                    angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
-                    stuckRight_ = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
-                    if (stuckRight_ > MAX_VOL) {
-                        stuckRight_ = MAX_VOL;
-                    }
-                    pain_ += stuckRight_;
-                } else {
-                    stuckRight_ = 0;
+            if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
+                angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
+                stuckRight_ = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
+                if (stuckRight_ > MAX_VOL) {
+                    stuckRight_ = MAX_VOL;
                 }
-                stuckLeft_ = 0;
-            } else if (headAngle_ < 0) {
-                if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
-                    angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
-                    stuckLeft_ = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
-                    if (stuckLeft_ > MAX_VOL) {
-                        stuckLeft_ = MAX_VOL;
-                    }
-                    pain_ += stuckLeft_;
-                } else {
-                    stuckLeft_ = 0;
-                }
-                stuckRight_ = 0;
+                pain_ += stuckRight_;
             } else {
                 stuckRight_ = 0;
+            }
+            stuckLeft_ = 0;
+        } else if (headAngle_ < 0) {
+            if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
+                angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
+                stuckLeft_ = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
+                if (stuckLeft_ > MAX_VOL) {
+                    stuckLeft_ = MAX_VOL;
+                }
+                pain_ += stuckLeft_;
+            } else {
                 stuckLeft_ = 0;
             }
-
-            // cout << "\t" << angle_ << endl;
-
-            plus = ((hisAngle_ > 0 && headAngle_ > 0) || (hisAngle_ < 0 && headAngle_ < 0)
-                        ? hisAngle_ - headAngle_
-                        : hisAngle_ + headAngle_) *
-                   100;
-
-            if (plus) {
-                if (plus > 0) {
-                    if (plus > MAX_VOL) {
-                        plus = MAX_VOL;
-                    }
-                    turnRight_ = plus;
-                    turnLeft_ = 0;
-                } else {
-                    if (plus < -MAX_VOL) {
-                        plus = -MAX_VOL;
-                    }
-                    turnLeft_ = -plus;
-                    turnRight_ = 0;
-                }
-            } else {
-                turnRight_ = 0;
-                turnLeft_ = 0;
-            }
-
-            radian_ = angle_ * PI / 180.0f;
-
-            direction_.y += cos(radian_) * headTexture_.getSize().y;
-            direction_.x -= sin(radian_) * headTexture_.getSize().y;
-
-            static double directionSize;
-            directionSize = length(direction_);
-            direction_.x /= directionSize;
-            direction_.y /= directionSize;
-
-            hisAngle_ = headAngle_;
-
-            // printf("angle_: %f\n", angle_);
+            stuckRight_ = 0;
         } else {
             stuckRight_ = 0;
             stuckLeft_ = 0;
-            turnRight_ = 0;
-            turnLeft_ = 0;
-
-            angle = parseAngle(angle_);
-            headAngle_ = angle - bodyDir_;
-            if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
-                headAngle_ = headAngle_ - 360;
-            } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
-                headAngle_ = 360 + headAngle_;
-            }
         }
 
-        static float headAngle;
-        if (headAngle_ > 0) {
-            headAngle = 1 + headAngle_;
-            leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
-            rightVitality_ = max(rightVitality_ - (rightVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
-        } else if (headAngle_ < 0) {
-            headAngle = 1 - headAngle_;
-            leftVitality_ = max(leftVitality_ - (leftVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
-            rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
-        }
+        // cout << "\t" << angle_ << endl;
 
-        if (leftVitality_) {
-            pain_ += abs(leftVitality_) * vitalityPain_;
-        }
-        if (rightVitality_) {
-            pain_ += abs(rightVitality_) * vitalityPain_;
-        }
+        plus = ((hisAngle_ > 0 && headAngle_ > 0) || (hisAngle_ < 0 && headAngle_ < 0)
+                    ? hisAngle_ - headAngle_
+                    : hisAngle_ + headAngle_) *
+               100;
 
-        if (speed_) {
-            if (speedVitality_) {
-                speedVitality_ = max(speedVitality_ - speedVitality_ * speed_ / vitalityStepCnt_, minVitality_);
+        if (plus) {
+            if (plus > 0) {
+                if (plus > MAX_VOL) {
+                    plus = MAX_VOL;
+                }
+                turnRight_ = plus;
+                turnLeft_ = 0;
+            } else {
+                if (plus < -MAX_VOL) {
+                    plus = -MAX_VOL;
+                }
+                turnLeft_ = -plus;
+                turnRight_ = 0;
             }
         } else {
-            speedVitality_ = min(speedVitality_ + (maxVitality_ - speedVitality_) / vitalityStepCnt_, maxVitality_);
+            turnRight_ = 0;
+            turnLeft_ = 0;
         }
 
-        if (speedVitality_ == maxVitality_) {
-            pain_ += vitalityPain_;
+        radian_ = angle_ * PI / 180.0f;
+
+        direction_.y += cos(radian_) * headTexture_.getSize().y;
+        direction_.x -= sin(radian_) * headTexture_.getSize().y;
+
+        static double directionSize;
+        directionSize = length(direction_);
+        direction_.x /= directionSize;
+        direction_.y /= directionSize;
+
+        hisAngle_ = headAngle_;
+
+        // printf("angle_: %f\n", angle_);
+    } else {
+        stuckRight_ = 0;
+        stuckLeft_ = 0;
+        turnRight_ = 0;
+        turnLeft_ = 0;
+
+        angle = parseAngle(angle_);
+        headAngle_ = angle - bodyDir_;
+        if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
+            headAngle_ = headAngle_ - 360;
+        } else if (headAngle_ < -ANGLE_PLUS_THRESHOLD) {
+            headAngle_ = 360 + headAngle_;
         }
+    }
+
+    static float headAngle;
+    if (headAngle_ > 0) {
+        headAngle = 1 + headAngle_;
+        leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
+        rightVitality_ = max(rightVitality_ - (rightVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
+    } else if (headAngle_ < 0) {
+        headAngle = 1 - headAngle_;
+        leftVitality_ = max(leftVitality_ - (leftVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
+        rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
+    }
+
+    if (leftVitality_) {
+        pain_ += abs(leftVitality_) * vitalityPain_;
+    }
+    if (rightVitality_) {
+        pain_ += abs(rightVitality_) * vitalityPain_;
+    }
+
+    if (speed_) {
+        if (speedVitality_) {
+            speedVitality_ = max(speedVitality_ - speedVitality_ * speed_ / vitalityStepCnt_, minVitality_);
+        }
+    } else {
+        speedVitality_ = min(speedVitality_ + (maxVitality_ - speedVitality_) / vitalityStepCnt_, maxVitality_);
+    }
+
+    if (speedVitality_ == maxVitality_) {
+        pain_ += vitalityPain_;
     }
 
     Direction dir = direction_;
@@ -709,24 +711,17 @@ void Snake::reset() {
     delight_ = 0;
     pain_ = 0;
 
-    for (int i = 0, j; i < FILL_CNT; i++) {
+    for (int i = 0; i < OUT_CNT; i++) {
         out_[i] = 0;
-        out_[j = i + FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-
-        out_[j += VISION_LEN] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j += FILL_CNT] = 0;
-        out_[j + FILL_CNT] = 0;
     }
 }
 
 void Snake::render(sf::RenderWindow &window) {
+
+    if (*deathFlag_) {
+        return;
+    }
+
     pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
 
     static short heaelthTick = Game::cfg.healthTick;
