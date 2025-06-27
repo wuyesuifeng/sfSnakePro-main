@@ -82,6 +82,10 @@ Snake::Snake()
 
     speedVitality_ = maxVitality_;
 
+    speedVitalityDiff_ = Game::cfg.speedVitalityDiff;
+
+    speedVitalityMax_ = maxVitality_ - speedVitalityDiff_;
+
     initNodes();
 
     nodeShape_.setFillColor(sf::Color(0xf1c40fff));
@@ -391,14 +395,14 @@ void Snake::update(sf::Time delta) {
 
     if (speed_) {
         if (speedVitality_) {
-            speedVitality_ = max(speedVitality_ - speedVitality_ * speed_ / vitalityStepCnt_, minVitality_);
+            speedVitality_ = max(speedVitality_ - speedVitality_ * speed_ / vitalityStepCnt_, 0.0f);
         }
     } else {
         speedVitality_ = min(speedVitality_ + (maxVitality_ - speedVitality_) / vitalityStepCnt_, maxVitality_);
     }
 
-    if (speedVitality_ == maxVitality_) {
-        pain_ += vitalityPain_;
+    if (speedVitality_ > speedVitalityMax_) {
+        pain_ += vitalityPain_ * (speedVitality_ - speedVitalityMax_) / speedVitalityDiff_;
     }
 
     Direction dir = direction_;
@@ -476,9 +480,8 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         // pickupSound_.play();
         grow(toRemove->score_);
         fruits.erase(toRemove);
-        delight_ += Game::cfg.eatDelight;
-        speedVitality_ = maxVitality_;
-        stuckLeft_ = stuckRight_ = headAngle_ = 0;
+        delight_ = Game::cfg.eatDelight;
+        leftVitality_ = rightVitality_ = stuckLeft_ = stuckRight_ = headAngle_ = 0;
 
         static long long maxHealth = 100 * Game::cfg.heath;
 

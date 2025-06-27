@@ -90,7 +90,7 @@ namespace sfSnake {
             short int speed_;
 
             float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
-                stuckLeft_, stuckRight_, leftVitality_, rightVitality_, speedVitality_;
+                stuckLeft_, stuckRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
 
             unsigned int shareIndex_;
 

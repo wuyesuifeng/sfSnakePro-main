@@ -102,6 +102,9 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "waitTime") {
                 utils::trim(ret[1]);
                 cfg.waitTime = stoi(ret[1]);
+            } else if (ret[0] == "speedVitalityDiff") {
+                utils::trim(ret[1]);
+                cfg.speedVitalityDiff = stof(ret[1]);
             }
         }
         ifs.close();
