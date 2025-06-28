@@ -373,15 +373,15 @@ void Snake::update(sf::Time delta) {
         }
     }
 
-    static float headAngle;
-    if (headAngle_ > 0) {
-        headAngle = 1 + headAngle_;
-        leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
-        rightVitality_ = max(rightVitality_ - (rightVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
-    } else if (headAngle_ < 0) {
-        headAngle = 1 - headAngle_;
-        leftVitality_ = max(leftVitality_ - (leftVitality_ - minVitality_) / vitalityStepCnt_ * headAngle, minVitality_);
-        rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_ * headAngle, maxVitality_);
+    if (turnRight_) {
+        leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_, maxVitality_);
+        rightVitality_ = max(rightVitality_ - turnRight_, minVitality_);
+    } else if (turnLeft_) {
+        leftVitality_ = max(leftVitality_ - turnLeft_, minVitality_);
+        rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_, maxVitality_);
+    } else {
+        rightVitality_ = min(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_, maxVitality_);
+        leftVitality_ = min(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_, maxVitality_);
     }
 
     if (leftVitality_) {
