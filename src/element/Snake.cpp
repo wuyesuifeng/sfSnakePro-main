@@ -12,8 +12,8 @@
 #include "utils/Time.hpp"
 
 #define ANGLE_PLUS_THRESHOLD 180
-#define ANGLE_PLUS_THRESHOLD2 60
-#define ANGLE_PLUS_THRESHOLD3 120
+#define ANGLE_PLUS_THRESHOLD2 80
+#define ANGLE_PLUS_THRESHOLD3 160
 #define max std::max
 #define min std::min
 #define CUL_VISION_INDEX(x, y) x *VISION_Y_SUM + y
@@ -484,7 +484,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
             speedVitality_ = speedVitalityMax_;
         }
 
-        static long long maxHealth = 100 * Game::cfg.heath;
+        static long long maxHealth = 10 * Game::cfg.heath;
 
         if (death_) {
             if (health_ < maxHealth) {
