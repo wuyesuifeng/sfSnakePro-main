@@ -5,6 +5,9 @@
 #include "def.h"
 
 namespace utils {
+    struct io_section {
+        unsigned int index, cnt;
+    };
     struct config_data {
         TYPE_VOL maxVitality, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
@@ -12,6 +15,8 @@ namespace utils {
         unsigned int visionFruitPos, visionBodyPos, waitTime;
         int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
         char *gamePath;
+        io_section *sectionArr;
+        unsigned int sectionArrLen;
         float heath;
         bool death;
     };

@@ -1,8 +1,8 @@
 #pragma once
 
 #define FILL_CNT 100
-#define WRITE_LEN 3802
-#define OUT_CNT 3800
+#define WRITE_LEN 3402
+#define OUT_CNT 3400
 #define VISION_LEN 2400
 #define READ_LEN 301
 #define TYPE_VITALITY float

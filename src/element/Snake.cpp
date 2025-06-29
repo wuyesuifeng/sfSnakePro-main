@@ -782,6 +782,8 @@ void Snake::render(sf::RenderWindow &window) {
     // }
     out_tmp[shareIndex_] = pain_;
     out_tmp += FILL_CNT;
+    out_tmp[shareIndex_] = stuckRight_;
+    out_tmp += FILL_CNT;
     static TYPE_VOL headAngle;
     headAngle = headAngle_ * maxVitality_;
     static TYPE_VOL angleTmp;
@@ -794,12 +796,6 @@ void Snake::render(sf::RenderWindow &window) {
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = turnRight_;
     }
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = stuckRight_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = rightVitality_ - minVitality_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = speedVitality_;
     out_tmp += FILL_CNT;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
@@ -855,12 +851,6 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     out_tmp += visionBodyPos_;
-    out_tmp[shareIndex_] = speedVitality_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = leftVitality_ - minVitality_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = stuckLeft_;
-    out_tmp += FILL_CNT;
     turnLeft_ *= maxVitality_;
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = turnLeft_;
@@ -870,6 +860,8 @@ void Snake::render(sf::RenderWindow &window) {
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = angleTmp;
     }
+    out_tmp += FILL_CNT;
+    out_tmp[shareIndex_] = stuckLeft_;
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = pain_;
     out_tmp += FILL_CNT;
