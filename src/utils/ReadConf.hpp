@@ -12,7 +12,7 @@ namespace utils {
         unsigned int visionFruitPos, visionBodyPos, waitTime;
         int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
         char *gamePath;
-        long heath;
+        float heath;
         bool death;
     };
 

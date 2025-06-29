@@ -82,6 +82,8 @@ Snake::Snake()
 
     speedVitalityDiff_ = Game::cfg.speedVitalityDiff;
 
+    healthVal_ = Game::cfg.heath;
+
     speedVitality_ = speedVitalityMax_ = maxVitality_ - speedVitalityDiff_;
 
     initNodes();
@@ -484,17 +486,14 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
             speedVitality_ = speedVitalityMax_;
         }
 
-        static long long maxHealth = 10 * Game::cfg.heath;
-
         if (death_) {
+            static float maxHealth = min(5.0 * healthVal_, MAX_VITALITY);
             if (health_ < maxHealth) {
-                health_ += Game::cfg.heath;
+                health_ += healthVal_;
             }
         } else {
-            health_ = Game::cfg.heath;
+            health_ = healthVal_;
         }
-    } else if (death_) {
-        health_--;
     }
 }
 
@@ -784,13 +783,14 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp[shareIndex_] = pain_;
     out_tmp += FILL_CNT;
     static TYPE_VOL headAngle;
-    headAngle = headAngle_;
+    headAngle = headAngle_ * maxVitality_;
     static TYPE_VOL angleTmp;
     angleTmp = headAngle_ > 0 ? headAngle : 0;
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = angleTmp;
     }
     out_tmp += FILL_CNT;
+    turnRight_ *= maxVitality_;
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = turnRight_;
     }
@@ -861,6 +861,7 @@ void Snake::render(sf::RenderWindow &window) {
     out_tmp += FILL_CNT;
     out_tmp[shareIndex_] = stuckLeft_;
     out_tmp += FILL_CNT;
+    turnLeft_ *= maxVitality_;
     for (x = 0; x < FILL_CNT; x++) {
         out_tmp[x] = turnLeft_;
     }
