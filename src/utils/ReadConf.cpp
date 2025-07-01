@@ -15,7 +15,8 @@
 
 using namespace std;
 
-void setSections(utils::config_data &cfg, string &input_section, string &input_section_dict) {
+unsigned int setSections(utils::config_data &cfg, string &input_section, string &input_section_dict, utils::io_section **sectionArrPtr, unsigned int &sectionArrLen) {
+    unsigned int count = 0;
     vector<string> ret, ret2, ret3;
     utils::split(input_section, ",", &ret);
     int len = ret.size();
@@ -23,25 +24,31 @@ void setSections(utils::config_data &cfg, string &input_section, string &input_s
     if (len != ret3.size()) {
         throw "Count of input_section failed to compare count of input_section_dict";
     }
-    cfg.sectionArrLen = len;
+    sectionArrLen = len;
     utils::io_section *sectionArr = (utils::io_section *)malloc(sizeof(utils::io_section) * len);
-    cfg.sectionArr = sectionArr;
+    *sectionArrPtr = sectionArr;
     string name;
-    for (unsigned int i = 0, j; i < len; i++) {
+    for (unsigned int i = 0, j, startIndex, cnt; i < len; i++) {
         name = ret3[i];
-        for (j = 0; j < len; j++) {
+        for (j = 0, startIndex = 0; j < len; j++) {
             utils::io_section &section = sectionArr[j];
             input_section = ret[j];
             ret2.clear();
             utils::trim(input_section);
             utils::split(input_section, " ", &ret2);
-
-            if (ret2.size() && name == ret2[0]) {
-                section.cnt = stoi(ret2[2]);
-                section.index = j;
+            if (ret2.size()) {
+                if (name == ret2[0]) {
+                    count += section.cnt = stoi(ret2[1]);
+                    section.startIndex = startIndex;
+                    break;
+                } else {
+                    cnt = stoi(ret2[1]);
+                }
+                startIndex += cnt;
             }
         }
     }
+    return count;
 }
 
 utils::ReadConf::ReadConf() {
@@ -55,7 +62,7 @@ utils::ReadConf::ReadConf() {
 
     if (ifs.is_open()) {
         string buff;
-        string input_section, input_section_dict;
+        string input_section, input_section_dict, output_section, output_section_dict;
         while (getline(ifs, buff)) {
             vector<string> ret;
             utils::split(buff, "=", &ret);
@@ -141,15 +148,28 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "input_section_dict") {
                 utils::trim(ret[1]);
                 input_section_dict = ret[1];
+            } else if (ret[0] == "output_section") {
+                utils::trim(ret[1]);
+                output_section = ret[1];
+            } else if (ret[0] == "output_section_dict") {
+                utils::trim(ret[1]);
+                output_section_dict = ret[1];
             }
         }
         ifs.close();
 
         if (!input_section.empty() && !input_section_dict.empty()) {
-            setSections(cfg, input_section, input_section_dict);
+            cfg.outputCnt = setSections(cfg, input_section, input_section_dict, &cfg.outputSectionArr, cfg.outputSectionArrLen);
         } else {
-            cfg.sectionArr = nullptr;
+            cfg.outputSectionArr = nullptr;
         }
+
+        if (!output_section.empty() && !output_section_dict.empty()) {
+            cfg.inputCnt = setSections(cfg, output_section, output_section_dict, &cfg.inputSectionArr, cfg.inputSectionArrLen);
+        } else {
+            cfg.inputSectionArr = nullptr;
+        }
+
         cout << "debug here" << endl;
         // memcpy(resChar, res.c_str(), res.length());
     } else {
@@ -158,8 +178,11 @@ utils::ReadConf::ReadConf() {
 }
 
 utils::ReadConf::~ReadConf() {
-    if (cfg.sectionArr) {
-        free(cfg.sectionArr);
+    if (cfg.inputSectionArr) {
+        free(cfg.inputSectionArr);
+    }
+    if (cfg.outputSectionArr) {
+        free(cfg.outputSectionArr);
     }
 }
 

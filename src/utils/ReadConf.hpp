@@ -6,18 +6,18 @@
 
 namespace utils {
     struct io_section {
-        unsigned int index, cnt;
+        unsigned int cnt, startIndex;
     };
     struct config_data {
         TYPE_VOL maxVitality, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
             visionFruitVol, speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
-        unsigned int visionFruitPos, visionBodyPos, waitTime;
+        unsigned int visionFruitPos, visionBodyPos, waitTime, inputCnt, outputCnt;
+        unsigned int inputSectionArrLen, outputSectionArrLen;
         int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
-        char *gamePath;
-        io_section *sectionArr;
-        unsigned int sectionArrLen;
         float heath;
+        char *gamePath;
+        io_section *inputSectionArr, *outputSectionArr;
         bool death;
     };
 
