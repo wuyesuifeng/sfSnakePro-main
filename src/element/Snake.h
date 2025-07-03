@@ -18,15 +18,6 @@
 #define VISION_CHECK_COLOR 0xee60ec99
 #define VISION_HARM_COLOR 0xf0321d99
 
-#define ADD_SHARE_INDEX(index, fillCount) \
-    do {                                  \
-        if (index < fillCount) {          \
-            index++;                      \
-        } else {                          \
-            index = 0;                    \
-        }                                 \
-    } while (0)
-
 namespace sfSnake {
     typedef sf::Vector2f Direction;
     typedef sf::Vector2f SnakePathNode;
@@ -80,7 +71,6 @@ namespace sfSnake {
             float health_, healthVal_;
             TYPE_VOL *deathFlag_;
 
-            unsigned int visionBodyPos_, visionFruitPos_;
             TYPE_VITALITY maxVitality_, minVitality_, vitalityStepCnt_, vitalityPain_, vitalityPain2_;
             bool death_;
 
@@ -91,8 +81,6 @@ namespace sfSnake {
 
             float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
                 stuckLeft_, stuckRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
-
-            unsigned int shareIndex_;
 
             Direction direction_;
             float nodeRadius_;

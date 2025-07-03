@@ -9,11 +9,15 @@
 #define READ_SIZE sizeof(TYPE_VOL) * READ_LEN
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
+#define READ_EXT_CNT 1
+#define WRITE_EXT_CNT 2
 
 using namespace utils;
 
-ShareMemory::ShareMemory(char *xyExecFile) {
+ShareMemory::ShareMemory(char *xyExecFile, unsigned int readCnt, unsigned int writeCnt) {
     int writeKey, readKey;
+    size_t readSize = (readCnt + READ_EXT_CNT) * sizeof(TYPE_VOL),
+           writeSize = (writeCnt + WRITE_EXT_CNT) * sizeof(TYPE_VOL);
 
     char *tmp = NULL;
     tmp = getcwd(NULL, 0);
@@ -56,7 +60,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
             NULL,                 // 默认安全级别
             PAGE_READWRITE,       // 可读可写
             0,                    // 高位文件大小
-            WRITE_SIZE,           // 低位文件大小
+            writeSize,           // 低位文件大小
             me_path               // 共享内存名称
         );
         if (GetLastError()) {
@@ -75,7 +79,7 @@ ShareMemory::ShareMemory(char *xyExecFile) {
             NULL,                 // 默认安全级别
             PAGE_READWRITE,       // 可读可写
             0,                    // 高位文件大小
-            READ_SIZE,            // 低位文件大小
+            readSize,            // 低位文件大小
             xyExecFile            // 共享内存名称
         );
         if (GetLastError()) {
@@ -180,6 +184,6 @@ ShareMemory::~ShareMemory() {
     }
 }
 
-TYPE_VOL *ShareMemory::getReadPos() { return readPos + 1; }
+TYPE_VOL *ShareMemory::getReadPos() { return readPos + READ_EXT_CNT; }
 
-TYPE_VOL *ShareMemory::getWritePos() { return writePos + 2; }
+TYPE_VOL *ShareMemory::getWritePos() { return writePos + WRITE_EXT_CNT; }

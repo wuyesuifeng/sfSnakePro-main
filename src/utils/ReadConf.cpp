@@ -38,7 +38,7 @@ unsigned int setSections(utils::config_data &cfg, string &input_section, string 
             utils::split(input_section, " ", &ret2);
             if (ret2.size()) {
                 if (name == ret2[0]) {
-                    count += section.cnt = stoi(ret2[1]);
+                    section.endIndex = count += stoi(ret2[1]);
                     section.startIndex = startIndex;
                     break;
                 } else {
@@ -91,12 +91,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "initialSize") {
                 utils::trim(ret[1]);
                 cfg.initialSize = stoi(ret[1]);
-            } else if (ret[0] == "visionFruitPos") {
-                utils::trim(ret[1]);
-                cfg.visionFruitPos = stoi(ret[1]);
-            } else if (ret[0] == "visionBodyPos") {
-                utils::trim(ret[1]);
-                cfg.visionBodyPos = stoi(ret[1]);
             } else if (ret[0] == "visionXSum") {
                 utils::trim(ret[1]);
                 cfg.visionXSum = stoi(ret[1]);
@@ -170,7 +164,7 @@ utils::ReadConf::ReadConf() {
             cfg.inputSectionArr = nullptr;
         }
 
-        cout << "debug here" << endl;
+        // cout << "debug here" << endl;
         // memcpy(resChar, res.c_str(), res.length());
     } else {
         throw "open conf failed";

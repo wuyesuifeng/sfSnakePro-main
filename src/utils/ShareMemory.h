@@ -16,17 +16,13 @@
 namespace utils {
     class ShareMemory {
         public:
-            ShareMemory(char *xyExecFile);
+            ShareMemory(char *xyExecFile, unsigned int readCnt, unsigned int writeCnt);
             ~ShareMemory();
             TYPE_VOL* getReadPos();
             TYPE_VOL* getWritePos();
         private:
             TYPE_VOL *writePos = nullptr;
             TYPE_VOL *readPos = nullptr;
-            int readSize;
-            int writeSize;
-            int visionFruitPos;
-            int visionBodyPos;
 #ifdef _WIN32
             HANDLE read;
             HANDLE write;

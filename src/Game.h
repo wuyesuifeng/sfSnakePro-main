@@ -70,6 +70,8 @@ namespace sfSnake
 
         static utils::ShareMemory share;
         static utils::config_data cfg;
+        
+        utils::ReadConf read;
 
     private:
         sf::RenderWindow window_;

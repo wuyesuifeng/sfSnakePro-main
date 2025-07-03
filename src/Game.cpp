@@ -11,13 +11,13 @@
 using namespace sfSnake;
 
 inline utils::config_data initCfg() {
-    utils::ReadConf read;
+    static utils::ReadConf read;
     return read.getCfg();
 }
 
 inline utils::ShareMemory initShare() {
     char *path = Game::cfg.gamePath;
-    utils::ShareMemory shareTmp = utils::ShareMemory(path);
+    utils::ShareMemory shareTmp = utils::ShareMemory(path, Game::cfg.inputCnt, Game::cfg.outputCnt);
     free(path);
     return shareTmp;
 }

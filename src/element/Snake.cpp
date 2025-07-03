@@ -38,7 +38,6 @@ float culAngle(sf::Vector2f recDirection) {
 Snake::Snake()
     : vision_((vision *)malloc(sizeof(vision) * Game::cfg.visionXSum * Game::cfg.visionYSum)),
       hitSelf_(false),
-      shareIndex_(0),
       pain_(0),
       delight_(0),
       turnLeft_(0),
@@ -65,10 +64,6 @@ Snake::Snake()
     health_ = Game::cfg.heath;
 
     death_ = Game::cfg.death;
-
-    visionBodyPos_ = Game::cfg.visionBodyPos;
-
-    visionFruitPos_ = Game::cfg.visionFruitPos;
 
     maxVitality_ = Game::cfg.maxVitality;
 
@@ -221,35 +216,41 @@ float parseAngle2(float angle) {
 
 void Snake::update(sf::Time delta) {
 
-    static long long sleeping;
-    static unsigned int waitTime = Game::cfg.waitTime;
+    // static long long sleeping;
+    // static unsigned int waitTime = Game::cfg.waitTime;
 
-    if (*deathFlag_ || (sleeping && utils::timestamp() - sleeping < waitTime)) {
+    // if (*deathFlag_ || (sleeping && utils::timestamp() - sleeping < waitTime)) {
+    //     return;
+    // }
+
+    if (*deathFlag_) {
         return;
     }
 
-    static TYPE_VOL *leftPtr,
-        *runPtr = in_ + INPUT_CNT_LEFT,
-        *rightPtr = runPtr + INPUT_CNT_RUN,
-        *endPtr = rightPtr + INPUT_CNT_RIGHT;
-    leftPtr = in_;
+    static utils::io_section *section = Game::cfg.inputSectionArr;
+    static TYPE_VOL *inputPtr,
+        *leftPtrEnd = in_ + section[0].endIndex,
+        *runPtrEnd = in_ + section[1].endIndex,
+        *rightPtrEnd = in_ + section[2].endIndex;
 
     static UPPER_TYPE_VOL plusTmp, speedTmp, plus;
     plus = 0;
 
     plusTmp = 0;
+    inputPtr = in_ + section[0].startIndex;
     do {
-        plusTmp += *leftPtr;
-        leftPtr++;
-    } while (leftPtr != runPtr);
+        plusTmp += *inputPtr;
+        inputPtr++;
+    } while (inputPtr != leftPtrEnd);
 
     plus = -plusTmp * (leftVitality_ + maxVitality_);
 
     speedTmp = 0;
+    inputPtr = in_ + section[1].startIndex;
     do {
-        speedTmp += *leftPtr;
-        leftPtr++;
-    } while (leftPtr != rightPtr);
+        speedTmp += *inputPtr;
+        inputPtr++;
+    } while (inputPtr != runPtrEnd);
 
     speedTmp *= speedVitality_ / maxVitality_;
 
@@ -258,18 +259,19 @@ void Snake::update(sf::Time delta) {
     }
 
     plusTmp = 0;
+    inputPtr = in_ + section[2].startIndex;
     do {
-        plusTmp += *leftPtr;
-        leftPtr++;
-    } while (leftPtr != endPtr);
+        plusTmp += *inputPtr;
+        inputPtr++;
+    } while (inputPtr != rightPtrEnd);
 
     plus += plusTmp * (rightVitality_ + maxVitality_);
 
-    if (!plus && !speedTmp) {
-        sleeping = utils::timestamp();
-        return;
-    }
-    sleeping = 0;
+    // if (!plus && !speedTmp) {
+    //     sleeping = utils::timestamp();
+    //     return;
+    // }
+    // sleeping = 0;
 
     plus /= maxVitality_;
 
@@ -725,7 +727,7 @@ void Snake::reset() {
     snakeLen_ = 10 * Game::cfg.initialSize;
     health_ = Game::cfg.heath;
     speedVitality_ = speedVitalityMax_;
-    leftVitality_ = rightVitality_ = shareIndex_ = shareIndex_ = speed_ = delight_ = pain_ = stuckLeft_ = stuckRight_ = headAngle_ = turnRight_ = turnLeft_ = 0;
+    leftVitality_ = rightVitality_ = speed_ = delight_ = pain_ = stuckLeft_ = stuckRight_ = headAngle_ = turnRight_ = turnLeft_ = 0;
     angle_ = hisAngle_ = bodyDir_ = 180;
     radian_ = angle_ * PI / 180.0f;
     direction_ = Direction(0, -1);
@@ -733,7 +735,7 @@ void Snake::reset() {
     initNodes();
     hitSelf_ = false;
 
-    for (int i = 0; i < OUT_CNT; i++) {
+    for (int i = 0; i < Game::cfg.outputCnt; i++) {
         out_[i] = 0;
     }
 }
@@ -744,7 +746,7 @@ void Snake::render(sf::RenderWindow &window) {
         return;
     }
 
-    pain_ = max(min(pain_, MAX_VOL), MIN_VOL);
+    pain_ = max(min(pain_, MAX_ENC), MIN_ENC);
 
     static short heaelthTick = Game::cfg.healthTick;
     if (death_) {
@@ -760,43 +762,65 @@ void Snake::render(sf::RenderWindow &window) {
         return;
     }
 
-    static int count, j, x, y;
+    static int count, i, j, x, y;
     j = 7;
+
+    static utils::io_section *outSectionArr = Game::cfg.outputSectionArr,
+                             outSection;
+    static TYPE_VOL headAngle, angleTmp;
+
+    outSection = outSectionArr[0]; // LTurn
+    turnLeft_ *= maxVitality_;
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = turnLeft_;
+    }
+
+    outSection = outSectionArr[1]; // LAngle
+    headAngle = headAngle_ * maxVitality_;
+    angleTmp = headAngle_ < 0 ? min(-headAngle, MAX_VOL) : 0;
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = angleTmp;
+    }
+
+    outSection = outSectionArr[2]; // LStuck
+    stuckLeft_ = min(stuckLeft_ * maxVitality_, MAX_VOL);
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = stuckLeft_;
+    }
+
+    outSection = outSectionArr[4]; // pain
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = pain_;
+    }
+
+    outSection = outSectionArr[5]; // RStuck
+    stuckRight_ = min(stuckRight_ * maxVitality_, MAX_VOL);
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = stuckRight_;
+    }
+
+    outSection = outSectionArr[6]; // RAngle
+    angleTmp = headAngle_ > 0 ? min(headAngle, MAX_VOL) : 0;
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = angleTmp;
+    }
+
+    outSection = outSectionArr[7]; // RTurn
+    turnRight_ *= maxVitality_;
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = turnRight_;
+    }
+
+    outSection = outSectionArr[9]; // delight
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = delight_;
+    }
 
     static TYPE_VOL *out_tmp;
     out_tmp = out_;
 
-    static unsigned int fillCount = FILL_CNT - 1;
-
-    // 将数据长度、存活状态、分数、窗口尺寸输出到共享内存中
-    delight_ = max(min(delight_, MAX_VOL), MIN_VOL);
-    // if (delight_ != hisDelight_) {
-    //     delightIndex_ = 0;
-    //     hisDelight_ = delight_;
-    // }
-    out_tmp[shareIndex_] = delight_;
-    out_tmp += FILL_CNT;
-    // if (pain_ != hisPain_) {
-    //     painIndex_ = 0;
-    //     hisPain_ = pain_;
-    // }
-    out_tmp[shareIndex_] = pain_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = stuckRight_;
-    out_tmp += FILL_CNT;
-    static TYPE_VOL headAngle;
-    headAngle = headAngle_ * maxVitality_;
-    static TYPE_VOL angleTmp;
-    angleTmp = headAngle_ > 0 ? headAngle : 0;
-    for (x = 0; x < FILL_CNT; x++) {
-        out_tmp[x] = angleTmp;
-    }
-    out_tmp += FILL_CNT;
-    turnRight_ *= maxVitality_;
-    for (x = 0; x < FILL_CNT; x++) {
-        out_tmp[x] = turnRight_;
-    }
-    out_tmp += FILL_CNT;
+    static unsigned int selfVIndex = outSectionArr[3].startIndex,
+                        fruitVIndex = outSectionArr[8].startIndex;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     static float angle;
@@ -824,49 +848,21 @@ void Snake::render(sf::RenderWindow &window) {
             TYPE_VOL *val;
             switch (v.color) {
             case VISION_HARM_COLOR:
-                val = out_tmp + visionBodyPos_;
+                val = out_tmp + selfVIndex;
                 *val = vision_body_vol;
-                val = out_tmp + visionFruitPos_;
-                *val = 0;
-                val = out_tmp;
+                val = out_tmp + fruitVIndex;
                 *val = 0;
                 break;
             case VISION_CHECK_COLOR:
-                val = out_tmp + visionFruitPos_;
+                val = out_tmp + fruitVIndex;
                 *val = vision_fruit_vol;
-                val = out_tmp + visionBodyPos_;
-                *val = 0;
-                val = out_tmp;
+                val = out_tmp + selfVIndex;
                 *val = 0;
                 break;
-            default:
-                val = out_tmp;
-                *val = vision_blank_vol;
-                val = out_tmp + visionFruitPos_;
-                *val = 0;
-                val = out_tmp + visionBodyPos_;
-                *val = 0;
             }
         }
     }
 
-    out_tmp += visionBodyPos_;
-    turnLeft_ *= maxVitality_;
-    for (x = 0; x < FILL_CNT; x++) {
-        out_tmp[x] = turnLeft_;
-    }
-    out_tmp += FILL_CNT;
-    angleTmp = headAngle_ < 0 ? -headAngle : 0;
-    for (x = 0; x < FILL_CNT; x++) {
-        out_tmp[x] = angleTmp;
-    }
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = stuckLeft_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = pain_;
-    out_tmp += FILL_CNT;
-    out_tmp[shareIndex_] = delight_;
-    pain_ = 0;
     if (delight_ > 0) {
         delight_ = max(delight_ - Game::cfg.delightConsum, 0.0);
     }
@@ -891,8 +887,6 @@ void Snake::render(sf::RenderWindow &window) {
             renderNode(lastMiddleNode, nodeMiddle_, window, 0);
         }
     }
-
-    ADD_SHARE_INDEX(shareIndex_, fillCount);
 
     speed_ = 0;
 }
