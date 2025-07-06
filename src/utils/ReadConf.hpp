@@ -10,10 +10,11 @@ namespace utils {
     };
     struct config_data {
         TYPE_VOL maxVitality, vitalityStepCnt,
-            eatDelight, bitePain, vitalityPain, visionBlankVol, visionBodyVol,
-            visionFruitVol, speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
+            eatDelight, bitePain, vitalityPain,
+            visionBlankVol[3], visionBodyVol[3], visionFruitVol[3],
+            speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
         unsigned int waitTime, inputCnt, outputCnt;
-        unsigned int inputSectionArrLen, outputSectionArrLen;
+        unsigned int inputSectionArrLen, outputSectionArrLen, visionIndexes[3];
         int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
         float heath;
         char *gamePath;

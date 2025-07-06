@@ -30,6 +30,15 @@ unsigned int setSections(utils::config_data &cfg, string &input_section, string 
     string name;
     for (unsigned int i = 0, j, startIndex, cnt; i < len; i++) {
         name = ret3[i];
+
+        if (name == "Vision1") {
+            cfg.visionIndexes[0] = i;
+        } else if (name == "Vision2") {
+            cfg.visionIndexes[1] = i;
+        } else if (name == "Vision3") {
+            cfg.visionIndexes[2] = i;
+        }
+        
         for (j = 0, startIndex = 0; j < len; j++) {
             utils::io_section &section = sectionArr[j];
             input_section = ret[j];
@@ -99,13 +108,28 @@ utils::ReadConf::ReadConf() {
                 cfg.visionYSum = stoi(ret[1]);
             } else if (ret[0] == "visionBlankVol") {
                 utils::trim(ret[1]);
-                cfg.visionBlankVol = STO_FUNC_VOL(ret[1]);
+                buff = ret[1];
+                ret.clear();
+                utils::split(buff, ",", &ret);
+                cfg.visionBlankVol[0] = STO_FUNC_VOL(ret[0]);
+                cfg.visionBlankVol[1] = STO_FUNC_VOL(ret[1]);
+                cfg.visionBlankVol[2] = STO_FUNC_VOL(ret[2]);
             } else if (ret[0] == "visionBodyVol") {
                 utils::trim(ret[1]);
-                cfg.visionBodyVol = STO_FUNC_VOL(ret[1]);
+                buff = ret[1];
+                ret.clear();
+                utils::split(buff, ",", &ret);
+                cfg.visionBodyVol[0] = STO_FUNC_VOL(ret[0]);
+                cfg.visionBodyVol[1] = STO_FUNC_VOL(ret[1]);
+                cfg.visionBodyVol[2] = STO_FUNC_VOL(ret[2]);
             } else if (ret[0] == "visionFruitVol") {
                 utils::trim(ret[1]);
-                cfg.visionFruitVol = STO_FUNC_VOL(ret[1]);
+                buff = ret[1];
+                ret.clear();
+                utils::split(buff, ",", &ret);
+                cfg.visionFruitVol[0] = STO_FUNC_VOL(ret[0]);
+                cfg.visionFruitVol[1] = STO_FUNC_VOL(ret[1]);
+                cfg.visionFruitVol[2] = STO_FUNC_VOL(ret[2]);
             } else if (ret[0] == "speedLevel1") {
                 utils::trim(ret[1]);
                 cfg.speedLevel1 = STO_FUNC_VOL(ret[1]);

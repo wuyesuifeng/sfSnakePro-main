@@ -11,8 +11,6 @@
 #include "utils/Threads.hpp"
 
 #define PI 3.14159265358979323846f
-#define VISION_X_SUM Game::cfg.visionXSum
-#define VISION_Y_SUM Game::cfg.visionYSum
 #define VISION_PIXEL_WIDTH 10.0f
 #define VISION_DEF_COLOR 0x55c40f99
 #define VISION_CHECK_COLOR 0xee60ec99

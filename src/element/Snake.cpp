@@ -20,11 +20,9 @@
 
 using namespace sfSnake;
 
-static float VISION_X_HALF,
-    VISION_HALF_WIDTH,
-    VISION_HALF_WIDTH2;
+static int VISION_X_SUM, VISION_Y_SUM;
+static float VISION_X_HALF, VISION_HALF_WIDTH, VISION_HALF_WIDTH2;
 
-static TYPE_VOL speed_level1, speed_level2, vision_blank_vol, vision_fruit_vol, vision_body_vol;
 // static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
 
 float culAngle(sf::Vector2f recDirection) {
@@ -99,15 +97,6 @@ Snake::Snake()
 
     setOriginMiddle(headSprite_);
 
-    VISION_X_HALF = VISION_X_SUM / 2;
-    VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF;
-    VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
-    speed_level1 = Game::cfg.speedLevel1;
-    speed_level2 = Game::cfg.speedLevel2;
-    vision_blank_vol = Game::cfg.visionBlankVol;
-    vision_fruit_vol = Game::cfg.visionFruitVol;
-    vision_body_vol = Game::cfg.visionBodyVol;
-
     // pickupBuffer_.loadFromFile("assets/sounds/pickup.wav");
     // pickupSound_.setBuffer(pickupBuffer_);
     // pickupSound_.setVolume(30);
@@ -121,6 +110,12 @@ Snake::Snake()
     out_ = Game::share.getWritePos();
 
     deathFlag_ = out_ - 1;
+
+    VISION_X_SUM = Game::cfg.visionXSum;
+    VISION_Y_SUM = Game::cfg.visionYSum;
+    VISION_X_HALF = VISION_X_SUM / 2;
+    VISION_HALF_WIDTH = VISION_PIXEL_WIDTH * VISION_X_HALF;
+    VISION_HALF_WIDTH2 = VISION_HALF_WIDTH - VISION_PIXEL_WIDTH;
 }
 
 Snake::~Snake() {
@@ -253,6 +248,9 @@ void Snake::update(sf::Time delta) {
     } while (inputPtr != runPtrEnd);
 
     speedTmp *= speedVitality_ / maxVitality_;
+
+    static TYPE_VOL speed_level1 = Game::cfg.speedLevel1,
+                    speed_level2 = Game::cfg.speedLevel2;
 
     if (speedTmp > speed_level1) {
         speed_ += speedTmp > speed_level2 ? 2 : 1;
@@ -486,15 +484,6 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         leftVitality_ = rightVitality_ = stuckLeft_ = stuckRight_ = headAngle_ = 0;
         if (speedVitality_ > speedVitalityMax_) {
             speedVitality_ = speedVitalityMax_;
-        }
-
-        if (death_) {
-            static float maxHealth = min(5.0 * healthVal_, MAX_VITALITY);
-            if (health_ < maxHealth) {
-                health_ += healthVal_;
-            }
-        } else {
-            health_ = healthVal_;
         }
     }
 }
@@ -748,9 +737,13 @@ void Snake::render(sf::RenderWindow &window) {
 
     pain_ = max(min(pain_, MAX_ENC), MIN_ENC);
 
-    static short heaelthTick = Game::cfg.healthTick;
+    static int heaelthTick = Game::cfg.healthTick;
     if (death_) {
-        health_ -= pain_ + heaelthTick;
+        static float maxHealth = min(5.0 * healthVal_, MAX_VITALITY);
+        health_ -= pain_ + heaelthTick - delight_;
+        if (health_ > maxHealth) {
+            health_ = maxHealth;
+        }
     }
 
     if (health_ <= 0) {
@@ -788,39 +781,30 @@ void Snake::render(sf::RenderWindow &window) {
         out_[i] = stuckLeft_;
     }
 
-    outSection = outSectionArr[4]; // pain
-    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
-        out_[i] = pain_;
-    }
-
-    outSection = outSectionArr[5]; // RStuck
+    outSection = outSectionArr[4]; // RStuck
     stuckRight_ = min(stuckRight_ * maxVitality_, MAX_VOL);
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = stuckRight_;
     }
 
-    outSection = outSectionArr[6]; // RAngle
+    outSection = outSectionArr[5]; // RAngle
     angleTmp = headAngle_ > 0 ? min(headAngle, MAX_VOL) : 0;
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = angleTmp;
     }
 
-    outSection = outSectionArr[7]; // RTurn
+    outSection = outSectionArr[6]; // RTurn
     turnRight_ *= maxVitality_;
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = turnRight_;
     }
 
-    outSection = outSectionArr[9]; // delight
-    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
-        out_[i] = delight_;
-    }
-
     static TYPE_VOL *out_tmp;
     out_tmp = out_;
 
-    static unsigned int selfVIndex = outSectionArr[3].startIndex,
-                        fruitVIndex = outSectionArr[8].startIndex;
+    static unsigned int vision1Index = outSectionArr[Game::cfg.visionIndexes[0]].startIndex,
+                        vision2Index = outSectionArr[Game::cfg.visionIndexes[1]].startIndex,
+                        vision3Index = outSectionArr[Game::cfg.visionIndexes[2]].startIndex;
 
     static SnakePathNode lastSnakeNode, lastMiddleNode, nowSnakeNode;
     static float angle;
@@ -837,6 +821,11 @@ void Snake::render(sf::RenderWindow &window) {
     shape = sf::RectangleShape();
     shape.setSize(sf::Vector2f(VISION_PIXEL_WIDTH, VISION_PIXEL_WIDTH));
     shape.setRotation(angle);
+
+    static TYPE_VOL *vision_blank_vol = Game::cfg.visionBlankVol,
+                    *vision_fruit_vol = Game::cfg.visionFruitVol,
+                    *vision_body_vol = Game::cfg.visionBodyVol;
+
     static vision v;
     for (x = 0; x < VISION_X_SUM; x++) {
         for (y = 0; y < VISION_Y_SUM; y++, out_tmp++) {
@@ -845,20 +834,21 @@ void Snake::render(sf::RenderWindow &window) {
             shape.setPosition(v.pos);
             window.draw(shape);
 
-            TYPE_VOL *val;
             switch (v.color) {
             case VISION_HARM_COLOR:
-                val = out_tmp + selfVIndex;
-                *val = vision_body_vol;
-                val = out_tmp + fruitVIndex;
-                *val = 0;
+                *(out_tmp + vision1Index) = vision_body_vol[0];
+                *(out_tmp + vision2Index) = vision_body_vol[1];
+                *(out_tmp + vision3Index) = vision_body_vol[2];
                 break;
             case VISION_CHECK_COLOR:
-                val = out_tmp + fruitVIndex;
-                *val = vision_fruit_vol;
-                val = out_tmp + selfVIndex;
-                *val = 0;
+                *(out_tmp + vision1Index) = vision_fruit_vol[0];
+                *(out_tmp + vision2Index) = vision_fruit_vol[1];
+                *(out_tmp + vision3Index) = vision_fruit_vol[2];
                 break;
+            default:
+                *(out_tmp + vision1Index) = vision_blank_vol[0];
+                *(out_tmp + vision2Index) = vision_blank_vol[1];
+                *(out_tmp + vision3Index) = vision_blank_vol[2];
             }
         }
     }
