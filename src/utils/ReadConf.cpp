@@ -38,7 +38,7 @@ unsigned int setSections(utils::config_data &cfg, string &input_section, string 
         } else if (name == "Vision3") {
             cfg.visionIndexes[2] = i;
         }
-        
+
         for (j = 0, startIndex = 0; j < len; j++) {
             utils::io_section &section = sectionArr[j];
             input_section = ret[j];
@@ -100,12 +100,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "initialSize") {
                 utils::trim(ret[1]);
                 cfg.initialSize = stoi(ret[1]);
-            } else if (ret[0] == "visionXSum") {
-                utils::trim(ret[1]);
-                cfg.visionXSum = stoi(ret[1]);
-            } else if (ret[0] == "visionYSum") {
-                utils::trim(ret[1]);
-                cfg.visionYSum = stoi(ret[1]);
             } else if (ret[0] == "visionBlankVol") {
                 utils::trim(ret[1]);
                 buff = ret[1];
@@ -172,6 +166,12 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "output_section_dict") {
                 utils::trim(ret[1]);
                 output_section_dict = ret[1];
+            } else if (ret[0] == "visionAngle") {
+                utils::trim(ret[1]);
+                cfg.visionAngle = stof(ret[1]);
+            } else if (ret[0] == "visionDistance") {
+                utils::trim(ret[1]);
+                cfg.visionDistance = stof(ret[1]);
             }
         }
         ifs.close();

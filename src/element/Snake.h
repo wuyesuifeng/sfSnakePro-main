@@ -20,85 +20,99 @@ namespace sfSnake {
     typedef sf::Vector2f Direction;
     typedef sf::Vector2f SnakePathNode;
 
-    struct vision {
-        sf::Vector2f pos;
+    struct el_diff_range {
+        float minAngle, maxAngle;
+    };
+
+    struct el_triangle {
+        sf::ConvexShape triangle;
+        double distance;
         sf::Uint32 color;
     };
 
     class Snake {
-        public:
-         Snake();
+    public:
+        Snake();
 
-         ~Snake();
+        ~Snake();
 
-         void handleInput(sf::RenderWindow &window);
-         void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
-         void update(sf::Time delta);
-         void render(sf::RenderWindow &window);
+        void handleInput(sf::RenderWindow &window);
+        void handleInput(sf::Vector2i mousePosition, sf::RenderWindow &window);
+        void update(sf::Time delta);
+        void render(sf::RenderWindow &window);
 
-         void reset();
+        void reset();
 
-         void checkFruitCollisions(std::deque<Fruit> &fruits);
+        void checkFruitCollisions(std::deque<Fruit> &fruits);
 
-         bool hitSelf() const;
+        bool hitSelf() const;
 
-         unsigned getScore() const;
+        unsigned getScore() const;
 
-         void printhead() const;
+        void printhead() const;
 
-         void grow(int score);
+        void grow(int score);
 
-        private:
-            utils::Threads threads_;
-            void initNodes();
-            void move(SnakePathNode headNode);
+    private:
+        utils::Threads threads_;
+        void initNodes();
+        void move(SnakePathNode headNode);
 
-            void checkOutOfWindow();
-            void checkSelfCollisions(SnakePathNode head);
-            void look(SnakePathNode head);
+        void checkOutOfWindow();
+        void checkSelfCollisions(SnakePathNode head);
+        void look(SnakePathNode head);
 
-            template <typename T>
-            void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
-                            int offset);
+        template <typename T>
+        void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
+                        int offset);
 
-            bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
+        bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
 
-            bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian,
-                          float sin, float cos, int num, sf::Vector2f head);
+        bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian, sf::Vector2f head);
 
-            float health_, healthVal_;
-            TYPE_VOL *deathFlag_;
+        float health_, healthVal_;
+        TYPE_VOL *deathFlag_;
 
-            TYPE_VITALITY maxVitality_, minVitality_, vitalityStepCnt_, vitalityPain_, vitalityPain2_;
-            bool death_;
+        unsigned int visionSum_, visionRangeSum_;
 
-            bool hitSelf_;
-            UPPER_TYPE_VOL pain_, delight_;
-            // bool speedup_;
-            short int speed_;
+        float visionAngle_, visionElAngle_, visionDistance_;
 
-            float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
-                stuckLeft_, stuckRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
+        TYPE_VITALITY maxVitality_, minVitality_, vitalityStepCnt_, vitalityPain_, vitalityPain2_;
 
-            Direction direction_;
-            float nodeRadius_;
-            std::deque<SnakePathNode> path_;
-            vision *vision_;
-            int tailOverlap_;
+        bool death_,
+            hitSelf_,
+            outOfBounds_,
+            visionSumOdd_;
 
-            sf::CircleShape nodeShape_;
-            sf::RectangleShape nodeMiddle_;
-            sf::Texture headTexture_;
-            sf::Sprite headSprite_;
-            int snakeLen_;
-            unsigned int score_;
+        UPPER_TYPE_VOL pain_, delight_;
+        // bool speedup_;
+        short int speed_;
 
-            sf::SoundBuffer pickupBuffer_;
-            sf::Sound pickupSound_;
+        float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
+            injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
 
-            sf::SoundBuffer dieBuffer_;
-            sf::Sound dieSound_;
+        Direction direction_;
+        float nodeRadius_, visionPadding_;
+        std::deque<SnakePathNode> path_;
+        el_diff_range *visionRange_, *visionRangeEnd_;
+        el_triangle *visionTriangle_, *visionTriangleEnd_;
+        float elAngleRange_;
+        sf::Vector2f center_, outCenter_;
+        int tailOverlap_;
 
-            TYPE_VOL *in_ = nullptr, *out_ = nullptr;
+        sf::CircleShape nodeShape_;
+        sf::RectangleShape nodeMiddle_;
+        sf::Texture headTexture_;
+        sf::Sprite headSprite_;
+        int snakeLen_;
+        unsigned int score_;
+
+        sf::SoundBuffer pickupBuffer_;
+        sf::Sound pickupSound_;
+
+        sf::SoundBuffer dieBuffer_;
+        sf::Sound dieSound_;
+
+        TYPE_VOL *in_ = nullptr, *out_ = nullptr;
     };
-}  // namespace sfSnake
+} // namespace sfSnake

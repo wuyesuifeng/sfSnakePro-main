@@ -1,6 +1,7 @@
 #pragma once
 
 #include <thread>
+#include <mutex>
 
 namespace utils {
     class Threads {
@@ -10,7 +11,9 @@ namespace utils {
             std::thread **threads;
             bool *threadsStatus;
             void join(int i);
+
         public:
+            std::mutex mtx;
             ~Threads();
             void init(int threadsCnt);
             void join();

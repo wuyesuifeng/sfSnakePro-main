@@ -15,8 +15,8 @@ namespace utils {
             speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
         unsigned int waitTime, inputCnt, outputCnt;
         unsigned int inputSectionArrLen, outputSectionArrLen, visionIndexes[3];
-        int initialSize, visionXSum, visionYSum, maxFruit, minFruit, healthTick;
-        float heath;
+        int initialSize, maxFruit, minFruit, healthTick;
+        float heath, visionAngle, visionDistance;
         char *gamePath;
         io_section *inputSectionArr, *outputSectionArr;
         bool death;
