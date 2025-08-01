@@ -25,6 +25,17 @@ using namespace sfSnake;
 
 // static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
 
+#define INIT_TRIANGLE(triangle, sinVal, cosVal, visionDistance_, visionPadding_) \
+    do {                                                                         \
+        triangle.setPointCount(4);                                               \
+        triangle.setPoint(0, sf::Vector2f(0, 0));                                \
+        triangle.setPoint(1, sf::Vector2f(sinVal, cosVal));                      \
+        triangle.setPoint(2, sf::Vector2f(0, visionDistance_));                  \
+        triangle.setPoint(3, sf::Vector2f(-sinVal, cosVal));                     \
+        triangle.setFillColor(sf::Color(VISION_DEF_COLOR));                      \
+        triangle.move(0, visionPadding_);                                        \
+    } while (0)
+
 float culAngle(sf::Vector2f recDirection) {
     float angle = std::acos(recDirection.y / length(recDirection)) / PI * 180.0;
     if (recDirection.x > 0)
@@ -68,64 +79,53 @@ Snake::Snake()
       score_(Game::cfg.initialSize) {
 
     visionRange_ = (el_diff_range *)malloc(sizeof(el_diff_range) * visionRangeSum_);
-    visionTriangle_ = (el_triangle *)malloc(sizeof(el_triangle) * visionSum_);
+    visionTriangle_ = new el_triangle[visionSum_];
 
     visionRangeEnd_ = visionRange_ + visionRangeSum_;
     visionTriangleEnd_ = visionTriangle_ + visionSum_;
+    visionTriangleLast_ = visionTriangleEnd_ - 1;
 
     elAngleRange_ = visionAngle_ / visionSum_;
 
     float halfElRange = elAngleRange_ / 2;
+    float sinVal = sin(halfElRange) * visionDistance_,
+          cosVal = cos(halfElRange) * visionDistance_;
 
-    sf::ConvexShape triangle;
-    triangle.setPointCount(4);
-    triangle.setPoint(0, sf::Vector2f(0, 0));
-    triangle.setPoint(2, sf::Vector2f(0, visionDistance_));
-    triangle.setFillColor(sf::Color(VISION_DEF_COLOR));
-    {
-        float sinVal = sin(halfElRange) * visionDistance_,
-              cosVal = cos(halfElRange) * visionDistance_;
-        triangle.setPoint(1, sf::Vector2f(sinVal, cosVal));
-        triangle.setPoint(3, sf::Vector2f(-sinVal, cosVal));
-    }
-    triangle.move(0, visionPadding_);
-
-    el_diff_range *visionRangeEnd = visionRange_;
-    el_triangle *visionTriangleEnd = visionTriangleEnd_,
+    el_triangle *visionTriangleLast = visionTriangleLast_,
                 *visionTriangleStart = visionTriangle_;
 
     float startRange = visionAngle_ / 2;
     if (visionSumOdd_) {
-        el_diff_range *visionRangeEnd = visionRangeEnd_ - 1;
-        while (visionRangeEnd < visionRangeEnd) {
-            visionRangeEnd->minAngle = startRange;
-            visionRangeEnd->maxAngle = startRange -= elAngleRange_;
-            visionRangeEnd++;
+        el_diff_range *visionRangeStart = visionRangeEnd_ - 1;
+        while (visionRangeStart < visionRangeEnd_) {
+            visionRangeStart->minAngle = startRange;
+            visionRangeStart->maxAngle = startRange -= elAngleRange_;
+            visionRangeStart++;
 
-            visionTriangleEnd->color = VISION_DEF_COLOR;
-            visionTriangleEnd->triangle = triangle;
-            visionTriangleEnd->triangle.rotate(startRange);
-            visionTriangleEnd--;
+            visionTriangleLast->color = VISION_DEF_COLOR;
+            INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance_, visionPadding_);
+            visionTriangleLast->triangle.rotate(startRange);
+            visionTriangleLast--;
             visionTriangleStart->color = VISION_DEF_COLOR;
-            visionTriangleStart->triangle = triangle;
+            INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance_, visionPadding_);
             visionTriangleStart->triangle.rotate(-startRange);
             visionTriangleStart++;
         }
-        startRange -= halfElRange;
-        visionRangeEnd->maxAngle = 1;
-        visionRangeEnd->minAngle = cos(startRange);
+        visionRangeStart->maxAngle = halfElRange;
+        visionRangeStart->minAngle = 0;
+        INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance_, visionPadding_);
     } else {
-        while (visionRangeEnd != visionRangeEnd_) {
-            visionRangeEnd->minAngle = startRange;
-            visionRangeEnd->maxAngle = startRange -= elAngleRange_;
-            visionRangeEnd++;
+        el_diff_range *visionRangeStart = visionRange_;
+        while (visionRangeStart != visionRangeEnd_) {
+            visionRangeStart->minAngle = startRange;
+            visionRangeStart->maxAngle = startRange -= elAngleRange_;
+            visionRangeStart++;
 
-            visionTriangleEnd->color = VISION_DEF_COLOR;
-            visionTriangleEnd->triangle = triangle;
-            visionTriangleEnd->triangle.rotate(startRange);
-            visionTriangleEnd--;
+            visionTriangleLast->color = VISION_DEF_COLOR;
+            INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance_, visionPadding_);
+            visionTriangleLast--;
             visionTriangleStart->color = VISION_DEF_COLOR;
-            visionTriangleStart->triangle = triangle;
+            INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance_, visionPadding_);
             visionTriangleStart->triangle.rotate(-startRange);
             visionTriangleStart++;
         }
@@ -192,7 +192,7 @@ Snake::~Snake() {
         free(visionRange_);
     }
     if (visionTriangle_) {
-        free(visionTriangle_);
+        delete[] visionTriangle_;
     }
 }
 
@@ -520,39 +520,46 @@ void Snake::look(SnakePathNode head) {
     }
 }
 
-#define COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd, mtx, visionTriangleStart, visionTriangleEnd, onRight, color) \
-    do {                                                                                                                          \
-        while (visionRange <= visionRangeEnd) {                                                                                   \
-            if (angleDis <= visionRange->maxAngle || angleDis >= visionRange->minAngle) {                                         \
-                if (onRight) {                                                                                                    \
-                    mtx.lock();                                                                                                   \
-                    if (visionTriangleEnd->distance > len) {                                                                      \
-                        visionTriangleEnd->distance = len;                                                                        \
-                        visionTriangleEnd->color = color;                                                                         \
-                    }                                                                                                             \
-                } else {                                                                                                          \
-                    mtx.lock();                                                                                                   \
-                    if (visionTriangleStart->distance > len) {                                                                    \
-                        visionTriangleStart->distance = len;                                                                      \
-                        visionTriangleStart->color = color;                                                                       \
-                    }                                                                                                             \
-                }                                                                                                                 \
-                mtx.unlock();                                                                                                     \
-                break;                                                                                                            \
-            }                                                                                                                     \
-            visionRange++;                                                                                                        \
-            visionTriangleStart++;                                                                                                \
-            visionTriangleEnd--;                                                                                                  \
-        }                                                                                                                         \
+#define CHANGE_DISTANCE(visionTrianglePtr, mtx, len, color) \
+    do {                                                    \
+        mtx.lock();                                         \
+        if (visionTrianglePtr->distance > len) {            \
+            visionTrianglePtr->distance = len;              \
+            mtx.unlock();                                   \
+            visionTrianglePtr->color = color;               \
+        } else {                                            \
+            mtx.unlock();                                   \
+        }                                                   \
     } while (0)
 
-void checkVision(sf::Vector2f *pos, float angle, float radius, el_diff_range *visionRange, sf::Vector2f *center,
+#define DO_COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd, mtx, visionTrianglePtr, color, code) \
+    do {                                                                                                     \
+        while (visionRange < visionRangeEnd) {                                                               \
+            if (angleDis <= visionRange->maxAngle || angleDis >= visionRange->minAngle) {                    \
+                CHANGE_DISTANCE(visionTrianglePtr, mtx, len, color);                                         \
+                break;                                                                                       \
+            }                                                                                                \
+            visionRange++;                                                                                   \
+            code;                                                                                            \
+        }                                                                                                    \
+    } while (0)
+
+#define COMPARE_DISTANCE(onRight, angleDis, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color)        \
+    do {                                                                                                                                      \
+        if (onRight) {                                                                                                                        \
+            DO_COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd, threads->mtx, visionTriangleLast, color, visionTriangleLast--);   \
+        } else {                                                                                                                              \
+            DO_COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd, threads->mtx, visionTriangleStart, color, visionTriangleStart++); \
+        }                                                                                                                                     \
+    } while (0)
+
+void checkVision(sf::Vector2f pos, float angle, float radius, el_diff_range *visionRange, sf::Vector2f *center,
                  bool outOfBounds, float visionDistance, el_diff_range *visionRangeEnd, sf::Vector2f *outCenter,
-                 utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleEnd, sf::Uint32 color) {
+                 utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleLast, sf::Uint32 color) {
 
-    float len = dis(*pos, *center);
+    float len = dis(pos, *center);
 
-    float angleDis = culAngle(*pos) - angle;
+    float angleDis = culAngle(pos) - angle;
 
     bool onRight = angleDis > 0;
 
@@ -562,18 +569,15 @@ void checkVision(sf::Vector2f *pos, float angle, float radius, el_diff_range *vi
 
     if (outOfBounds) {
         if (len < visionDistance) {
-            COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd,
-                             threads->mtx, visionTriangleStart, visionTriangleEnd, onRight, color);
+            COMPARE_DISTANCE(onRight, angleDis, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
         } else {
-            len = dis(*pos, *outCenter);
+            len = dis(pos, *outCenter);
             if (len < visionDistance) {
-                COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd,
-                                 threads->mtx, visionTriangleStart, visionTriangleEnd, onRight, color);
+                COMPARE_DISTANCE(onRight, angleDis, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
             }
         }
     } else if (len < visionDistance) {
-        COMPARE_DISTANCE(angleDis, len, visionRange, visionRangeEnd,
-                         threads->mtx, visionTriangleStart, visionTriangleEnd, onRight, color);
+        COMPARE_DISTANCE(onRight, angleDis, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
     }
 }
 
@@ -583,16 +587,14 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
 
     static float fruitRadius = fruits.begin()->shape_.getRadius();
 
-    static sf::Vector2f *pos;
-    el_diff_range *visionStart;
     for (auto i = fruits.begin(); i != fruits.end(); ++i) {
 
-        *pos = i->shape_.getPosition();
+        const sf::Vector2f &pos = i->shape_.getPosition();
 
         utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, &center_, outOfBounds_, visionDistance_,
-                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_CHECK_COLOR);
+                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
-        if (dis(*pos, headnode) <
+        if (dis(pos, headnode) <
             nodeRadius_ + i->shape_.getRadius()) {
             toRemove = i;
         }
@@ -664,8 +666,8 @@ void Snake::checkSelfCollisions(SnakePathNode head) {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
 
-        utils::addThread(threads_, checkVision, i, angle_, 10, visionRange_, &center_, outOfBounds_, visionDistance_,
-                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_CHECK_COLOR);
+        utils::addThread(threads_, checkVision, *i, angle_, 10.f, visionRange_, &center_, outOfBounds_, visionDistance_,
+                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
         if (speed_ && dis2(head, *i) < culSelfCollisionDis(nodeRadius_)) {
             // dieSound_.stop();
@@ -904,7 +906,7 @@ void Snake::render(sf::RenderWindow &window) {
 
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
         visionStart->triangle.setPosition(center_);
-        visionStart->triangle.setRotation(angle_);
+        visionStart->triangle.rotate(angle_);
         window.draw(visionStart->triangle);
         if (outOfBounds_) {
             visionStart->triangle.setPosition(outCenter_);

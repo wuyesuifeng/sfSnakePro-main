@@ -24,10 +24,11 @@ namespace sfSnake {
         float minAngle, maxAngle;
     };
 
-    struct el_triangle {
-        sf::ConvexShape triangle;
-        double distance;
-        sf::Uint32 color;
+    class el_triangle {
+        public:
+            sf::ConvexShape triangle;
+            double distance;
+            sf::Uint32 color;
     };
 
     class Snake {
@@ -95,7 +96,7 @@ namespace sfSnake {
         float nodeRadius_, visionPadding_;
         std::deque<SnakePathNode> path_;
         el_diff_range *visionRange_, *visionRangeEnd_;
-        el_triangle *visionTriangle_, *visionTriangleEnd_;
+        el_triangle *visionTriangle_, *visionTriangleEnd_, *visionTriangleLast_;
         float elAngleRange_;
         sf::Vector2f center_, outCenter_;
         int tailOverlap_;
