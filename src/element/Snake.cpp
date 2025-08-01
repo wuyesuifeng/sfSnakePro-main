@@ -65,8 +65,8 @@ Snake::Snake()
       leftVitality_(0),
       rightVitality_(0),
       speed_(0),
-      direction_(Direction(0, -1)),
-      angle_(180),
+      direction_(Direction(0, 1)),
+      angle_(0),
       hisAngle_(angle_),
       bodyDir_(angle_),
       headAngle_(0),
@@ -798,9 +798,9 @@ void Snake::reset() {
     health_ = Game::cfg.heath;
     speedVitality_ = speedVitalityMax_;
     leftVitality_ = rightVitality_ = speed_ = delight_ = pain_ = injureLeft_ = injureRight_ = headAngle_ = turnRight_ = turnLeft_ = 0;
-    angle_ = hisAngle_ = bodyDir_ = 180;
+    angle_ = hisAngle_ = bodyDir_ = 0;
     radian_ = angle_ * PI / 180.0f;
-    direction_ = Direction(0, -1);
+    direction_ = Direction(0, 1);
     path_.clear();
     initNodes();
     hitSelf_ = false;
@@ -900,13 +900,12 @@ void Snake::render(sf::RenderWindow &window) {
                     *vision_fruit_vol = Game::cfg.visionFruitVol,
                     *vision_body_vol = Game::cfg.visionBodyVol;
 
-    static el_triangle *visionStart = visionTriangle_;
+    static el_triangle *visionStart;
+    visionStart = visionTriangle_;
     while (visionStart < visionTriangleEnd_) {
-        visionStart->distance = MAX_DISTANCE;
-
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
         visionStart->triangle.setPosition(center_);
-        visionStart->triangle.rotate(angle_);
+        visionStart->triangle.setRotation(angle_);
         window.draw(visionStart->triangle);
         if (outOfBounds_) {
             visionStart->triangle.setPosition(outCenter_);
@@ -931,6 +930,7 @@ void Snake::render(sf::RenderWindow &window) {
         }
 
         visionStart->color = VISION_DEF_COLOR;
+        visionStart->distance = MAX_DISTANCE;
 
         out_tmp++;
         visionStart++;
