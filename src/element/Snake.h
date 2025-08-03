@@ -61,7 +61,7 @@ namespace sfSnake {
 
         void checkOutOfWindow();
         void checkSelfCollisions(SnakePathNode head);
-        void look(SnakePathNode head);
+        void look(SnakePathNode head, Direction dir);
 
         template <typename T>
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
@@ -89,11 +89,11 @@ namespace sfSnake {
         // bool speedup_;
         short int speed_;
 
-        float angle_, hisAngle_, bodyDir_, headAngle_, radian_, turnLeft_, turnRight_,
+        float angle_, angleHis_, bodyDir_, headAngle_, headAngleHis_, radian_, turnLeft_, turnRight_,
             injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
 
         Direction direction_;
-        float nodeRadius_, visionPadding_;
+        float nodeRadius_;
         std::deque<SnakePathNode> path_;
         el_diff_range *visionRange_, *visionRangeEnd_;
         el_triangle *visionTriangle_, *visionTriangleEnd_, *visionTriangleLast_;

@@ -18,6 +18,7 @@ namespace utils {
         int initialSize, maxFruit, minFruit, healthTick;
         float heath, visionAngle, visionDistance;
         char *gamePath;
+        unsigned char threadsCnt;
         io_section *inputSectionArr, *outputSectionArr;
         bool death;
     };
