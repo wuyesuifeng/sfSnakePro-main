@@ -61,12 +61,11 @@ const sf::Color Game::Color::Fruit[] =
  * 并且在界面初始化时定位组件
  */
 
-sf::VideoMode Game::initVideoMode_()
-{
+sf::VideoMode Game::initVideoMode_() {
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
     return sf::VideoMode(
-        1920,
-        1080,
+        Game::cfg.windowSize,
+        Game::cfg.windowSize,
         desktopMode.bitsPerPixel);
 }
 
@@ -117,12 +116,13 @@ bool Game::keyboardLocked = false;
 bool Game::ifShowedHelp = false;
 
 Game::Game()
-    : TimePerFrame_(sf::seconds(1.f / 100.f))
-{
+    : TimePerFrame_(sf::seconds(1.f / 100.f)) {
+
     window_.create(
         GlobalVideoMode,   // videoMode
         "sfSnakePro",      // window name
         sf::Style::Close); // window Style
+
     sf::Image icon;
     icon.loadFromFile("assets/image/favicon.png");
     window_.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
@@ -133,12 +133,10 @@ Game::Game()
     // bgMusic_.play();
 }
 
-void Game::handleInput()
-{
+void Game::handleInput() {
     static sf::Event event;
 
-    while (window_.pollEvent(event))
-    {
+    while (window_.pollEvent(event)) {
         if (event.type == sf::Event::Closed)
             window_.close();
     }
@@ -148,26 +146,23 @@ void Game::handleInput()
             sf::Vector2f(0, 0),
             sf::Vector2f(
                 Game::GlobalVideoMode.width,
-                Game::GlobalVideoMode.height)
-            ).contains(static_cast<sf::Vector2f>(
+                Game::GlobalVideoMode.height))
+            .contains(static_cast<sf::Vector2f>(
                 sf::Mouse::getPosition(window_))))
         Game::MainScreen->handleInput(window_);
 }
 
-void Game::update(sf::Time delta)
-{
+void Game::update(sf::Time delta) {
     Game::MainScreen->update(delta);
 }
 
-void Game::render()
-{
+void Game::render() {
     window_.clear(Color::Background[BackgroundColor]);
     Game::MainScreen->render(window_);
     window_.display();
 }
 
-void Game::run()
-{
+void Game::run() {
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     mouseButtonClock.restart();
@@ -176,13 +171,11 @@ void Game::run()
     Game::mouseButtonLocked = true;
     Game::mouseButtonCDtime = sf::Time::Zero;
 
-    while (window_.isOpen())
-    {
+    while (window_.isOpen()) {
         sf::Time delta = clock.restart();
         timeSinceLastUpdate += delta;
 
-        while (timeSinceLastUpdate > TimePerFrame_)
-        {
+        while (timeSinceLastUpdate > TimePerFrame_) {
             timeSinceLastUpdate -= TimePerFrame_;
             handleInput();
 
@@ -193,8 +186,7 @@ void Game::run()
         delta = mouseButtonClock.restart();
         mouseButtonCDtime += delta;
 
-        if (mouseButtonCDtime.asSeconds() > 0.5f)
-        {
+        if (mouseButtonCDtime.asSeconds() > 0.5f) {
             mouseButtonCDtime -= sf::seconds(0.5f);
             mouseButtonLocked = false;
         }
@@ -202,8 +194,7 @@ void Game::run()
         delta = keyboardClock.restart();
         keyboardCDtime += delta;
 
-        if (keyboardCDtime.asSeconds() > 0.5f)
-        {
+        if (keyboardCDtime.asSeconds() > 0.5f) {
             keyboardCDtime -= sf::seconds(0.5f);
             keyboardLocked = false;
         }

@@ -175,6 +175,9 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "threadsCnt") {
                 utils::trim(ret[1]);
                 cfg.threadsCnt = stoi(ret[1]);
+            } else if (ret[0] == "windowSize") {
+                utils::trim(ret[1]);
+                cfg.windowSize = stoi(ret[1]);
             }
         }
         ifs.close();

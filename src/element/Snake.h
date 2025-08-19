@@ -74,9 +74,9 @@ namespace sfSnake {
         float health_, healthVal_;
         TYPE_VOL *deathFlag_;
 
-        unsigned int visionSum_, visionRangeSum_;
+        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowRadius_;
 
-        float visionAngle_, visionElAngle_, visionDistance_;
+        float visionAngle_, halfVisionAngle_, visionElAngle_, visionDistance_;
 
         TYPE_VITALITY maxVitality_, minVitality_, vitalityStepCnt_, vitalityPain_, vitalityPain2_;
 
@@ -98,7 +98,7 @@ namespace sfSnake {
         el_diff_range *visionRange_, *visionRangeEnd_;
         el_triangle *visionTriangle_, *visionTriangleEnd_, *visionTriangleLast_;
         float elAngleRange_;
-        sf::Vector2f center_, outCenter_;
+        sf::Vector2f headPos_, headOutPos_, centerPos_;
         int tailOverlap_;
 
         sf::CircleShape nodeShape_;

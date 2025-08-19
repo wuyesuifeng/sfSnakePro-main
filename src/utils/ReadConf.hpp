@@ -13,7 +13,7 @@ namespace utils {
             eatDelight, bitePain, vitalityPain,
             visionBlankVol[3], visionBodyVol[3], visionFruitVol[3],
             speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
-        unsigned int waitTime, inputCnt, outputCnt;
+        unsigned int waitTime, inputCnt, outputCnt, windowSize;
         unsigned int inputSectionArrLen, outputSectionArrLen, visionIndexes[3];
         int initialSize, maxFruit, minFruit, healthTick;
         float heath, visionAngle, visionDistance;

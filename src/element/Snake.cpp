@@ -53,8 +53,13 @@ Snake::Snake()
       visionRangeEnd_(nullptr),
       visionTriangle_(nullptr),
       visionAngle_(STD_MIN(MAX_VISION_ANGLE, Game::cfg.visionAngle)),
+      halfVisionAngle_(visionAngle_ / 2),
       visionElAngle_(visionAngle_ / visionSum_),
       visionDistance_(Game::cfg.visionDistance),
+      windowSize_(Game::cfg.windowSize),
+      halfWindowSize_(windowSize_ / 2),
+      centerPos_(sf::Vector2f(halfWindowSize_, halfWindowSize_)),
+      windowRadius_(sqrt(pow(halfWindowSize_, 2) + pow(halfWindowSize_, 2))),
       hitSelf_(false),
       outOfBounds_(false),
       pain_(0),
@@ -99,7 +104,7 @@ Snake::Snake()
     el_triangle *visionTriangleLast = visionTriangleLast_,
                 *visionTriangleStart = visionTriangle_;
 
-    float startRange = visionAngle_ / 2;
+    float startRange = halfVisionAngle_;
     if (visionSumOdd_) {
         el_diff_range *visionRangeStart = visionRangeEnd_ - 1;
         while (visionRangeStart < visionRangeEnd_) {
@@ -203,12 +208,11 @@ Snake::~Snake() {
 }
 
 void Snake::initNodes() {
-    path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f,
-                                  Game::GlobalVideoMode.height / 2.0f));
+    path_.push_back(SnakePathNode(centerPos_.x, centerPos_.y));
     for (int i = 1; i <= snakeLen_; i++) {
-        path_.push_back(SnakePathNode(Game::GlobalVideoMode.width / 2.0f -
+        path_.push_back(SnakePathNode(centerPos_.x -
                                           direction_.x * i * nodeRadius_ / 5.0,
-                                      Game::GlobalVideoMode.height / 2.0f -
+                                      centerPos_.y -
                                           direction_.y * i * nodeRadius_ / 5.0));
     }
 }
@@ -527,23 +531,57 @@ float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 
 void Snake::look(SnakePathNode head, Direction dir) {
 
-    static float tanVal;
-    tanVal = abs(tan(radian_));
+    headPos_ = head;
 
-    center_ = sf::Vector2f(head.x, head.y);
+    static float len;
+    len = dis(centerPos_, head);
+
+    if (len + visionDistance_ > windowRadius_) {
+        static float angleA, anglePos;
+        angleA = acos(-(pow(len, 2) + pow(visionDistance_, 2) - pow(windowRadius_, 2)) / 2 / len / visionDistance_) * 180 / PI;
+        anglePos = culAngle(headPos_ - centerPos_);
+        // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
+        static float max[2], min[2];
+        static bool maxOutOfBound, minOutOfBound;
+        
+        *max = anglePos + angleA + halfVisionAngle_;
+        *min = anglePos - angleA - halfVisionAngle_;
+
+        if (*max > 180) {
+            max[1] = *max - 360;
+            *max = 180;
+            maxOutOfBound = true;
+        } else {
+            maxOutOfBound = false;
+        }
+
+        if (*min < -180) {
+            min[1] = 360 - *min;
+            *min = -180;
+            minOutOfBound = true;
+        } else {
+            minOutOfBound = false;
+        }
+
+        if ((angle_ < *max && angle_ > *min) ||
+            (maxOutOfBound && angle_ < max[1] && angle_ > -180) ||
+            (minOutOfBound && angle_ < 180 && angle_ > min[1])) {
+            std::cout << "" << std::endl;
+        }
+    }
 
     // static sf::Vector2f pos;
     // static float len, x, y;
     // len = sqrt(pow(dir.x, 2) + pow(dir.y, 2));
     // x = x / len * visionDistance_;
     // y = y / len * visionDistance_;
-    // pos = center_;
+    // pos = headPos_;
     // pos.y += y;
     // pos.x += x;
     // if (outOfBounds_ = toWindow(pos, dir, tanVal, head)) {
     //     pos.y -= y;
     //     pos.x -= x;
-    //     outCenter_ = pos;
+    //     headOutPos_ = pos;
     // }
 }
 
@@ -618,8 +656,8 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
 
         const sf::Vector2f &pos = i->shape_.getPosition();
 
-        utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, &center_, outOfBounds_, visionDistance_,
-                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+        utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, &headPos_, outOfBounds_, visionDistance_,
+                         visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
         if (dis(pos, headnode) <
             nodeRadius_ + i->shape_.getRadius()) {
@@ -693,8 +731,8 @@ void Snake::checkSelfCollisions(SnakePathNode head) {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
 
-        utils::addThread(threads_, checkVision, *i, angle_, 10.f, visionRange_, &center_, outOfBounds_, visionDistance_,
-                         visionRangeEnd_, &outCenter_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+        utils::addThread(threads_, checkVision, *i, angle_, 10.f, visionRange_, &headPos_, outOfBounds_, visionDistance_,
+                         visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
         if (speed_ && dis2(head, *i) < culSelfCollisionDis(nodeRadius_)) {
             // dieSound_.stop();
@@ -932,10 +970,10 @@ void Snake::render(sf::RenderWindow &window) {
     visionStart = visionTriangle_;
     while (visionStart < visionTriangleEnd_) {
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
-        visionStart->triangle.setPosition(center_);
+        visionStart->triangle.setPosition(headPos_);
         window.draw(visionStart->triangle);
         if (outOfBounds_) {
-            visionStart->triangle.setPosition(outCenter_);
+            visionStart->triangle.setPosition(headOutPos_);
             window.draw(visionStart->triangle);
         }
 
