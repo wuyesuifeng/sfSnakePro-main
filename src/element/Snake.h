@@ -54,14 +54,16 @@ namespace sfSnake {
 
         void grow(int score);
 
+        void setAngle();
+
     private:
         utils::Threads threads_;
         void initNodes();
         void move(SnakePathNode headNode);
 
         void checkOutOfWindow();
-        void checkSelfCollisions(SnakePathNode head);
-        void look(SnakePathNode head, Direction dir);
+        void checkSelfCollisions();
+        void look(float distance);
 
         template <typename T>
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
@@ -74,7 +76,7 @@ namespace sfSnake {
         float health_, healthVal_;
         TYPE_VOL *deathFlag_;
 
-        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowRadius_;
+        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowDiameter_, windowRadius_;
 
         float visionAngle_, halfVisionAngle_, visionElAngle_, visionDistance_;
 
@@ -83,22 +85,23 @@ namespace sfSnake {
         bool death_,
             hitSelf_,
             outOfBounds_,
+            visionOutOfBounds_,
             visionSumOdd_;
 
         UPPER_TYPE_VOL pain_, delight_;
         // bool speedup_;
         short int speed_;
 
-        float angle_, angleHis_, bodyDir_, headAngle_, headAngleHis_, radian_, turnLeft_, turnRight_,
-            injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_;
+        float angle_, angleABS_, angleHis_, bodyDir_, headAngle_, headAngleHis_, radian_, turnLeft_, turnRight_,
+            injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_, radianToAngle_;
 
         Direction direction_;
-        float nodeRadius_;
+        float nodeRadius_, nodeRadius2_;
         std::deque<SnakePathNode> path_;
         el_diff_range *visionRange_, *visionRangeEnd_;
         el_triangle *visionTriangle_, *visionTriangleEnd_, *visionTriangleLast_;
         float elAngleRange_;
-        sf::Vector2f headPos_, headOutPos_, centerPos_;
+        SnakePathNode *headPos_, headOutPos_, centerPos_;
         int tailOverlap_;
 
         sf::CircleShape nodeShape_;

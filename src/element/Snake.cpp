@@ -40,9 +40,28 @@ using namespace sfSnake;
 float culAngle(sf::Vector2f recDirection) {
     float angle = std::acos(recDirection.y / length(recDirection)) / PI * 180.0;
     if (recDirection.x > 0)
-        angle = -angle;
-
+        return -angle;
     return angle;
+}
+
+float culAngleABS(sf::Vector2f recDirection) {
+    return std::acos(recDirection.y / length(recDirection)) / PI * 180.0;
+}
+
+float culRadian(sf::Vector2f recDirection) {
+    float result = std::acos(recDirection.y / length(recDirection));
+    if (recDirection.x > 0)
+        return -result;
+    return result;
+}
+
+float culRadianABS(sf::Vector2f recDirection) {
+    return std::acos(recDirection.y / length(recDirection));
+}
+
+void Snake::setAngle() {
+    angleABS_ = culAngleABS(direction_);
+    angle_ = direction_.x > 0 ? -angleABS_ : angleABS_;
 }
 
 Snake::Snake()
@@ -59,9 +78,11 @@ Snake::Snake()
       windowSize_(Game::cfg.windowSize),
       halfWindowSize_(windowSize_ / 2),
       centerPos_(sf::Vector2f(halfWindowSize_, halfWindowSize_)),
-      windowRadius_(sqrt(pow(halfWindowSize_, 2) + pow(halfWindowSize_, 2))),
+      windowDiameter_(sqrt(pow(windowSize_, 2) + pow(windowSize_, 2))),
+      windowRadius_(windowDiameter_ / 2),
       hitSelf_(false),
       outOfBounds_(false),
+      visionOutOfBounds_(false),
       pain_(0),
       delight_(0),
       turnLeft_(0),
@@ -77,8 +98,10 @@ Snake::Snake()
       headAngleHis_(angle_),
       bodyDir_(angle_),
       headAngle_(0),
-      radian_(angle_ * PI / 180.0f),
+      radianToAngle_(180.f / PI),
+      radian_(angle_ / radianToAngle_),
       nodeRadius_(Game::GlobalVideoMode.width / 100.0f),
+      nodeRadius2_(nodeRadius_ / 5.f),
       tailOverlap_(0u),
       nodeShape_(nodeRadius_),
       nodeMiddle_(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
@@ -211,9 +234,9 @@ void Snake::initNodes() {
     path_.push_back(SnakePathNode(centerPos_.x, centerPos_.y));
     for (int i = 1; i <= snakeLen_; i++) {
         path_.push_back(SnakePathNode(centerPos_.x -
-                                          direction_.x * i * nodeRadius_ / 5.0,
+                                          direction_.x * i * nodeRadius2_,
                                       centerPos_.y -
-                                          direction_.y * i * nodeRadius_ / 5.0));
+                                          direction_.y * i * nodeRadius2_));
     }
 }
 
@@ -229,26 +252,26 @@ void Snake::handleInput(sf::RenderWindow &window) {
         sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         direction_ = Direction(0, -1);
 
-        angle_ = culAngle(direction_);
-        radian_ = angle_ * PI / 180.0f;
+        setAngle();
+        radian_ = angle_ / radianToAngle_;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         direction_ = Direction(0, 1);
 
-        angle_ = culAngle(direction_);
-        radian_ = angle_ * PI / 180.0f;
+        setAngle();
+        radian_ = angle_ / radianToAngle_;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
         direction_ = Direction(-1, 0);
 
-        angle_ = culAngle(direction_);
-        radian_ = angle_ * PI / 180.0f;
+        setAngle();
+        radian_ = angle_ / radianToAngle_;
     } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) ||
                sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         direction_ = Direction(1, 0);
 
-        angle_ = culAngle(direction_);
-        radian_ = angle_ * PI / 180.0f;
+        setAngle();
+        radian_ = angle_ / radianToAngle_;
     }
 
     if (!Game::mouseButtonLocked) {
@@ -257,8 +280,8 @@ void Snake::handleInput(sf::RenderWindow &window) {
             mousePosition = sf::Mouse::getPosition(window);
             handleInput(mousePosition, window);
 
-            angle_ = culAngle(direction_);
-            radian_ = angle_ * PI / 180.0f;
+            setAngle();
+            radian_ = angle_ / radianToAngle_;
         }
     }
 
@@ -430,7 +453,7 @@ void Snake::update(sf::Time delta) {
             turnLeft_ = 0;
         }
 
-        radian_ = angle_ * PI / 180.0f;
+        radian_ = angle_ / radianToAngle_;
 
         direction_.y += cos(radian_) * headTexture_.getSize().y;
         direction_.x -= sin(radian_) * headTexture_.getSize().y;
@@ -503,49 +526,82 @@ void Snake::update(sf::Time delta) {
         pain_ += vitalityPain_ * (speedVitality_ - speedVitalityMax_) / speedVitalityDiff_;
     }
 
-    Direction dir = direction_;
-    static short int speed, outOfWin;
-    speed = speed_ * 10;
-    dir.x *= speed;
-    dir.y *= speed;
-    static SnakePathNode headNode;
-    headNode = path_.front() + dir;
-    outOfWin = toWindow(headNode, dir, abs(tan(radian_)));
-    look(headNode, dir);
-    checkSelfCollisions(headNode);
-    if (hitSelf_ && outOfWin) {
-        look(path_.front(), direction_);
-        checkSelfCollisions(path_.front());
-        for (int i = 1; i <= speed_; i++) {
-            if (path_.size() > snakeLen_) {
-                path_.pop_back();
+    static float distance;
+
+    if (speed_) {
+
+        visionOutOfBounds_ = false;
+
+        static SnakePathNode headPos;
+        headPos = path_.front();
+        headPos = SnakePathNode(headPos.x + direction_.x * speed_ * nodeRadius2_,
+                                headPos.y + direction_.y * speed_ * nodeRadius2_);
+
+        headPos_ = &headPos;
+        distance = dis(centerPos_, headPos);
+
+        look(distance);
+        checkSelfCollisions();
+        if (hitSelf_ && distance > windowRadius_) {
+            headPos_ = &path_.front();
+            distance = dis(centerPos_, *headPos_);
+            look(distance);
+            for (int i = 1; i <= speed_; i++) {
+                if (path_.size() > snakeLen_) {
+                    path_.pop_back();
+                }
             }
+        } else {
+            move(path_.front());
+            headPos_ = &path_.front();
+            distance = dis(centerPos_, *headPos_);
+            if (distance > windowRadius_) {
+                if (!outOfBounds_) {
+                    outOfBounds_ = true;
+                    static float angleA, angleB, hypotenuse, posAngle;
+                    posAngle = culAngleABS(*headPos_ - centerPos_);
+                    angleA = abs(90.f - angleABS_);
+                    angleB = abs(angleA - abs(posAngle - 90.f));
+                    hypotenuse = cos(angleB / radianToAngle_) * windowDiameter_;
+                    angleA = angleA / radianToAngle_;
+
+                    if (angle_ < 0) {
+                        headPos_->x -= cos(angleA) * hypotenuse;
+                    } else if (angle_ > 0) {
+                        headPos_->x += cos(angleA) * hypotenuse;
+                    }
+                    if (angleABS_ > 90) {
+                        headPos_->y += sin(angleA) * hypotenuse;
+                    } else if (angleABS_ < 90) {
+                        headPos_->y -= sin(angleA) * hypotenuse;
+                    }
+                }
+            } else if (outOfBounds_) {
+                outOfBounds_ = false;
+            }
+            // toWindow(headPos_, dir, abs(tan(radian_)));
         }
     } else {
-        move(path_.front());
-        toWindow(path_.front(), dir, abs(tan(radian_)));
+        headPos_ = &path_.front();
+        distance = dis(centerPos_, *headPos_);
+        look(distance);
     }
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 
-void Snake::look(SnakePathNode head, Direction dir) {
+void Snake::look(float distance) {
 
-    headPos_ = head;
-
-    static float len;
-    len = dis(centerPos_, head);
-
-    if (len + visionDistance_ > windowRadius_) {
-        static float angleA, anglePos;
-        angleA = acos(-(pow(len, 2) + pow(visionDistance_, 2) - pow(windowRadius_, 2)) / 2 / len / visionDistance_) * 180 / PI;
-        anglePos = culAngle(headPos_ - centerPos_);
+    if (distance + visionDistance_ > windowRadius_) {
+        static float angleA, posAngle;
+        angleA = acos(-(pow(distance, 2) + pow(visionDistance_, 2) - pow(windowRadius_, 2)) / 2 / distance / visionDistance_) * 180 / PI;
+        posAngle = culAngle(*headPos_ - centerPos_);
         // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
         static float max[2], min[2];
         static bool maxOutOfBound, minOutOfBound;
         
-        *max = anglePos + angleA + halfVisionAngle_;
-        *min = anglePos - angleA - halfVisionAngle_;
+        *max = posAngle + angleA + halfVisionAngle_;
+        *min = posAngle - angleA - halfVisionAngle_;
 
         if (*max > 180) {
             max[1] = *max - 360;
@@ -566,7 +622,12 @@ void Snake::look(SnakePathNode head, Direction dir) {
         if ((angle_ < *max && angle_ > *min) ||
             (maxOutOfBound && angle_ < max[1] && angle_ > -180) ||
             (minOutOfBound && angle_ < 180 && angle_ > min[1])) {
-            std::cout << "" << std::endl;
+
+            if (angle_ == 90 || angle_ == 180 || angle_ == 180 || angle_ == -90) {
+                headOutPos_.x = windowSize_ - headPos_->x;
+                headOutPos_.y = windowSize_ - headPos_->y;
+            }
+            visionOutOfBounds_ = true;
         }
     }
 
@@ -578,7 +639,7 @@ void Snake::look(SnakePathNode head, Direction dir) {
     // pos = headPos_;
     // pos.y += y;
     // pos.x += x;
-    // if (outOfBounds_ = toWindow(pos, dir, tanVal, head)) {
+    // if (visionOutOfBounds_ = toWindow(pos, dir, tanVal, head)) {
     //     pos.y -= y;
     //     pos.x -= x;
     //     headOutPos_ = pos;
@@ -656,7 +717,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
 
         const sf::Vector2f &pos = i->shape_.getPosition();
 
-        utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, &headPos_, outOfBounds_, visionDistance_,
+        utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, headPos_, visionOutOfBounds_, visionDistance_,
                          visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
         if (dis(pos, headnode) <
@@ -699,8 +760,8 @@ void Snake::move(SnakePathNode headNode) {
                 }
             } else {
                 path_.push_front(
-                    SnakePathNode(headNode.x + direction_.x * i * nodeRadius_ / 5.0,
-                                  headNode.y + direction_.y * i * nodeRadius_ / 5.0));
+                    SnakePathNode(headNode.x + direction_.x * i * nodeRadius2_,
+                                  headNode.y + direction_.y * i * nodeRadius2_));
                 if (tailOverlap_) {
                     tailOverlap_--;
                 } else {
@@ -720,7 +781,7 @@ double dis2(sf::Vector2<float> node1,
                  2));
 }
 
-void Snake::checkSelfCollisions(SnakePathNode head) {
+void Snake::checkSelfCollisions() {
 
     if (*deathFlag_) {
         return;
@@ -731,20 +792,22 @@ void Snake::checkSelfCollisions(SnakePathNode head) {
     }
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
 
-        utils::addThread(threads_, checkVision, *i, angle_, 10.f, visionRange_, &headPos_, outOfBounds_, visionDistance_,
+        utils::addThread(threads_, checkVision, *i, angle_, nodeRadius_, visionRange_, headPos_, visionOutOfBounds_, visionDistance_,
                          visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
 
-        if (speed_ && dis2(head, *i) < culSelfCollisionDis(nodeRadius_)) {
-            // dieSound_.stop();
-            // dieSound_.play();
-            hitSelf_ = true;
-            if (death_) {
-                pain_ += Game::cfg.bitePain * speed_;
-            } else {
-                static TYPE_VOL tmp;
-                tmp = Game::cfg.bitePain * speed_;
-                pain_ += tmp;
-                health_ -= tmp;
+        if (speed_) {
+            if (dis2(*headPos_, *i) < culSelfCollisionDis(nodeRadius_)) {
+                // dieSound_.stop();
+                // dieSound_.play();
+                hitSelf_ = true;
+                if (death_) {
+                    pain_ += Game::cfg.bitePain * speed_;
+                } else {
+                    static TYPE_VOL tmp;
+                    tmp = Game::cfg.bitePain * speed_;
+                    pain_ += tmp;
+                    health_ -= tmp;
+                }
             }
         }
     }
@@ -865,7 +928,7 @@ void Snake::reset() {
     leftVitality_ = rightVitality_ = speed_ = delight_ = pain_ = injureLeft_ = injureRight_ = headAngle_ = turnRight_ = turnLeft_ = 0;
     angle_ = angleHis_ = INITIAL_ANGLE;
     headAngle_ = headAngleHis_ = bodyDir_ = 0;
-    radian_ = angle_ * PI / 180.0f;
+    radian_ = angle_ / radianToAngle_;
     direction_ = Direction(0, 1);
     path_.clear();
     initNodes();
@@ -970,9 +1033,9 @@ void Snake::render(sf::RenderWindow &window) {
     visionStart = visionTriangle_;
     while (visionStart < visionTriangleEnd_) {
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
-        visionStart->triangle.setPosition(headPos_);
+        visionStart->triangle.setPosition(*headPos_);
         window.draw(visionStart->triangle);
-        if (outOfBounds_) {
+        if (visionOutOfBounds_) {
             visionStart->triangle.setPosition(headOutPos_);
             window.draw(visionStart->triangle);
         }
