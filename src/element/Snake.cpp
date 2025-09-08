@@ -526,7 +526,8 @@ void Snake::update(sf::Time delta) {
         pain_ += vitalityPain_ * (speedVitality_ - speedVitalityMax_) / speedVitalityDiff_;
     }
 
-    static float distance;
+    static float distance, posAngleABS;
+    static SnakePathNode pos;
 
     if (speed_) {
 
@@ -540,17 +541,18 @@ void Snake::update(sf::Time delta) {
         headPos_ = &headPos;
         distance = dis(centerPos_, headPos);
 
-        look(distance);
         checkSelfCollisions();
+
         if (hitSelf_ && distance > windowRadius_) {
             headPos_ = &path_.front();
             distance = dis(centerPos_, *headPos_);
-            look(distance);
             for (int i = 1; i <= speed_; i++) {
                 if (path_.size() > snakeLen_) {
                     path_.pop_back();
                 }
             }
+            pos = *headPos_ - centerPos_;
+            posAngleABS = culAngleABS(pos);
         } else {
             move(path_.front());
             headPos_ = &path_.front();
@@ -558,11 +560,11 @@ void Snake::update(sf::Time delta) {
             if (distance > windowRadius_) {
                 if (!outOfBounds_) {
                     outOfBounds_ = true;
-                    static float angleA, angleB, hypotenuse, posAngle;
-                    posAngle = culAngleABS(*headPos_ - centerPos_);
+                    static float angleA, hypotenuse;
+                    pos = *headPos_ - centerPos_;
+                    posAngleABS = culAngleABS(pos);
                     angleA = abs(90.f - angleABS_);
-                    angleB = abs(angleA - abs(posAngle - 90.f));
-                    hypotenuse = cos(angleB / radianToAngle_) * windowDiameter_;
+                    hypotenuse = cos(abs(angleA - abs(posAngleABS - 90.f)) / radianToAngle_) * windowDiameter_;
                     angleA = angleA / radianToAngle_;
 
                     if (angle_ < 0) {
@@ -575,27 +577,42 @@ void Snake::update(sf::Time delta) {
                     } else if (angleABS_ < 90) {
                         headPos_->y -= sin(angleA) * hypotenuse;
                     }
+                } else {
+                    pos = *headPos_ - centerPos_;
+                    posAngleABS = culAngleABS(pos);
                 }
-            } else if (outOfBounds_) {
-                outOfBounds_ = false;
+            } else {
+                if (outOfBounds_) {
+                    outOfBounds_ = false;
+                }
+                pos = *headPos_ - centerPos_;
+                posAngleABS = culAngleABS(pos);
             }
             // toWindow(headPos_, dir, abs(tan(radian_)));
         }
     } else {
         headPos_ = &path_.front();
         distance = dis(centerPos_, *headPos_);
-        look(distance);
+        pos = *headPos_ - centerPos_;
+        posAngleABS = culAngleABS(pos);
     }
+    look(distance, posAngleABS, pos);
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 
-void Snake::look(float distance) {
+void Snake::look(float distance, float posAngleABS, SnakePathNode pos) {
 
     if (distance + visionDistance_ > windowRadius_) {
         static float angleA, posAngle;
+
+        if (pos.x > 0) {
+            posAngle = -posAngleABS;
+        } else {
+            posAngle = posAngleABS;
+        }
+
         angleA = acos(-(pow(distance, 2) + pow(visionDistance_, 2) - pow(windowRadius_, 2)) / 2 / distance / visionDistance_) * 180 / PI;
-        posAngle = culAngle(*headPos_ - centerPos_);
         // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
         static float max[2], min[2];
         static bool maxOutOfBound, minOutOfBound;
@@ -623,10 +640,22 @@ void Snake::look(float distance) {
             (maxOutOfBound && angle_ < max[1] && angle_ > -180) ||
             (minOutOfBound && angle_ < 180 && angle_ > min[1])) {
 
-            if (angle_ == 90 || angle_ == 180 || angle_ == 180 || angle_ == -90) {
-                headOutPos_.x = windowSize_ - headPos_->x;
-                headOutPos_.y = windowSize_ - headPos_->y;
+            static float hypotenuse;
+            angleA = abs(90.f - angleABS_);
+            hypotenuse = cos(abs(angleA - abs(posAngleABS - 90.f)) / radianToAngle_) * windowDiameter_;
+            angleA = angleA / radianToAngle_;
+
+            if (angle_ < 0) {
+                headOutPos_.x = headPos_->x - cos(angleA) * hypotenuse;
+            } else if (angle_ > 0) {
+                headOutPos_.x = headPos_->x + cos(angleA) * hypotenuse;
             }
+            if (angleABS_ > 90) {
+                headOutPos_.y = headPos_->y + sin(angleA) * hypotenuse;
+            } else if (angleABS_ < 90) {
+                headOutPos_.y = headPos_->y - sin(angleA) * hypotenuse;
+            }
+
             visionOutOfBounds_ = true;
         }
     }
