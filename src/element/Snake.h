@@ -76,7 +76,7 @@ namespace sfSnake {
         float health_, healthVal_;
         TYPE_VOL *deathFlag_;
 
-        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowDiameter_, windowRadius_;
+        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowDiameter_, windowRadius_, windowRadiusPow_;
 
         float visionAngle_, halfVisionAngle_, visionElAngle_, visionDistance_;
 
