@@ -553,7 +553,7 @@ void Snake::update(sf::Time delta) {
                 }
             }
             pos = *headPos_ - centerPos_;
-            posAngleABS = culAngleABS(pos);
+            posAngleABS = culAngle(pos);
         } else {
             move(path_.front());
             headPos_ = &path_.front();
@@ -589,36 +589,32 @@ void Snake::update(sf::Time delta) {
                 posAngleABS = culAngleABS(pos);
             }
             // toWindow(headPos_, dir, abs(tan(radian_)));
+
+            if (pos.x > 0) {
+                posAngleABS = -posAngleABS;
+            }
         }
     } else {
         headPos_ = &path_.front();
         distance = dis(centerPos_, *headPos_);
         pos = *headPos_ - centerPos_;
-        posAngleABS = culAngleABS(pos);
+        posAngleABS = culAngle(pos);
     }
     look(distance, posAngleABS, pos);
 }
 
 float culSelfCollisionDis(float radius) { return 2.0f * radius; }
 
-void Snake::look(float distance, float posAngleABS, SnakePathNode pos) {
+void Snake::look(float distance, float posAngle, SnakePathNode pos) {
 
     if (distance + visionDistance_ > windowRadius_) {
-        static float angleA, posAngle;
 
-        if (pos.x > 0) {
-            posAngle = -posAngleABS;
-        } else {
-            posAngle = posAngleABS;
-        }
-
-        angleA = acos(-(pow(distance, 2) + pow(visionDistance_, 2) - pow(windowRadius_, 2)) / 2 / distance / visionDistance_) * 180 / PI;
         // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
         static float max[2], min[2];
         static bool maxOutOfBound, minOutOfBound;
         
-        *max = posAngle + angleA + halfVisionAngle_;
-        *min = posAngle - angleA - halfVisionAngle_;
+        *max = posAngle + halfVisionAngle_;
+        *min = posAngle - halfVisionAngle_;
 
         if (*max > 180) {
             max[1] = *max - 360;
@@ -629,7 +625,7 @@ void Snake::look(float distance, float posAngleABS, SnakePathNode pos) {
         }
 
         if (*min < -180) {
-            min[1] = 360 - *min;
+            min[1] = -*min - 360;
             *min = -180;
             minOutOfBound = true;
         } else {
@@ -640,7 +636,7 @@ void Snake::look(float distance, float posAngleABS, SnakePathNode pos) {
             (maxOutOfBound && angle_ < max[1] && angle_ > -180) ||
             (minOutOfBound && angle_ < 180 && angle_ > min[1])) {
 
-            static float hypotenuse;
+            static float hypotenuse, angleA;
             angleA = abs(90.f - angleABS_) / radianToAngle_;
             hypotenuse = 2 * sqrt(windowRadiusPow_ - pow((abs(pos.y) - tan(angleA) * abs(pos.x)) * cos(angleA), 2));
 
@@ -662,20 +658,6 @@ void Snake::look(float distance, float posAngleABS, SnakePathNode pos) {
             visionOutOfBounds_ = true;
         }
     }
-
-    // static sf::Vector2f pos;
-    // static float len, x, y;
-    // len = sqrt(pow(dir.x, 2) + pow(dir.y, 2));
-    // x = x / len * visionDistance_;
-    // y = y / len * visionDistance_;
-    // pos = headPos_;
-    // pos.y += y;
-    // pos.x += x;
-    // if (visionOutOfBounds_ = toWindow(pos, dir, tanVal, head)) {
-    //     pos.y -= y;
-    //     pos.x -= x;
-    //     headOutPos_ = pos;
-    // }
 }
 
 #define CHANGE_DISTANCE(visionTrianglePtr, mtx, len, color) \
