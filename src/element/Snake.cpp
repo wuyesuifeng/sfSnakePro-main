@@ -37,6 +37,27 @@ using namespace sfSnake;
         triangle.setFillColor(sf::Color(VISION_DEF_COLOR));                    \
     } while (0)
 
+#define COMPARE_ANGLE_RANGE(angle, max, min, maxOutOfBound, minOutOfBound) \
+    (angle <= *max && angle >= *min) || (maxOutOfBound && angle <= max[1] && angle >= -180) || (minOutOfBound && angle <= 180 && angle >= min[1])
+
+#define SWITCH_MAX_MIN(max, min, maxOutOfBound, minOutOfBound) \
+    do {                                                       \
+        if (*max > 180) {                                      \
+            max[1] = *max - 360;                               \
+            *max = 180;                                        \
+            maxOutOfBound = true;                              \
+        } else {                                               \
+            maxOutOfBound = false;                             \
+        }                                                      \
+        if (*min < -180) {                                     \
+            min[1] = *min + 360;                               \
+            *min = -180;                                       \
+            minOutOfBound = true;                              \
+        } else {                                               \
+            minOutOfBound = false;                             \
+        }                                                      \
+    } while (0)
+
 float culAngle(sf::Vector2f recDirection) {
     float angle = std::acos(recDirection.y / length(recDirection)) / PI * 180.f;
     if (recDirection.x > 0)
@@ -565,17 +586,17 @@ void Snake::update(sf::Time delta) {
                     pos = *headPos_ - centerPos_;
                     posAngleABS = culAngleABS(pos);
                     angleA = abs(90.f - angleABS_) / radianToAngle_;
-                    hypotenuse = 2 * sqrt(windowRadiusPow_ - pow((abs(pos.y) - tan(angleA) * abs(pos.x)) * cos(angleA), 2));
+                    hypotenuse = 2 * sqrt(windowRadiusPow_ - pow((abs(pos.y) - tanf(angleA) * abs(pos.x)) * cosf(angleA), 2));
 
                     if (angle_ < 0) {
-                        headPos_->x -= cos(angleA) * hypotenuse;
+                        headPos_->x -= cosf(angleA) * hypotenuse;
                     } else if (angle_ > 0) {
-                        headPos_->x += cos(angleA) * hypotenuse;
+                        headPos_->x += cosf(angleA) * hypotenuse;
                     }
                     if (angleABS_ > 90) {
-                        headPos_->y += sin(angleA) * hypotenuse;
+                        headPos_->y += sinf(angleA) * hypotenuse;
                     } else if (angleABS_ < 90) {
-                        headPos_->y -= sin(angleA) * hypotenuse;
+                        headPos_->y -= sinf(angleA) * hypotenuse;
                     }
                 } else {
                     pos = *headPos_ - centerPos_;
@@ -599,6 +620,7 @@ void Snake::update(sf::Time delta) {
         distance = dis(centerPos_, *headPos_);
         pos = *headPos_ - centerPos_;
         posAngleABS = culAngle(pos);
+        lookSelf();
     }
     look(distance, posAngleABS, pos);
 }
@@ -612,45 +634,29 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
         // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
         static float max[2], min[2];
         static bool maxOutOfBound, minOutOfBound;
-        
+
         *max = posAngle + halfVisionAngle_;
         *min = posAngle - halfVisionAngle_;
 
-        if (*max > 180) {
-            max[1] = *max - 360;
-            *max = 180;
-            maxOutOfBound = true;
-        } else {
-            maxOutOfBound = false;
-        }
+        SWITCH_MAX_MIN(max, min, maxOutOfBound, minOutOfBound);
 
-        if (*min < -180) {
-            min[1] = -*min - 360;
-            *min = -180;
-            minOutOfBound = true;
-        } else {
-            minOutOfBound = false;
-        }
-
-        if ((angle_ < *max && angle_ > *min) ||
-            (maxOutOfBound && angle_ < max[1] && angle_ > -180) ||
-            (minOutOfBound && angle_ < 180 && angle_ > min[1])) {
+        if (COMPARE_ANGLE_RANGE(angle_, max, min, maxOutOfBound, minOutOfBound)) {
 
             static float hypotenuse, angleA;
             angleA = abs(90.f - angleABS_) / radianToAngle_;
-            hypotenuse = 2 * sqrt(windowRadiusPow_ - pow((abs(pos.y) - tan(angleA) * abs(pos.x)) * cos(angleA), 2));
+            hypotenuse = 2.f * sqrtf(windowRadiusPow_ - pow((abs(pos.y) - tanf(angleA) * abs(pos.x)) * cosf(angleA), 2));
 
             if (angle_ < 0) {
-                headOutPos_.x = headPos_->x - cos(angleA) * hypotenuse;
+                headOutPos_.x = headPos_->x - cosf(angleA) * hypotenuse;
             } else if (angle_ > 0) {
-                headOutPos_.x = headPos_->x + cos(angleA) * hypotenuse;
+                headOutPos_.x = headPos_->x + cosf(angleA) * hypotenuse;
             } else {
                 headOutPos_.x = headPos_->x;
             }
             if (angleABS_ > 90) {
-                headOutPos_.y = headPos_->y + sin(angleA) * hypotenuse;
+                headOutPos_.y = headPos_->y + sinf(angleA) * hypotenuse;
             } else if (angleABS_ < 90) {
-                headOutPos_.y = headPos_->y - sin(angleA) * hypotenuse;
+                headOutPos_.y = headPos_->y - sinf(angleA) * hypotenuse;
             } else {
                 headOutPos_.y = headPos_->y;
             }
@@ -660,64 +666,62 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
     }
 }
 
-#define CHANGE_DISTANCE(visionTrianglePtr, mtx, len, color) \
-    do {                                                    \
-        mtx.lock();                                         \
-        if (visionTrianglePtr->distance > len) {            \
-            visionTrianglePtr->distance = len;              \
-            mtx.unlock();                                   \
-            visionTrianglePtr->color = color;               \
-        } else {                                            \
-            mtx.unlock();                                   \
-        }                                                   \
+#define CHANGE_DISTANCE(visionTrianglePtr, mtx, distance, color) \
+    do {                                                         \
+        mtx.lock();                                              \
+        if (visionTrianglePtr->distance > distance) {            \
+            visionTrianglePtr->distance = distance;              \
+            mtx.unlock();                                        \
+            visionTrianglePtr->color = color;                    \
+        } else {                                                 \
+            mtx.unlock();                                        \
+        }                                                        \
     } while (0)
 
-#define DO_COMPARE_DISTANCE(angleDiff, len, visionRange, visionRangeEnd, mtx, visionTrianglePtr, color, code) \
-    do {                                                                                                      \
-        while (visionRange < visionRangeEnd) {                                                                \
-            if (angleDiff <= visionRange->maxAngle || angleDiff >= visionRange->minAngle) {                   \
-                CHANGE_DISTANCE(visionTrianglePtr, mtx, len, color);                                          \
-                break;                                                                                        \
-            }                                                                                                 \
-            visionRange++;                                                                                    \
-            code;                                                                                             \
-        }                                                                                                     \
+#define DO_COMPARE_DISTANCE(angleDiff, distance, visionRange, visionRangeEnd, mtx, visionTrianglePtr, color, visionTriangleStart) \
+    do {                                                                                                                          \
+        while (visionRange < visionRangeEnd) {                                                                                    \
+            if (angleDiff <= visionRange->maxAngle || angleDiff >= visionRange->minAngle) {                                       \
+                CHANGE_DISTANCE(visionTrianglePtr, mtx, distance, color);                                                         \
+                break;                                                                                                            \
+            }                                                                                                                     \
+            visionRange++;                                                                                                        \
+            visionTriangleStart++;                                                                                                \
+        }                                                                                                                         \
     } while (0)
 
-#define COMPARE_DISTANCE(onRight, angleDiff, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color)        \
-    do {                                                                                                                                       \
-        if (onRight) {                                                                                                                         \
-            DO_COMPARE_DISTANCE(angleDiff, len, visionRange, visionRangeEnd, threads->mtx, visionTriangleLast, color, visionTriangleLast--);   \
-        } else {                                                                                                                               \
-            DO_COMPARE_DISTANCE(angleDiff, len, visionRange, visionRangeEnd, threads->mtx, visionTriangleStart, color, visionTriangleStart++); \
-        }                                                                                                                                      \
-    } while (0)
+void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius, float halfVisionAngle, float radianToAngle,
+                 el_diff_range *visionRange, sf::Vector2f *headPos,
+                 el_diff_range *visionRangeEnd, utils::Threads *threads, el_triangle *visionTriangleStart,
+                 el_triangle *visionTriangleLast, sf::Uint32 color) {
 
-void checkVision(sf::Vector2f pos, float angle, float radius, el_diff_range *visionRange, sf::Vector2f *center,
-                 bool outOfBounds, float visionDistance, el_diff_range *visionRangeEnd, sf::Vector2f *outCenter,
-                 utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleLast, sf::Uint32 color) {
+    float posAngle = culAngle(pos - *headPos),
+          itemAngle = atanf(itemRadius / distance) * radianToAngle;
 
-    float len = dis(pos, *center);
+    float max[2], min[2], max2[2], min2[2], cmax, cmin, cmax2, cmin2;
+    bool maxOutOfBound, minOutOfBound, maxOutOfBound2, minOutOfBound2;
 
-    float angleDiff = culAngle(pos) - angle;
+    *max = posAngle + itemAngle;
+    *min = posAngle - itemAngle;
 
-    bool onRight = angleDiff > 0;
+    *max2 = angle + halfVisionAngle;
+    *min2 = angle - halfVisionAngle;
 
-    if (!onRight) {
-        angleDiff = -angleDiff;
-    }
+    SWITCH_MAX_MIN(max, min, maxOutOfBound, minOutOfBound);
 
-    if (outOfBounds) {
-        if (len < visionDistance) {
-            COMPARE_DISTANCE(onRight, angleDiff, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
-        } else {
-            len = dis(pos, *outCenter);
-            if (len < visionDistance) {
-                COMPARE_DISTANCE(onRight, angleDiff, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
-            }
-        }
-    } else if (len < visionDistance) {
-        COMPARE_DISTANCE(onRight, angleDiff, len, visionRange, visionRangeEnd, threads, visionTriangleStart, visionTriangleLast, color);
+    SWITCH_MAX_MIN(max2, min2, maxOutOfBound2, minOutOfBound2);
+
+    cmin2 = maxOutOfBound2 ? max2[1] : min2[0];
+    cmax2 = minOutOfBound2 ? min2[1] : max2[0];
+    cmin = maxOutOfBound ? max[1] : min[0];
+    cmax = minOutOfBound ? min[1] : max[0];
+
+    if (COMPARE_ANGLE_RANGE(cmin2, max, min, maxOutOfBound, minOutOfBound) ||
+        COMPARE_ANGLE_RANGE(cmax2, max, min, maxOutOfBound, minOutOfBound) ||
+        COMPARE_ANGLE_RANGE(cmin, max2, min2, maxOutOfBound2, minOutOfBound2) ||
+        COMPARE_ANGLE_RANGE(cmax, max2, min2, maxOutOfBound2, minOutOfBound2)) {
+        // DO_COMPARE_DISTANCE(angleDiff, distance, visionRange, visionRangeEnd, threads->mtx, visionTriangleStart, visionTriangleStart);
+        std::cout << "test" << std::endl;
     }
 }
 
@@ -725,14 +729,29 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
     auto toRemove = fruits.end();
     SnakePathNode headnode = path_.front();
 
-    static float fruitRadius = fruits.begin()->shape_.getRadius();
+    static float fruitRadius = fruits.begin()->shape_.getRadius(),
+                 distance;
 
     for (auto i = fruits.begin(); i != fruits.end(); ++i) {
 
         const sf::Vector2f &pos = i->shape_.getPosition();
 
-        utils::addThread(threads_, checkVision, pos, angle_, fruitRadius, visionRange_, headPos_, visionOutOfBounds_, visionDistance_,
-                         visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+        distance = dis(pos, *headPos_);
+
+        if (distance) {
+            if (distance < visionDistance_) {
+                utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_, radianToAngle_, visionRange_, headPos_,
+                                 visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+                if (visionOutOfBounds_) {
+                    distance = dis(pos, headOutPos_);
+                    if (distance < visionDistance_) {
+                        utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_, radianToAngle_, visionRange_, &headOutPos_,
+                                         visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+                    }
+                }
+            }
+        } else {
+        }
 
         if (dis(pos, headnode) <
             nodeRadius_ + i->shape_.getRadius()) {
@@ -795,6 +814,40 @@ double dis2(sf::Vector2<float> node1,
                  2));
 }
 
+void Snake::lookSelf() {
+
+    if (*deathFlag_) {
+        return;
+    }
+
+    if (hitSelf_) {
+        hitSelf_ = false;
+    }
+
+    static float distance;
+
+    for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
+
+        distance = dis(*i, *headPos_);
+
+        if (distance) {
+            if (distance < visionDistance_) {
+                utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_, radianToAngle_, visionRange_, headPos_,
+                                 visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+            }
+        } else {
+        }
+        if (visionOutOfBounds_) {
+            distance = dis(*i, headOutPos_);
+            if (distance < visionDistance_) {
+                utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_, radianToAngle_, visionRange_, &headOutPos_,
+                                 visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+            }
+        }
+    }
+    threads_.join();
+}
+
 void Snake::checkSelfCollisions() {
 
     if (*deathFlag_) {
@@ -804,24 +857,39 @@ void Snake::checkSelfCollisions() {
     if (hitSelf_) {
         hitSelf_ = false;
     }
+
+    static float distance;
+
     for (auto i = path_.begin() + 15; i < path_.end(); i += 10) {
 
-        utils::addThread(threads_, checkVision, *i, angle_, nodeRadius_, visionRange_, headPos_, visionOutOfBounds_, visionDistance_,
-                         visionRangeEnd_, &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_CHECK_COLOR);
+        distance = dis(*i, *headPos_);
 
-        if (speed_) {
-            if (dis2(*headPos_, *i) < culSelfCollisionDis(nodeRadius_)) {
-                // dieSound_.stop();
-                // dieSound_.play();
-                hitSelf_ = true;
-                if (death_) {
-                    pain_ += Game::cfg.bitePain * speed_;
-                } else {
-                    static TYPE_VOL tmp;
-                    tmp = Game::cfg.bitePain * speed_;
-                    pain_ += tmp;
-                    health_ -= tmp;
-                }
+        if (distance) {
+            if (distance < visionDistance_) {
+                utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_, radianToAngle_, visionRange_, headPos_,
+                                 visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+            }
+        } else {
+        }
+        if (visionOutOfBounds_) {
+            distance = dis(*i, headOutPos_);
+            if (distance < visionDistance_) {
+                utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_, radianToAngle_, visionRange_, &headOutPos_,
+                                 visionRangeEnd_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+            }
+        }
+
+        if (dis2(*headPos_, *i) < culSelfCollisionDis(nodeRadius_)) {
+            // dieSound_.stop();
+            // dieSound_.play();
+            hitSelf_ = true;
+            if (death_) {
+                pain_ += Game::cfg.bitePain * speed_;
+            } else {
+                static TYPE_VOL tmp;
+                tmp = Game::cfg.bitePain * speed_;
+                pain_ += tmp;
+                health_ -= tmp;
             }
         }
     }

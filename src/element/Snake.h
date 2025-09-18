@@ -63,6 +63,7 @@ namespace sfSnake {
 
         void checkOutOfWindow();
         void checkSelfCollisions();
+        void lookSelf();
         void look(float distance, float posAngle, SnakePathNode pos);
 
         template <typename T>
