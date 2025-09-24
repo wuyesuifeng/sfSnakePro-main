@@ -666,26 +666,6 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
     }
 }
 
-#define CHANGE_DISTANCE(visionTrianglePtr, mtx, distance, color) \
-    do {                                                         \
-        mtx.lock();                                              \
-        if (visionTrianglePtr->distance > distance) {            \
-            visionTrianglePtr->distance = distance;              \
-            mtx.unlock();                                        \
-            visionTrianglePtr->color = color;                    \
-        } else {                                                 \
-            mtx.unlock();                                        \
-        }                                                        \
-    } while (0)
-
-#define DO_COMPARE_DISTANCE(distance, mtx, color, visionTriangleStart, visionTriangleEnd) \
-    do {                                                                                  \
-        while (visionTriangleStart < visionTriangleEnd) {                                 \
-            CHANGE_DISTANCE(visionTriangleStart, mtx, distance, color);                   \
-            visionTriangleStart++;                                                        \
-        }                                                                                 \
-    } while (0)
-
 void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius, float halfVisionAngle,
                  float visionAngle, float radianToAngle, float visionElAngle, unsigned int visionSum,
                  sf::Vector2f *headPos, utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleEnd, sf::Uint32 color) {
