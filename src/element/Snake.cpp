@@ -87,10 +87,6 @@ void Snake::setAngle() {
 
 Snake::Snake()
     : visionSum_(VISION_SECTION.endIndex - VISION_SECTION.startIndex),
-      visionSumOdd_(visionSum_ % 2),
-      visionRangeSum_(visionSum_ / 2 + visionSumOdd_),
-      visionRange_(nullptr),
-      visionRangeEnd_(nullptr),
       visionTriangle_(nullptr),
       visionAngle_(STD_MIN(MAX_VISION_ANGLE, Game::cfg.visionAngle)),
       halfVisionAngle_(visionAngle_ / 2),
@@ -129,12 +125,9 @@ Snake::Snake()
       nodeMiddle_(sf::Vector2f(nodeRadius_ * std::sqrt(3), nodeRadius_)),
       score_(Game::cfg.initialSize) {
 
-    visionRange_ = (el_diff_range *)malloc(sizeof(el_diff_range) * visionRangeSum_);
     visionTriangle_ = new el_triangle[visionSum_];
 
-    visionRangeEnd_ = visionRange_ + visionRangeSum_;
     visionTriangleEnd_ = visionTriangle_ + visionSum_;
-    visionTriangleLast_ = visionTriangleEnd_ - 1;
 
     elAngleRange_ = visionAngle_ / visionSum_;
 
@@ -146,45 +139,15 @@ Snake::Snake()
 
     visionDistance += visionPadding_;
 
-    el_triangle *visionTriangleLast = visionTriangleLast_,
-                *visionTriangleStart = visionTriangle_;
+    el_triangle *visionTriangleStart = visionTriangle_;
 
     float startRange = halfVisionAngle_;
-    if (visionSumOdd_) {
-        el_diff_range *visionRangeStart = visionRangeEnd_ - 1;
-        while (visionRangeStart < visionRangeEnd_) {
-            visionTriangleLast->color = VISION_DEF_COLOR;
-            INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance, visionPadding_);
-            visionTriangleLast->triangle.rotate(-startRange);
-            visionTriangleLast--;
-            visionTriangleStart->color = VISION_DEF_COLOR;
-            INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance, visionPadding_);
-            visionTriangleStart->triangle.rotate(startRange);
-            visionTriangleStart++;
-
-            visionRangeStart->minAngle = startRange;
-            visionRangeStart->maxAngle = startRange -= elAngleRange_;
-            visionRangeStart++;
-        }
-        visionRangeStart->maxAngle = halfElRange;
-        visionRangeStart->minAngle = 0;
-        INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance, visionPadding_);
-    } else {
-        el_diff_range *visionRangeStart = visionRange_;
-        while (visionRangeStart != visionRangeEnd_) {
-            visionTriangleLast->color = VISION_DEF_COLOR;
-            INIT_TRIANGLE(visionTriangleLast->triangle, sinVal, cosVal, visionDistance, visionPadding_);
-            visionTriangleLast->triangle.rotate(-startRange);
-            visionTriangleLast--;
-            visionTriangleStart->color = VISION_DEF_COLOR;
-            INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance, visionPadding_);
-            visionTriangleStart->triangle.rotate(startRange);
-            visionTriangleStart++;
-
-            visionRangeStart->minAngle = startRange;
-            visionRangeStart->maxAngle = startRange -= elAngleRange_;
-            visionRangeStart++;
-        }
+    while (visionTriangleStart != visionTriangleEnd_) {
+        visionTriangleStart->color = VISION_DEF_COLOR;
+        INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance, visionPadding_);
+        visionTriangleStart->triangle.rotate(startRange);
+        visionTriangleStart++;
+        startRange -= elAngleRange_;
     }
 
     snakeLen_ = 10 * Game::cfg.initialSize;
@@ -244,9 +207,6 @@ Snake::Snake()
 
 Snake::~Snake() {
     threads_.join();
-    if (visionRange_) {
-        free(visionRange_);
-    }
     if (visionTriangle_) {
         delete[] visionTriangle_;
     }
@@ -667,7 +627,7 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
 }
 
 void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius, float halfVisionAngle,
-                 float visionAngle, float radianToAngle, float visionElAngle, unsigned int visionSum,
+                 float visionAngle, float radianToAngle, float visionElAngle,
                  sf::Vector2f *headPos, utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleEnd, sf::Uint32 color) {
 
     float posAngle = culAngle(pos - *headPos),
@@ -701,7 +661,6 @@ void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius
 
     if (maxDiff > 0) {
         if (compareRes = maxDiff <= itemAngle) {
-            // visionTriangleEnd -= (long)(visionSum - maxDiff / visionElAngle);
             if (minDiff < -180) {
                 minDiff = 360 + minDiff;
             }
@@ -725,7 +684,6 @@ void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius
             }
         }
     } else if (-minDiff <= itemAngle) {
-        // visionTriangleStart += (long)((itemAngle + minDiff) / visionElAngle);
         compareRes = true;
         if (maxDiff > 180) {
             maxDiff = 360 - maxDiff;
@@ -736,8 +694,6 @@ void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius
     }
 
     if (compareRes) {
-        // DO_COMPARE_DISTANCE(distance, threads->mtx, color, visionTriangleStart, visionTriangleEnd);
-        // std::cout << "test" << std::endl;
         while (visionTriangleStart < visionTriangleEnd) {
             threads->mtx.lock();
             if (visionTriangleStart->distance > distance) {
@@ -768,13 +724,13 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
         if (distance) {
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_,
-                                 visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
+                                 visionAngle_, radianToAngle_, visionElAngle_,
                                  headPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_CHECK_COLOR);
                 if (visionOutOfBounds_) {
                     distance = dis(pos, headOutPos_);
                     if (distance < visionDistance_) {
                         utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_,
-                                         visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
+                                         visionAngle_, radianToAngle_, visionElAngle_,
                                          &headOutPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_CHECK_COLOR);
                     }
                 }
@@ -862,7 +818,7 @@ void Snake::lookSelf() {
         if (distance) {
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_,
-                                 visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
+                                 visionAngle_, radianToAngle_, visionElAngle_,
                                  headPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_HARM_COLOR);
             }
         } else {
@@ -871,7 +827,7 @@ void Snake::lookSelf() {
             distance = dis(*i, headOutPos_);
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_,
-                                 visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
+                                 visionAngle_, radianToAngle_, visionElAngle_,
                                  &headOutPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_HARM_COLOR);
             }
         }
@@ -898,8 +854,8 @@ void Snake::checkSelfCollisions() {
         if (distance) {
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_,
-                                 visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
-                                 headPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+                                 visionAngle_, radianToAngle_, visionElAngle_,
+                                 headPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_HARM_COLOR);
             }
         } else {
         }
@@ -907,8 +863,8 @@ void Snake::checkSelfCollisions() {
             distance = dis(*i, headOutPos_);
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, *i, distance, angle_, nodeRadius_, halfVisionAngle_,
-                                 visionAngle_, radianToAngle_, visionElAngle_, visionSum_,
-                                 &headOutPos_, &threads_, visionTriangle_, visionTriangleLast_, VISION_HARM_COLOR);
+                                 visionAngle_, radianToAngle_, visionElAngle_,
+                                 &headOutPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_HARM_COLOR);
             }
         }
 
@@ -1146,6 +1102,7 @@ void Snake::render(sf::RenderWindow &window) {
 
     static el_triangle *visionStart;
     visionStart = visionTriangle_;
+
     while (visionStart < visionTriangleEnd_) {
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
         visionStart->triangle.setPosition(*headPos_);

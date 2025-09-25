@@ -20,10 +20,6 @@ namespace sfSnake {
     typedef sf::Vector2f Direction;
     typedef sf::Vector2f SnakePathNode;
 
-    struct el_diff_range {
-        float minAngle, maxAngle;
-    };
-
     class el_triangle {
         public:
             sf::ConvexShape triangle;
@@ -77,7 +73,7 @@ namespace sfSnake {
         float health_, healthVal_;
         TYPE_VOL *deathFlag_;
 
-        unsigned int visionSum_, visionRangeSum_, windowSize_, halfWindowSize_, windowDiameter_, windowRadius_, windowRadiusPow_;
+        unsigned int visionSum_, windowSize_, halfWindowSize_, windowDiameter_, windowRadius_, windowRadiusPow_;
 
         float visionAngle_, halfVisionAngle_, visionElAngle_, visionDistance_;
 
@@ -86,8 +82,7 @@ namespace sfSnake {
         bool death_,
             hitSelf_,
             outOfBounds_,
-            visionOutOfBounds_,
-            visionSumOdd_;
+            visionOutOfBounds_;
 
         UPPER_TYPE_VOL pain_, delight_;
         // bool speedup_;
@@ -99,8 +94,7 @@ namespace sfSnake {
         Direction direction_;
         float nodeRadius_, nodeRadius2_;
         std::deque<SnakePathNode> path_;
-        el_diff_range *visionRange_, *visionRangeEnd_;
-        el_triangle *visionTriangle_, *visionTriangleEnd_, *visionTriangleLast_;
+        el_triangle *visionTriangle_, *visionTriangleEnd_;
         float elAngleRange_;
         SnakePathNode *headPos_, headOutPos_, centerPos_;
         int tailOverlap_;
