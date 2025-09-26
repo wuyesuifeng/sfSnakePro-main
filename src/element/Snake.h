@@ -92,7 +92,7 @@ namespace sfSnake {
             injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_, radianToAngle_;
 
         Direction direction_;
-        float nodeRadius_, nodeRadius2_;
+        float nodeRadius_, nodeRadius2_, nodeDiameter_;
         std::deque<SnakePathNode> path_;
         el_triangle *visionTriangle_, *visionTriangleEnd_;
         double elAngleRange_;
