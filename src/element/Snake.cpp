@@ -25,39 +25,6 @@
 
 using namespace sfSnake;
 
-// static unsigned int vision_blank_vol, vision_fruit_vol, vision_body_vol;
-
-#define INIT_TRIANGLE(triangle, sinVal, cosVal, visionDistance, visionPadding) \
-    do {                                                                       \
-        triangle.setPointCount(4);                                             \
-        triangle.setPoint(0, sf::Vector2f(0, visionPadding));                  \
-        triangle.setPoint(1, sf::Vector2f(sinVal, cosVal));                    \
-        triangle.setPoint(2, sf::Vector2f(0, visionDistance));                 \
-        triangle.setPoint(3, sf::Vector2f(-sinVal, cosVal));                   \
-        triangle.setFillColor(sf::Color(VISION_DEF_COLOR));                    \
-    } while (0)
-
-#define COMPARE_ANGLE_RANGE(angle, max, min, maxOutOfBound, minOutOfBound) \
-    (angle <= *max && angle >= *min) || (maxOutOfBound && angle <= max[1] && angle >= -180) || (minOutOfBound && angle <= 180 && angle >= min[1])
-
-#define SWITCH_MAX_MIN(max, min, maxOutOfBound, minOutOfBound) \
-    do {                                                       \
-        if (*max > 180) {                                      \
-            max[1] = *max - 360;                               \
-            *max = 180;                                        \
-            maxOutOfBound = true;                              \
-        } else {                                               \
-            maxOutOfBound = false;                             \
-        }                                                      \
-        if (*min < -180) {                                     \
-            min[1] = *min + 360;                               \
-            *min = -180;                                       \
-            minOutOfBound = true;                              \
-        } else {                                               \
-            minOutOfBound = false;                             \
-        }                                                      \
-    } while (0)
-
 float culAngle(sf::Vector2f recDirection) {
     float angle = std::acos(recDirection.y / length(recDirection)) / PI * 180.f;
     if (recDirection.x > 0)
@@ -131,7 +98,7 @@ Snake::Snake()
 
     elAngleRange_ = visionAngle_ / visionSum_;
 
-    float halfElRange = elAngleRange_ / 2;
+    float halfElRange = elAngleRange_ / 2 / radianToAngle_;
     float visionDistance = visionDistance_;
     float visionPadding_ = (VISION_PIXEL_WIDTH + nodeRadius_) / 2;
     float sinVal = sin(halfElRange) * visionDistance,
@@ -141,10 +108,15 @@ Snake::Snake()
 
     el_triangle *visionTriangleStart = visionTriangle_;
 
-    float startRange = halfVisionAngle_;
+    double startRange = halfVisionAngle_;
     while (visionTriangleStart != visionTriangleEnd_) {
         visionTriangleStart->color = VISION_DEF_COLOR;
-        INIT_TRIANGLE(visionTriangleStart->triangle, sinVal, cosVal, visionDistance, visionPadding_);
+        visionTriangleStart->distance = MAX_DISTANCE;
+        visionTriangleStart->triangle.setPointCount(4);
+        visionTriangleStart->triangle.setPoint(0, sf::Vector2f(0, visionPadding_));
+        visionTriangleStart->triangle.setPoint(1, sf::Vector2f(sinVal, cosVal));
+        visionTriangleStart->triangle.setPoint(2, sf::Vector2f(0, visionDistance));
+        visionTriangleStart->triangle.setPoint(3, sf::Vector2f(-sinVal, cosVal));
         visionTriangleStart->triangle.rotate(startRange);
         visionTriangleStart++;
         startRange -= elAngleRange_;
@@ -598,9 +570,24 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
         *max = posAngle + halfVisionAngle_;
         *min = posAngle - halfVisionAngle_;
 
-        SWITCH_MAX_MIN(max, min, maxOutOfBound, minOutOfBound);
+        if (*max > 180) {
+            max[1] = *max - 360;
+            *max = 180;
+            maxOutOfBound = true;
+        } else {
+            maxOutOfBound = false;
+        }
+        if (*min < -180) {
+            min[1] = *min + 360;
+            *min = -180;
+            minOutOfBound = true;
+        } else {
+            minOutOfBound = false;
+        }
 
-        if (COMPARE_ANGLE_RANGE(angle_, max, min, maxOutOfBound, minOutOfBound)) {
+        if ((angle_ <= *max && angle_ >= *min) ||
+            (maxOutOfBound && angle_ <= max[1] && angle_ >= -180) ||
+            (minOutOfBound && angle_ <= 180 && angle_ >= min[1])) {
 
             static float hypotenuse, angleA;
             angleA = abs(90.f - angleABS_) / radianToAngle_;
@@ -1103,7 +1090,7 @@ void Snake::render(sf::RenderWindow &window) {
     static el_triangle *visionStart;
     visionStart = visionTriangle_;
 
-    while (visionStart < visionTriangleEnd_) {
+    while (visionStart != visionTriangleEnd_) {
         visionStart->triangle.setFillColor(sf::Color(visionStart->color));
         visionStart->triangle.setPosition(*headPos_);
         window.draw(visionStart->triangle);

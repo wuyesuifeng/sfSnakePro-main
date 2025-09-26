@@ -95,7 +95,7 @@ namespace sfSnake {
         float nodeRadius_, nodeRadius2_;
         std::deque<SnakePathNode> path_;
         el_triangle *visionTriangle_, *visionTriangleEnd_;
-        float elAngleRange_;
+        double elAngleRange_;
         SnakePathNode *headPos_, headOutPos_, centerPos_;
         int tailOverlap_;
 
