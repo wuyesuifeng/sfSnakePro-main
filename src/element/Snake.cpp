@@ -593,7 +593,8 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
 
 void checkVision(sf::Vector2f pos, float distance, float angle, float itemRadius, float halfVisionAngle,
                  float visionAngle, float radianToAngle, float visionElAngle,
-                 sf::Vector2f *headPos, utils::Threads *threads, el_triangle *visionTriangleStart, el_triangle *visionTriangleEnd, sf::Uint32 color) {
+                 sf::Vector2f *headPos, utils::Threads *threads, 
+                 el_triangle *visionTriangleStart, el_triangle *visionTriangleEnd, sf::Uint32 color) {
 
     float posAngle = culAngle(pos - *headPos),
           itemAngle = atanf(itemRadius / distance) * radianToAngle;
@@ -678,13 +679,14 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
     SnakePathNode headnode = path_.front();
 
     static float fruitRadius = fruits.begin()->shape_.getRadius(),
+                 padding = fruitRadius * 2 + nodeRadius2_,
                  distance;
 
     for (auto i = fruits.begin(); i != fruits.end(); ++i) {
 
         const sf::Vector2f &pos = i->shape_.getPosition();
 
-        distance = dis(pos, *headPos_);
+        distance = dis(pos, *headPos_) - padding;
 
         if (distance < visionDistance_) {
             utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_,
@@ -692,7 +694,7 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
                              headPos_, &threads_, visionTriangle_, visionTriangleEnd_, VISION_CHECK_COLOR);
         }
         if (visionOutOfBounds_) {
-            distance = dis(pos, headOutPos_);
+            distance = dis(pos, headOutPos_) - padding;
             if (distance < visionDistance_) {
                 utils::addThread(threads_, checkVision, pos, distance, angle_, fruitRadius, halfVisionAngle_,
                                  visionAngle_, radianToAngle_, visionElAngle_,
