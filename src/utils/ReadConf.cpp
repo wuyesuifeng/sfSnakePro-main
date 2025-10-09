@@ -124,15 +124,15 @@ utils::ReadConf::ReadConf() {
                 cfg.visionFruitVol[0] = STO_FUNC_VOL(ret[0]);
                 cfg.visionFruitVol[1] = STO_FUNC_VOL(ret[1]);
                 cfg.visionFruitVol[2] = STO_FUNC_VOL(ret[2]);
-            } else if (ret[0] == "speedLevel1") {
+            } else if (ret[0] == "brakeThreshold") {
                 utils::trim(ret[1]);
-                cfg.speedLevel1 = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "speedLevel2") {
-                utils::trim(ret[1]);
-                cfg.speedLevel2 = STO_FUNC_VOL(ret[1]);
+                cfg.brakeThreshold = STO_FUNC_VOL(ret[1]);
             } else if (ret[0] == "delightConsum") {
                 utils::trim(ret[1]);
                 cfg.delightConsum = STO_FUNC_VOL(ret[1]);
+            } else if (ret[0] == "painConsum") {
+                utils::trim(ret[1]);
+                cfg.painConsum = STO_FUNC_VOL(ret[1]);
             } else if (ret[0] == "maxFruit") {
                 utils::trim(ret[1]);
                 cfg.maxFruit = stoi(ret[1]);

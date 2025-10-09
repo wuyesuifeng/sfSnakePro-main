@@ -12,7 +12,7 @@ namespace utils {
         TYPE_VOL maxVitality, vitalityStepCnt,
             eatDelight, bitePain, vitalityPain,
             visionBlankVol[3], visionBodyVol[3], visionFruitVol[3],
-            speedLevel1, speedLevel2, delightConsum, speedVitalityDiff;
+            brakeThreshold, delightConsum, painConsum, speedVitalityDiff;
         unsigned int waitTime, inputCnt, outputCnt, windowSize;
         unsigned int inputSectionArrLen, outputSectionArrLen, visionIndexes[3];
         int initialSize, maxFruit, minFruit, healthTick;

@@ -84,12 +84,12 @@ namespace sfSnake {
             outOfBounds_,
             visionOutOfBounds_;
 
-        UPPER_TYPE_VOL pain_, delight_;
+        UPPER_TYPE_VOL stuckLeft_, stuckRight_, eatLeft_, eatRight_;
         // bool speedup_;
         short int speed_;
 
         float angle_, angleABS_, angleHis_, bodyDir_, headAngle_, headAngleHis_, radian_, turnLeft_, turnRight_,
-            injureLeft_, injureRight_, leftVitality_, rightVitality_, speedVitality_, speedVitalityMax_, speedVitalityDiff_, radianToAngle_;
+            injureLeft_, injureRight_, leftVitality_, rightVitality_, brakeVitality_, brakeVitalityMax_, brakeVitalityDiff_, radianToAngle_;
 
         Direction direction_;
         float nodeRadius_, nodeRadius2_, nodeDiameter_;
