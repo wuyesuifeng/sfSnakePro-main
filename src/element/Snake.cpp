@@ -74,10 +74,6 @@ Snake::Snake()
       eatLeft_(0),
       turnLeft_(0),
       turnRight_(0),
-      injureLeft_(0),
-      injureRight_(0),
-      leftVitality_(0),
-      rightVitality_(0),
       speed_(0),
       direction_(Direction(0, 1)),
       angle_(INITIAL_ANGLE),
@@ -125,27 +121,13 @@ Snake::Snake()
         startRange -= elAngleRange_;
     }
 
-    snakeLen_ = 10 * Game::cfg.initialSize;
+    snakeLen_ = 10 * Game::cfg.initialSize + 1;
 
     health_ = Game::cfg.heath;
 
     death_ = Game::cfg.death;
 
-    maxVitality_ = Game::cfg.maxVitality;
-
-    minVitality_ = -maxVitality_;
-
-    vitalityStepCnt_ = Game::cfg.vitalityStepCnt;
-
-    vitalityPain_ = Game::cfg.vitalityPain;
-
-    vitalityPain2_ = vitalityPain_ / maxVitality_;
-
-    brakeVitalityDiff_ = Game::cfg.speedVitalityDiff;
-
     healthVal_ = Game::cfg.heath;
-
-    brakeVitality_ = brakeVitalityMax_ = maxVitality_ - brakeVitalityDiff_;
 
     initNodes();
 
@@ -286,39 +268,30 @@ void Snake::update(sf::Time delta) {
         *runPtrEnd = in_ + section[1].endIndex,
         *rightPtrEnd = in_ + section[2].endIndex;
 
-    static UPPER_TYPE_VOL plusTmp, brakeTmp, plus;
-    plus = 0;
+    static UPPER_TYPE_VOL plus;
 
-    plusTmp = 0;
     inputPtr = in_ + section[0].startIndex;
     do {
-        plusTmp += *inputPtr;
+        plus -= *inputPtr;
         inputPtr++;
     } while (inputPtr != leftPtrEnd);
 
-    plus = -plusTmp * (leftVitality_ + maxVitality_);
-
-    brakeTmp = 0;
+    speed_ = 0;
     inputPtr = in_ + section[1].startIndex;
     do {
-        brakeTmp += *inputPtr;
+        speed_ += *inputPtr;
         inputPtr++;
     } while (inputPtr != runPtrEnd);
 
-    brakeTmp *= brakeVitality_ / maxVitality_;
-
     static TYPE_VOL brakeThreshold = Game::cfg.brakeThreshold;
 
-    speed_ = brakeTmp > brakeThreshold ? 0 : 1;
+    speed_ = speed_ > brakeThreshold ? 0 : 1;
 
-    plusTmp = 0;
     inputPtr = in_ + section[2].startIndex;
     do {
-        plusTmp += *inputPtr;
+        plus += *inputPtr;
         inputPtr++;
     } while (inputPtr != rightPtrEnd);
-
-    plus = (plus + plusTmp * (rightVitality_ + maxVitality_)) / maxVitality_;
 
     static float angle;
     if (plus) {
@@ -338,33 +311,15 @@ void Snake::update(sf::Time delta) {
             headAngle_ = 360 + headAngle_;
         }
         if (headAngle_ > 0) {
-
             if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
-                injureRight_ = (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
-                if (injureRight_ > MAX_VOL) {
-                    injureRight_ = MAX_VOL;
-                }
-                stuckRight_ += injureRight_;
-            } else {
-                injureRight_ = 0;
+                stuckRight_ += (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
             }
-            injureLeft_ = 0;
         } else if (headAngle_ < 0) {
             if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
                 angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
-                injureLeft_ = -(ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
-                if (injureLeft_ > MAX_VOL) {
-                    injureLeft_ = MAX_VOL;
-                }
-                stuckLeft_ += injureLeft_;
-            } else {
-                injureLeft_ = 0;
+                stuckLeft_ -= (ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
             }
-            injureRight_ = 0;
-        } else {
-            injureRight_ = 0;
-            injureLeft_ = 0;
         }
 
         plus = ((headAngleHis_ > 0 && headAngle_ > 0) || (headAngleHis_ < 0 && headAngle_ < 0)
@@ -403,8 +358,6 @@ void Snake::update(sf::Time delta) {
 
         headAngleHis_ = headAngle_;
     } else {
-        injureRight_ = 0;
-        injureLeft_ = 0;
         turnRight_ = 0;
         turnLeft_ = 0;
 
@@ -430,36 +383,6 @@ void Snake::update(sf::Time delta) {
         }
 
         angleHis_ = angle_;
-    }
-
-    if (turnRight_) {
-        leftVitality_ = STD_MIN(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_, maxVitality_);
-        rightVitality_ = STD_MAX(rightVitality_ - turnRight_, minVitality_);
-    } else if (turnLeft_) {
-        leftVitality_ = STD_MAX(leftVitality_ - turnLeft_, minVitality_);
-        rightVitality_ = STD_MIN(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_, maxVitality_);
-    } else {
-        rightVitality_ = STD_MIN(rightVitality_ + (maxVitality_ - rightVitality_) / vitalityStepCnt_, maxVitality_);
-        leftVitality_ = STD_MIN(leftVitality_ + (maxVitality_ - leftVitality_) / vitalityStepCnt_, maxVitality_);
-    }
-
-    if (leftVitality_) {
-        stuckLeft_ += abs(leftVitality_) * vitalityPain2_;
-    }
-    if (rightVitality_) {
-        stuckRight_ += abs(rightVitality_) * vitalityPain2_;
-    }
-
-    if (speed_) {
-        if (brakeVitality_) {
-            brakeVitality_ = STD_MAX(brakeVitality_ - brakeVitality_ * speed_ / vitalityStepCnt_, 0.0f);
-        }
-    } else {
-        brakeVitality_ = STD_MIN(brakeVitality_ + (maxVitality_ - brakeVitality_) / vitalityStepCnt_, maxVitality_);
-    }
-
-    if (brakeVitality_ > brakeVitalityMax_) {
-        stuckRight_ += stuckLeft_ += vitalityPain_ * (brakeVitality_ - brakeVitalityMax_) / brakeVitalityDiff_;
     }
 
     static float distance, posAngleABS;
@@ -716,16 +639,13 @@ void Snake::checkFruitCollisions(std::deque<Fruit> &fruits) {
                 angleDiff += 360;
             }
             if (angleDiff > 0) {
-                eatRight_ += Game::cfg.eatDelight;
+                eatRight_ = Game::cfg.eatDelight;
             } else if (angleDiff < 0) {
-                eatLeft_ += Game::cfg.eatDelight;
+                eatLeft_ = Game::cfg.eatDelight;
             } else {
-                eatRight_ += eatLeft_ += Game::cfg.eatDelight;
+                eatRight_ = eatLeft_ = Game::cfg.eatDelight;
             }
-            leftVitality_ = rightVitality_ = injureLeft_ = injureRight_ = headAngle_ = 0;
-            // if (brakeVitality_ > brakeVitalityMax_) {
-            //     brakeVitality_ = brakeVitalityMax_;
-            // }
+            // headAngle_ = 0;
         }
     }
     threads_.join();
@@ -743,14 +663,19 @@ bool Snake::hitSelf() const { return hitSelf_; }
 void Snake::move(SnakePathNode headNode) {
 
     if (speed_ > 0) {
-        if (!hitSelf_)
-            bodyDir_ = parseAngle(angle_);
-        for (int i = 1; i <= speed_; i++) {
-            if (hitSelf_) {
-                if (path_.size() > snakeLen_) {
+        static int i;
+        if (hitSelf_) {
+            i = 0;
+            if (path_.size() > snakeLen_) {
+                do {
                     path_.pop_back();
-                }
-            } else {
+                    i++;
+                } while (i < speed_ && path_.size() > snakeLen_);
+            }
+        } else {
+            bodyDir_ = parseAngle(angle_);
+            i = 1;
+            do {
                 path_.push_front(
                     SnakePathNode(headNode.x + direction_.x * i * nodeRadius2_,
                                   headNode.y + direction_.y * i * nodeRadius2_));
@@ -759,7 +684,8 @@ void Snake::move(SnakePathNode headNode) {
                 } else {
                     path_.pop_back();
                 }
-            }
+                i++;
+            } while (i <= speed_);
         }
     }
 }
@@ -834,11 +760,11 @@ void Snake::checkSelfCollisions() {
                     // dieSound_.stop();
                     // dieSound_.play();
                     if (death_) {
-                        stuckRight_ += Game::cfg.bitePain * speed_;
+                        stuckRight_ = Game::cfg.bitePain * speed_;
                     } else {
                         static TYPE_VOL tmp;
                         tmp = Game::cfg.bitePain * speed_;
-                        stuckRight_ += tmp;
+                        stuckRight_ = tmp;
                         health_ -= tmp;
                     }
                 }
@@ -848,11 +774,11 @@ void Snake::checkSelfCollisions() {
                     // dieSound_.stop();
                     // dieSound_.play();
                     if (death_) {
-                        stuckLeft_ += Game::cfg.bitePain * speed_;
+                        stuckLeft_ = Game::cfg.bitePain * speed_;
                     } else {
                         static TYPE_VOL tmp;
                         tmp = Game::cfg.bitePain * speed_;
-                        stuckLeft_ += tmp;
+                        stuckLeft_ = tmp;
                         health_ -= tmp;
                     }
                 }
@@ -861,11 +787,11 @@ void Snake::checkSelfCollisions() {
                 // dieSound_.stop();
                 // dieSound_.play();
                 if (death_) {
-                    stuckRight_ += stuckLeft_ += Game::cfg.bitePain * speed_;
+                    stuckRight_ = stuckLeft_ = Game::cfg.bitePain * speed_;
                 } else {
                     static TYPE_VOL tmp;
                     tmp = Game::cfg.bitePain * speed_;
-                    stuckRight_ += stuckLeft_ += tmp;
+                    stuckRight_ = stuckLeft_ = tmp;
                     health_ -= tmp;
                 }
             }
@@ -984,10 +910,8 @@ bool Snake::toWindow(sf::Vector2f &node, SnakePathNode dir,
 void Snake::reset() {
     snakeLen_ = 10 * Game::cfg.initialSize;
     health_ = Game::cfg.heath;
-    brakeVitality_ = brakeVitalityMax_;
 
-    leftVitality_ = rightVitality_ = speed_ = eatLeft_ = eatRight_ = stuckLeft_ = stuckRight_ = injureLeft_ = injureRight_ =
-        headAngle_ = turnRight_ = turnLeft_ = 0;
+    speed_ = eatLeft_ = eatRight_ = stuckLeft_ = stuckRight_ = headAngle_ = turnRight_ = turnLeft_ = headAngleHis_ = bodyDir_ = 0;
 
     float angleDiff;
     angleDiff = INITIAL_ANGLE - angleHis_;
@@ -1001,7 +925,6 @@ void Snake::reset() {
     }
 
     angle_ = angleHis_ = INITIAL_ANGLE;
-    headAngle_ = headAngleHis_ = bodyDir_ = 0;
     radian_ = angle_ / radianToAngle_;
     direction_ = Direction(0, 1);
     setAngle();
@@ -1021,16 +944,16 @@ void Snake::render(sf::RenderWindow &window) {
         return;
     }
 
-    stuckRight_ = STD_MAX(STD_MIN(stuckRight_, MAX_ENC), MIN_ENC);
+    stuckLeft_ = STD_MIN(stuckLeft_, MAX_VOL);
+    stuckRight_ = STD_MIN(stuckRight_, MAX_VOL);
+    eatRight_ = STD_MIN(eatRight_, MAX_VOL);
+    eatLeft_ = STD_MIN(eatLeft_, MAX_VOL);
 
-    stuckLeft_ = STD_MAX(STD_MIN(stuckLeft_, MAX_ENC), MIN_ENC);
-
-    static int heaelthTick = Game::cfg.healthTick;
+    static int healthTick = Game::cfg.healthTick;
     if (death_) {
-        static float maxHealth = STD_MIN(5.0 * healthVal_, MAX_VITALITY);
-        health_ -= stuckRight_ + stuckLeft_ + heaelthTick - eatRight_ - eatLeft_;
-        if (health_ > maxHealth) {
-            health_ = maxHealth;
+        health_ -= stuckRight_ + stuckLeft_ + healthTick - eatRight_ - eatLeft_;
+        if (health_ > healthVal_) {
+            health_ = healthVal_;
         }
     }
 
@@ -1048,44 +971,81 @@ void Snake::render(sf::RenderWindow &window) {
 
     static utils::io_section *outSectionArr = Game::cfg.outputSectionArr,
                              outSection;
-    static TYPE_VOL headAngle, angleTmp;
+    static TYPE_VOL angleTmp;
 
     outSection = outSectionArr[0]; // LTurn
-    turnLeft_ *= maxVitality_;
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = turnLeft_;
     }
 
+    // if (turnLeft_) {
+    //     std::cout << "turnLeft_: " << turnLeft_ << std::endl;
+    // }
+
     outSection = outSectionArr[1]; // LAngle
-    headAngle = headAngle_ * maxVitality_;
-    angleTmp = headAngle_ < 0 ? STD_MIN(-headAngle, MAX_VOL) : 0;
+    angleTmp = headAngle_ < 0 ? STD_MIN(-headAngle_, MAX_VOL) : 0;
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = angleTmp;
     }
+
+    // if (angleTmp) {
+    //     std::cout << "LAngle: " << angleTmp << std::endl;
+    // }
 
     outSection = outSectionArr[2]; // LStuck
-    injureLeft_ = STD_MIN(injureLeft_ * maxVitality_, MAX_VOL);
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
-        out_[i] = injureLeft_;
+        out_[i] = stuckLeft_;
     }
 
-    outSection = outSectionArr[4]; // RStuck
-    injureRight_ = STD_MIN(injureRight_ * maxVitality_, MAX_VOL);
+    // if (stuckLeft_) {
+    //     std::cout << "stuckLeft_: " << stuckLeft_ << std::endl;
+    // }
+
+    outSection = outSectionArr[3]; // LStuck
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
-        out_[i] = injureRight_;
+        out_[i] = eatLeft_;
     }
 
-    outSection = outSectionArr[5]; // RAngle
-    angleTmp = headAngle_ > 0 ? STD_MIN(headAngle, MAX_VOL) : 0;
+    // if (eatLeft_) {
+    //     std::cout << "eatLeft_: " << eatLeft_ << std::endl;
+    // }
+
+    outSection = outSectionArr[7]; // RStuck
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = eatRight_;
+    }
+
+    // if (eatRight_) {
+    //     std::cout << "eatRight_: " << eatRight_ << std::endl;
+    // }
+
+    outSection = outSectionArr[8]; // RStuck
+    for (i = outSection.startIndex; i < outSection.endIndex; i++) {
+        out_[i] = stuckRight_;
+    }
+
+    // if (stuckRight_) {
+    //     std::cout << "stuckRight_: " << stuckRight_ << std::endl;
+    // }
+
+    outSection = outSectionArr[9]; // RAngle
+    angleTmp = headAngle_ > 0 ? STD_MIN(headAngle_, MAX_VOL) : 0;
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = angleTmp;
     }
 
-    outSection = outSectionArr[6]; // RTurn
-    turnRight_ *= maxVitality_;
+    // if (angleTmp) {
+    //     std::cout << "RAngle: " << angleTmp << std::endl;
+    // }
+
+    outSection = outSectionArr[10]; // RTurn
     for (i = outSection.startIndex; i < outSection.endIndex; i++) {
         out_[i] = turnRight_;
     }
+
+    // if (turnRight_) {
+    //     std::cout << "turnRight_: " << turnRight_ << std::endl;
+    // }
 
     static TYPE_VOL *out_tmp;
     out_tmp = out_;
@@ -1144,19 +1104,19 @@ void Snake::render(sf::RenderWindow &window) {
     }
 
     if (eatRight_ > 0) {
-        eatRight_ = STD_MAX(eatRight_ - Game::cfg.delightConsum, 0.0);
+        eatRight_ = STD_MAX(eatRight_ - Game::cfg.delightConsum, 0.f);
     }
 
     if (eatLeft_ > 0) {
-        eatLeft_ = STD_MAX(eatLeft_ - Game::cfg.delightConsum, 0.0);
+        eatLeft_ = STD_MAX(eatLeft_ - Game::cfg.delightConsum, 0.f);
     }
 
     if (stuckRight_ > 0) {
-        stuckRight_ = STD_MAX(stuckRight_ - Game::cfg.painConsum, 0.0);
+        stuckRight_ = STD_MAX(stuckRight_ - Game::cfg.painConsum, 0.f);
     }
 
     if (stuckLeft_ > 0) {
-        stuckLeft_ = STD_MAX(stuckLeft_ - Game::cfg.painConsum, 0.0);
+        stuckLeft_ = STD_MAX(stuckLeft_ - Game::cfg.painConsum, 0.f);
     }
 
     renderNode(wNowHeadNode, headSprite_, window, 3);

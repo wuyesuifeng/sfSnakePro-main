@@ -88,15 +88,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "bitePain") {
                 utils::trim(ret[1]);
                 cfg.bitePain = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "maxVitality") {
-                utils::trim(ret[1]);
-                cfg.maxVitality = stof(ret[1]);
-            } else if (ret[0] == "vitalityPain") {
-                utils::trim(ret[1]);
-                cfg.vitalityPain = STO_FUNC_VOL(ret[1]);
-            } else if (ret[0] == "vitalityStepCnt") {
-                utils::trim(ret[1]);
-                cfg.vitalityStepCnt = stoi(ret[1]);
             } else if (ret[0] == "initialSize") {
                 utils::trim(ret[1]);
                 cfg.initialSize = stoi(ret[1]);
@@ -151,9 +142,6 @@ utils::ReadConf::ReadConf() {
             } else if (ret[0] == "waitTime") {
                 utils::trim(ret[1]);
                 cfg.waitTime = stoi(ret[1]);
-            } else if (ret[0] == "speedVitalityDiff") {
-                utils::trim(ret[1]);
-                cfg.speedVitalityDiff = stof(ret[1]);
             } else if (ret[0] == "input_section") {
                 utils::trim(ret[1]);
                 input_section = ret[1];
