@@ -4,9 +4,6 @@
 #ifdef __linux
 #include <cstring>
 #endif
-
-#define WRITE_SIZE sizeof(TYPE_VOL) * WRITE_LEN
-#define READ_SIZE sizeof(TYPE_VOL) * READ_LEN
 #define ME_PROJECT_ID 1
 #define FLAG IPC_CREAT | 0777
 #define READ_EXT_CNT 1
@@ -131,7 +128,7 @@ ShareMemory::ShareMemory(char *xyExecFile, unsigned int readCnt, unsigned int wr
         throw "shmget writeId failed";
     }
 
-    if ((readId = shmget(readKey, READ_SIZE, FLAG)) == -1) {
+    if ((readId = shmget(readKey, readSize, FLAG)) == -1) {
         throw "shmget readId failed";
     }
 
