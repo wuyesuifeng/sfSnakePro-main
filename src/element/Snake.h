@@ -66,10 +66,6 @@ namespace sfSnake {
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,
                         int offset);
 
-        bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian);
-
-        bool toWindow(SnakePathNode &node, SnakePathNode dir, float radian, sf::Vector2f head);
-
         float health_, healthVal_;
         TYPE_VOL *deathFlag_;
 
@@ -79,7 +75,6 @@ namespace sfSnake {
 
         bool death_,
             hitSelf_,
-            outOfBounds_,
             visionOutOfBounds_;
 
         TYPE_VOL stuckLeft_, stuckRight_, eatLeft_, eatRight_;
