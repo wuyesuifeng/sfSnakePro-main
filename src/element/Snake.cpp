@@ -21,8 +21,6 @@
 
 #define INITIAL_ANGLE 0
 
-#define MMMMM_FLOAT 1.175494351E-38
-
 #define VISION_SECTION Game::cfg.outputSectionArr[Game::cfg.visionIndexes[0]]
 
 using namespace sfSnake;
@@ -418,11 +416,7 @@ void Snake::update(sf::Time delta) {
             headPos_ = &path_.front();
             distance = dis(centerPos_, *headPos_);
             pos = *headPos_ - centerPos_;
-            posAngleABS = culAngleABS(pos);
-
-            if (pos.x > 0) {
-                posAngleABS = -posAngleABS;
-            }
+            posAngleABS = culAngle(pos);
         }
     } else {
         headPos_ = &path_.front();
@@ -432,14 +426,10 @@ void Snake::update(sf::Time delta) {
     }
     look(distance, posAngleABS, pos);
 
-    if (distance > windowRadius_) {
-        distance = dis(centerPos_, headOutPos_);
-        if (distance <= windowRadius_) {
-            headPos_->x = headOutPos_.x;
-            headPos_->y = headOutPos_.y;
-        }
+    if (distance >= windowRadius_) {
+        headPos_->x = headOutPos_.x;
+        headPos_->y = headOutPos_.y;
     }
-
     lookSelf();
 }
 
@@ -473,23 +463,24 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
             (maxOutOfBound && angle_ <= max[1] && angle_ >= -180) ||
             (minOutOfBound && angle_ <= 180 && angle_ >= min[1])) {
 
-            static float hypotenuse, angleA;
-            angleA = abs(90.f - angleABS_) / radianToAngle_;
-            hypotenuse = 2.f * sqrtf(windowRadiusPow_ - pow((abs(pos.y) - tanf(angleA) * abs(pos.x)) * cosf(angleA), 2));
+            static float hypotenuse, radianA, cosVal, sinVal, posX;
+            radianA = abs(90.f - angleABS_) / radianToAngle_;
+            posX = direction_.x <= 0 ? pos.x : -pos.x;
+            hypotenuse = abs(pos.y) + tanf(radianA) * posX;
+            cosVal = cosf(radianA);
+            sinVal = sinf(radianA);
+            hypotenuse = sqrtf(windowRadiusPow_ - powf(hypotenuse * cosVal, 2)) * 3 - (hypotenuse * sinVal - posX / cosVal);
 
-            if (angle_ < 0) {
-                headOutPos_.x = headPos_->x - cosf(angleA) * hypotenuse;
+            if (angle_ <= 0) {
+                headOutPos_.x = headPos_->x - cosVal * hypotenuse;
             } else if (angle_ > 0) {
-                headOutPos_.x = headPos_->x + cosf(angleA) * hypotenuse;
-            } else {
-                headOutPos_.x = headPos_->x;
+                headOutPos_.x = headPos_->x + cosVal * hypotenuse;
             }
-            if (angleABS_ > 90) {
-                headOutPos_.y = headPos_->y + sinf(angleA) * hypotenuse;
+
+            if (angleABS_ >= 90) {
+                headOutPos_.y = headPos_->y + sinVal * hypotenuse;
             } else if (angleABS_ < 90) {
-                headOutPos_.y = headPos_->y - sinf(angleA) * hypotenuse;
-            } else {
-                headOutPos_.y = headPos_->y;
+                headOutPos_.y = headPos_->y - sinVal * hypotenuse;
             }
 
             visionOutOfBounds_ = true;
