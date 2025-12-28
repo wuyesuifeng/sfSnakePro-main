@@ -60,7 +60,7 @@ namespace sfSnake {
         void checkOutOfWindow();
         void checkSelfCollisions();
         void lookSelf();
-        void look(float distance, float posAngle, SnakePathNode pos);
+        void look(float distance, SnakePathNode pos);
 
         template <typename T>
         void renderNode(sf::Vector2f &nowPosition, T &shape, sf::RenderWindow &window,

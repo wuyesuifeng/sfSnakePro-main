@@ -12,7 +12,7 @@
 #include "utils/Time.hpp"
 
 #define ANGLE_PLUS_THRESHOLD 180
-#define ANGLE_PLUS_THRESHOLD2 80
+#define ANGLE_PLUS_THRESHOLD2 60
 #define ANGLE_PLUS_THRESHOLD3 160
 #define STD_MAX std::max
 #define STD_MIN std::min
@@ -76,6 +76,7 @@ Snake::Snake()
       speed_(0),
       direction_(Direction(0, 1)),
       angle_(INITIAL_ANGLE),
+      angleABS_(abs(angle_)),
       angleHis_(angle_),
       headAngleHis_(angle_),
       bodyDir_(angle_),
@@ -268,6 +269,7 @@ void Snake::update(sf::Time delta) {
         *rightPtrEnd = in_ + section[2].endIndex;
 
     static UPPER_TYPE_VOL plus;
+    plus = 0;
 
     inputPtr = in_ + section[0].startIndex;
     do {
@@ -286,6 +288,7 @@ void Snake::update(sf::Time delta) {
 
     speed_ = speed_ > brakeThreshold ? 0 : 1;
 
+    plus = 0;
     inputPtr = in_ + section[2].startIndex;
     do {
         plus += *inputPtr;
@@ -300,9 +303,8 @@ void Snake::update(sf::Time delta) {
             plus = -ANGLE_PLUS_THRESHOLD3;
         }
 
-        angle_ = parseAngle2(angle_ + plus);
+        angle = parseAngle(parseAngle2(angle_ + plus));
 
-        angle = parseAngle(angle_);
         headAngle_ = angle - bodyDir_;
         if (headAngle_ > ANGLE_PLUS_THRESHOLD) {
             headAngle_ = headAngle_ - 360;
@@ -311,15 +313,18 @@ void Snake::update(sf::Time delta) {
         }
         if (headAngle_ > 0) {
             if (headAngle_ > ANGLE_PLUS_THRESHOLD2) {
-                angle_ = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
+                angle = parseAngle2(bodyDir_ + ANGLE_PLUS_THRESHOLD2);
                 stuckRight_ += (headAngle_ - ANGLE_PLUS_THRESHOLD2) * 10;
             }
         } else if (headAngle_ < 0) {
             if (headAngle_ < -ANGLE_PLUS_THRESHOLD2) {
-                angle_ = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
+                angle = parseAngle2(bodyDir_ - ANGLE_PLUS_THRESHOLD2);
                 stuckLeft_ -= (ANGLE_PLUS_THRESHOLD2 + headAngle_) * 10;
             }
         }
+
+        angle_ = angle;
+        angleABS_ = abs(angle);
 
         plus = ((headAngleHis_ > 0 && headAngle_ > 0) || (headAngleHis_ < 0 && headAngle_ < 0)
                     ? headAngleHis_ - headAngle_
@@ -384,12 +389,10 @@ void Snake::update(sf::Time delta) {
         angleHis_ = angle_;
     }
 
-    static float distance, posAngleABS;
+    static float distance;
     static SnakePathNode pos;
 
     if (speed_) {
-
-        visionOutOfBounds_ = false;
 
         static SnakePathNode headPos;
         headPos = path_.front();
@@ -410,36 +413,41 @@ void Snake::update(sf::Time delta) {
                 }
             }
             pos = *headPos_ - centerPos_;
-            posAngleABS = culAngle(pos);
         } else {
             move(path_.front());
             headPos_ = &path_.front();
             distance = dis(centerPos_, *headPos_);
             pos = *headPos_ - centerPos_;
-            posAngleABS = culAngle(pos);
         }
     } else {
         headPos_ = &path_.front();
         distance = dis(centerPos_, *headPos_);
         pos = *headPos_ - centerPos_;
-        posAngleABS = culAngle(pos);
     }
-    look(distance, posAngleABS, pos);
+    look(distance, pos);
 
-    if (distance >= windowRadius_) {
-        headPos_->x = headOutPos_.x;
-        headPos_->y = headOutPos_.y;
+    if (distance > windowRadius_) {
+        distance = dis(centerPos_, headOutPos_);
+        if (distance <= windowRadius_) {
+            headPos_->x = headOutPos_.x;
+            headPos_->y = headOutPos_.y;
+        } else {
+            std::cout << distance - windowRadius_ << std::endl;
+            reset();
+        }
     }
     lookSelf();
 }
 
-void Snake::look(float distance, float posAngle, SnakePathNode pos) {
+void Snake::look(float distance, SnakePathNode pos) {
 
     if (distance + visionDistance_ > windowRadius_) {
 
         // std::cout << culAngle(headPos_ - centerPos_) << std::endl;
-        static float max[2], min[2];
+        static float max[2], min[2], posAngle;
         static bool maxOutOfBound, minOutOfBound;
+
+        posAngle = culAngle(pos);
 
         *max = posAngle + halfVisionAngle_;
         *min = posAngle - halfVisionAngle_;
@@ -463,27 +471,37 @@ void Snake::look(float distance, float posAngle, SnakePathNode pos) {
             (maxOutOfBound && angle_ <= max[1] && angle_ >= -180) ||
             (minOutOfBound && angle_ <= 180 && angle_ >= min[1])) {
 
-            static float hypotenuse, radianA, cosVal, sinVal, posX;
-            radianA = abs(90.f - angleABS_) / radianToAngle_;
-            posX = direction_.x <= 0 ? pos.x : -pos.x;
-            hypotenuse = abs(pos.y) + tanf(radianA) * posX;
-            cosVal = cosf(radianA);
-            sinVal = sinf(radianA);
-            hypotenuse = sqrtf(windowRadiusPow_ - powf(hypotenuse * cosVal, 2)) * 3 - (hypotenuse * sinVal - posX / cosVal);
+            if (!angleABS_) {
+                headOutPos_.y = headPos_->y - sqrtf(windowRadiusPow_ - powf(pos.x, 2)) * 2;
+                headOutPos_.x = headPos_->x;
+            } else if (angleABS_ == 180) {
+                headOutPos_.y = headPos_->y + sqrtf(windowRadiusPow_ - powf(pos.x, 2)) * 2;
+                headOutPos_.x = headPos_->x;
+            } else {
+                static float hypotenuse, radianA, cosVal, sinVal, posX;
+                radianA = abs(90.f - angleABS_) / radianToAngle_;
+                posX = direction_.x <= 0 ? pos.x : -pos.x;
+                hypotenuse = abs(pos.y) + tanf(radianA) * posX;
+                cosVal = cosf(radianA);
+                sinVal = sinf(radianA);
+                hypotenuse = sqrtf(windowRadiusPow_ - powf(hypotenuse * cosVal, 2)) * 2;
 
-            if (angle_ <= 0) {
-                headOutPos_.x = headPos_->x - cosVal * hypotenuse;
-            } else if (angle_ > 0) {
-                headOutPos_.x = headPos_->x + cosVal * hypotenuse;
-            }
+                if (angle_ < 0) {
+                    headOutPos_.x = headPos_->x - cosVal * hypotenuse;
+                } else if (angle_ > 0) {
+                    headOutPos_.x = headPos_->x + cosVal * hypotenuse;
+                }
 
-            if (angleABS_ >= 90) {
-                headOutPos_.y = headPos_->y + sinVal * hypotenuse;
-            } else if (angleABS_ < 90) {
-                headOutPos_.y = headPos_->y - sinVal * hypotenuse;
+                if (angleABS_ >= 90) {
+                    headOutPos_.y = headPos_->y + sinVal * hypotenuse;
+                } else if (angleABS_ < 90) {
+                    headOutPos_.y = headPos_->y - sinVal * hypotenuse;
+                }
             }
 
             visionOutOfBounds_ = true;
+        } else {
+            visionOutOfBounds_ = false;
         }
     }
 }
@@ -804,6 +822,7 @@ void Snake::reset() {
     }
 
     angle_ = angleHis_ = INITIAL_ANGLE;
+    angleABS_ = abs(angle_);
     radian_ = angle_ / radianToAngle_;
     direction_ = Direction(0, 1);
     setAngle();
