@@ -432,7 +432,7 @@ void Snake::update(sf::Time delta) {
             headPos_->x = headOutPos_.x;
             headPos_->y = headOutPos_.y;
         } else {
-            std::cout << distance - windowRadius_ << std::endl;
+            // std::cout << distance - windowRadius_ << std::endl;
             reset();
         }
     }
@@ -480,7 +480,11 @@ void Snake::look(float distance, SnakePathNode pos) {
             } else {
                 static float hypotenuse, radianA, cosVal, sinVal, posX;
                 radianA = abs(90.f - angleABS_) / radianToAngle_;
-                posX = direction_.x <= 0 ? pos.x : -pos.x;
+                if (direction_.x <= 0) {
+                    posX = (direction_.y >= 0 && pos.y >= 0) || (direction_.y <= 0 && pos.y <= 0) ? pos.x : -pos.x;
+                } else {
+                    posX = (direction_.y >= 0 && pos.y >= 0) || (direction_.y <= 0 && pos.y <= 0) ? -pos.x : pos.x;
+                }
                 hypotenuse = abs(pos.y) + tanf(radianA) * posX;
                 cosVal = cosf(radianA);
                 sinVal = sinf(radianA);
